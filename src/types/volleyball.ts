@@ -70,7 +70,8 @@ export interface DefenseSchemeConfig {
   fileName: string;
   name: string;
   description: string;
-  systemType: '6-recuado' | '6-avancado' | 'fechando-linha' | 'fechando-diagonal';
+  systemType: '6-recuado' | '6-avancado' | 'fechando-linha' | 'fechando-diagonal' | 'custom';
+  isCustom?: boolean;
   // Mapping: scenarioId -> rotation (1..6) -> movements for all 6 players
   schemes: Record<string, Record<number, PlayerMovement[]>>;
 }

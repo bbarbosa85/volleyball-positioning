@@ -1,4 +1,4 @@
-import type { AttackScenario, Player, PlayerMovement, DefenseSchemeConfig } from '../types/volleyball';
+import type { AttackScenario, Player, PlayerMovement } from '../types/volleyball';
 
 export interface DbStatus {
   connected: boolean;

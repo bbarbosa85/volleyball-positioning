@@ -1,20 +1,25 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { Player, AttackScenario, DefenseSchemeConfig, CoedBlockMode } from './types/volleyball';
+  import type { Player, AttackScenario, DefenseSchemeConfig, CoedBlockMode, PlayerMovement } from './types/volleyball';
   import { defaultRoster } from './data/defaultRoster';
   import { attackScenarios } from './data/scenarios';
-  import { loadAllSchemes, saveScheme, getMovements, rotateMovementsForRotation, builtInSchemes } from './data/schemeRegistry';
+  import {
+    loadAllSchemes,
+    saveScheme,
+    deleteScheme,
+    builtInSchemes,
+    composeMovements,
+    canonicalAttackSchemes,
+    rotateMovementsForRotation
+  } from './data/schemeRegistry';
   import { applyCoedBlockingRules } from './data/coedRules';
   import { loadCustomScenarios, saveCustomScenario, deleteCustomScenario } from './data/customScenarios';
 
   import Court from './components/Court.svelte';
   import Controls from './components/Controls.svelte';
-  import PlayerFocusCard from './components/PlayerFocusCard.svelte';
   import SaveAdjustmentModal from './components/SaveAdjustmentModal.svelte';
-  import ExportGifModal from './components/ExportGifModal.svelte';
   import DatabaseModal from './components/DatabaseModal.svelte';
   import RosterModal from './components/RosterModal.svelte';
-  import JsonManagerModal from './components/JsonManagerModal.svelte';
   import Badge from './components/ui/Badge.svelte';
 
   import {
@@ -26,7 +31,7 @@
     type DbStatus
   } from './services/dbClient';
 
-  import { Shield, Info, Database, Film, Users, FileCode } from '@lucide/svelte';
+  import { Shield, Info, Database, Users, Share2, Play, Check } from '@lucide/svelte';
 
   // State
   let roster = $state<Player[]>(defaultRoster);
@@ -37,15 +42,21 @@
   let rotation = $state<number>(1);
   let coedBlockMode = $state<CoedBlockMode>('single_man');
 
-  // Modals state
-  let isEditMode = $state<boolean>(false);
-  let editModeTarget = $state<'defense' | 'base'>('defense');
+  // Preset modification tracking & Modals
+  let isBaseModified = $state<boolean>(false);
+  let isAttackModified = $state<boolean>(false);
+  let attackSchemes = $state<Record<string, Record<number, PlayerMovement[]>>>(
+    JSON.parse(JSON.stringify(canonicalAttackSchemes))
+  );
+  let saveTarget = $state<'base' | 'attack'>('base');
   let isSaveModalOpen = $state<boolean>(false);
-  let isExportGifModalOpen = $state<boolean>(false);
   let isDbModalOpen = $state<boolean>(false);
   let isRosterModalOpen = $state<boolean>(false);
-  let isJsonModalOpen = $state<boolean>(false);
   let dbStatus = $state<DbStatus | null>(null);
+
+  // Share feedback toast
+  let shareToast = $state<string | null>(null);
+  let shareToastTimer: any = null;
 
   // All available scenarios: Custom first, then standard presets
   const allScenarios = $derived<AttackScenario[]>([
@@ -61,7 +72,8 @@
   // View state
   let selectedPlayerId = $state<string | null>(null);
   let showBlockShadow = $state<boolean>(true);
-  let showZones = $state<boolean>(true);
+  let showZones = $state<boolean>(false);
+  let showAllArrows = $state<boolean>(false);
   let is3DView = $state<boolean>(false);
 
   // Load persistence (localStorage + SQLite)
@@ -105,12 +117,10 @@
 
           // Merge custom schemes from SQLite
           if (dbData.schemes && Object.keys(dbData.schemes).length > 0) {
-            const updated = JSON.parse(JSON.stringify(currentScheme)) as DefenseSchemeConfig;
-            if (!updated.schemes) updated.schemes = {};
-            for (const [scId, rotMap] of Object.entries(dbData.schemes)) {
-              updated.schemes[scId] = rotMap;
-            }
-            handleSaveScheme(updated);
+            attackSchemes = {
+              ...attackSchemes,
+              ...dbData.schemes
+            };
           }
 
           // Roster
@@ -125,17 +135,47 @@
     } catch (err) {
       console.warn('SQLite init warning:', err);
     }
+
+    // 3. Parse URL share parameters
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const paramBase = params.get('base');
+      const paramAttack = params.get('attack');
+      const paramRot = params.get('rot');
+      const paramPlay = params.get('play');
+
+      if (paramBase) {
+        const foundScheme = allSchemes.find(s => s.id === paramBase);
+        if (foundScheme) currentScheme = foundScheme;
+      }
+      if (paramAttack) {
+        const foundSc = allScenarios.find(s => s.id === paramAttack);
+        if (foundSc) currentScenario = foundSc;
+      }
+      if (paramRot === '1' || paramRot === '2') {
+        rotation = parseInt(paramRot);
+      }
+      if (paramPlay === '1') {
+        currentPositionMode = 'base';
+        progress = 0;
+        setTimeout(() => {
+          handlePlayTransition();
+        }, 700);
+      }
+    } catch (e) {
+      console.warn('URL param parse error:', e);
+    }
   });
 
-  // Raw movements from active JSON scheme
+  // Raw movements composed from active Base Defense Scheme (START) and active Attack Scenario (END)
   const rawMovements = $derived(
-    getMovements(currentScheme, currentScenario.id, rotation)
+    composeMovements(currentScheme, currentScenario.id, rotation, attackSchemes)
   );
 
   // COED blocking rules: only men in front block, 1 solo man blocks in most cases, women pull off net
-  // In Edit Mode, user coordinates are 100% preserved so all players can be positioned freely
+  // When positions are modified by user, coordinates are 100% preserved
   const coedResolved = $derived(
-    applyCoedBlockingRules(rawMovements, roster, rotation, currentScenario, coedBlockMode, isEditMode)
+    applyCoedBlockingRules(rawMovements, roster, rotation, currentScenario, coedBlockMode, isBaseModified || isAttackModified)
   );
 
   // Final adjusted movements passed to Court
@@ -177,6 +217,66 @@
     animateToPosition(mode === 'base' ? 0 : 1);
   }
 
+  function handlePlayTransition() {
+    if (progress > 0.05) {
+      currentPositionMode = 'base';
+      progress = 0;
+      setTimeout(() => {
+        currentPositionMode = 'spike';
+        animateToPosition(1);
+      }, 200);
+    } else {
+      currentPositionMode = 'spike';
+      animateToPosition(1);
+    }
+  }
+
+  function handleShare() {
+    const url = new URL(window.location.href);
+    url.searchParams.set('base', currentScheme.id);
+    url.searchParams.set('attack', currentScenario.id);
+    url.searchParams.set('rot', rotation.toString());
+    url.searchParams.set('play', '1');
+
+    const shareUrl = url.toString();
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      shareToast = 'Share link copied! Opening it loads this tactic & plays transition.';
+      if (shareToastTimer) clearTimeout(shareToastTimer);
+      shareToastTimer = setTimeout(() => {
+        shareToast = null;
+      }, 3500);
+    }).catch(() => {
+      prompt('Copy this share link:', shareUrl);
+    });
+  }
+
+  function handleResetBase() {
+    const freshSchemes = loadAllSchemes();
+    const clean = freshSchemes.find(s => s.id === currentScheme.id) || builtInSchemes.find(s => s.id === currentScheme.id);
+    if (clean) {
+      currentScheme = JSON.parse(JSON.stringify(clean));
+    }
+    isBaseModified = false;
+  }
+
+  function handleResetAttack() {
+    const pristineSc = allScenarios.find(s => s.id === currentScenario.id);
+    if (pristineSc) {
+      currentScenario = JSON.parse(JSON.stringify(pristineSc));
+    }
+    const updated = JSON.parse(JSON.stringify(attackSchemes));
+    if (canonicalAttackSchemes[currentScenario.id]) {
+      updated[currentScenario.id] = JSON.parse(JSON.stringify(canonicalAttackSchemes[currentScenario.id]));
+    }
+    attackSchemes = updated;
+    isAttackModified = false;
+  }
+
+  function handleOpenSaveModal(target: 'base' | 'attack') {
+    saveTarget = target;
+    isSaveModalOpen = true;
+  }
+
   function handleSaveRoster(newRoster: Player[]) {
     roster = newRoster;
     localStorage.setItem('volleyball_coed_roster_v1', JSON.stringify(newRoster));
@@ -191,24 +291,38 @@
 
   // Update real-time position of a defending player (either base or defense position)
   function handleUpdatePosition(playerId: string, pos: { x: number; y: number }, isDefense: boolean) {
-    const updated = JSON.parse(JSON.stringify(currentScheme)) as DefenseSchemeConfig;
-    if (!updated.schemes) updated.schemes = {};
-    if (!updated.schemes[currentScenario.id]) {
-      updated.schemes[currentScenario.id] = {};
-    }
-    if (!updated.schemes[currentScenario.id][rotation]) {
-      updated.schemes[currentScenario.id][rotation] = JSON.parse(JSON.stringify(movements));
-    }
-
-    const moves = updated.schemes[currentScenario.id][rotation];
-    const targetMove = moves.find(m => m.playerId === playerId);
-    if (targetMove) {
-      if (isDefense) {
-        targetMove.defensePosition = { x: Math.round(pos.x), y: Math.round(pos.y) };
-      } else {
-        targetMove.basePosition = { x: Math.round(pos.x), y: Math.round(pos.y) };
+    if (isDefense) {
+      // 1. Modifying Attack Preset (END of animation)
+      const updatedAttack = JSON.parse(JSON.stringify(attackSchemes));
+      if (!updatedAttack[currentScenario.id]) {
+        updatedAttack[currentScenario.id] = {};
       }
-      handleSaveScheme(updated);
+      if (!updatedAttack[currentScenario.id][rotation]) {
+        updatedAttack[currentScenario.id][rotation] = JSON.parse(JSON.stringify(movements));
+      }
+      const moves = updatedAttack[currentScenario.id][rotation];
+      const target = moves.find((m: PlayerMovement) => m.playerId === playerId);
+      if (target) {
+        target.defensePosition = { x: Math.round(pos.x), y: Math.round(pos.y) };
+      }
+      attackSchemes = updatedAttack;
+      isAttackModified = true;
+    } else {
+      // 2. Modifying Base Defense reading position (START of animation)
+      const updated = JSON.parse(JSON.stringify(currentScheme)) as DefenseSchemeConfig;
+      if (!updated.schemes) updated.schemes = {};
+      const roundedBase = { x: Math.round(pos.x), y: Math.round(pos.y) };
+      for (const scKey of Object.keys(updated.schemes)) {
+        const scRotMoves = updated.schemes[scKey]?.[rotation];
+        if (Array.isArray(scRotMoves)) {
+          const m = scRotMoves.find((pm: PlayerMovement) => pm.playerId === playerId);
+          if (m) {
+            m.basePosition = roundedBase;
+          }
+        }
+      }
+      currentScheme = updated;
+      isBaseModified = true;
     }
   }
 
@@ -218,13 +332,14 @@
       ...currentScenario,
       ...updates
     };
+    isAttackModified = true;
     if (currentScenario.isCustom) {
       saveCustomScenario(currentScenario);
       customScenarios = loadCustomScenarios();
     }
   }
 
-  // Save current dragged court setup as a brand new named custom adjustment
+  // Save current dragged court setup as a brand new named custom adjustment (either base or attack)
   function handleSaveNewAdjustment(data: {
     name: string;
     label: string;
@@ -232,6 +347,42 @@
     description: string;
     defensiveKey: string;
   }) {
+    if (saveTarget === 'base') {
+      // Save as new custom Base Defense Preset
+      const newSchemeId = `custom_base_${Date.now()}`;
+      const newScheme: DefenseSchemeConfig = {
+        id: newSchemeId,
+        fileName: `${newSchemeId}.json`,
+        name: data.name,
+        description: data.description || 'Custom base defense preset',
+        systemType: 'custom',
+        isCustom: true,
+        schemes: JSON.parse(JSON.stringify(currentScheme.schemes || {}))
+      };
+
+      // Set current dragged base positions for this rotation across all scenarios in new scheme
+      for (const scKey of Object.keys(newScheme.schemes)) {
+        if (!newScheme.schemes[scKey][rotation]) {
+          newScheme.schemes[scKey][rotation] = JSON.parse(JSON.stringify(movements));
+        }
+        const rotMoves = newScheme.schemes[scKey][rotation];
+        if (Array.isArray(rotMoves)) {
+          movements.forEach(currentM => {
+            const m = rotMoves.find(rm => rm.playerId === currentM.playerId);
+            if (m) {
+              m.basePosition = { ...currentM.basePosition };
+            }
+          });
+        }
+      }
+
+      handleSaveScheme(newScheme);
+      currentScheme = newScheme;
+      isBaseModified = false;
+      return;
+    }
+
+    // Save as new custom Attack Preset
     const newId = `custom_adj_${Date.now()}`;
     const newScenario: AttackScenario = {
       id: newId,
@@ -252,21 +403,48 @@
     saveCustomScenario(newScenario);
     customScenarios = loadCustomScenarios();
 
-    // Save current defender positions for this new scenario across rotations in current scheme
-    const updatedScheme = JSON.parse(JSON.stringify(currentScheme)) as DefenseSchemeConfig;
-    if (!updatedScheme.schemes) updatedScheme.schemes = {};
-    updatedScheme.schemes[newId] = {};
+    // Save current defender positions for this new scenario across rotations in attackSchemes
+    const updatedAttack = JSON.parse(JSON.stringify(attackSchemes));
+    updatedAttack[newId] = {};
     for (let r = 1; r <= 6; r++) {
-      updatedScheme.schemes[newId][r] = rotateMovementsForRotation(movements, r);
+      updatedAttack[newId][r] = rotateMovementsForRotation(movements, r);
     }
-    handleSaveScheme(updatedScheme);
+    attackSchemes = updatedAttack;
 
     // Save to SQLite database
-    saveScenarioToDb(newScenario, updatedScheme.schemes[newId]);
+    saveScenarioToDb(newScenario, updatedAttack[newId]);
 
     // Switch to new scenario
     currentScenario = newScenario;
-    isEditMode = false;
+    isAttackModified = false;
+  }
+
+  // Quick save modifications to the current custom base defense preset
+  function handleQuickSaveBaseScheme() {
+    if (!currentScheme.isCustom) return;
+    const updated = JSON.parse(JSON.stringify(currentScheme)) as DefenseSchemeConfig;
+    for (const scKey of Object.keys(updated.schemes || {})) {
+      const rotMoves = updated.schemes[scKey]?.[rotation];
+      if (Array.isArray(rotMoves)) {
+        movements.forEach(currentM => {
+          const m = rotMoves.find(rm => rm.playerId === currentM.playerId);
+          if (m) {
+            m.basePosition = { ...currentM.basePosition };
+          }
+        });
+      }
+    }
+    handleSaveScheme(updated);
+    isBaseModified = false;
+  }
+
+  // Delete a custom base defense preset
+  function handleDeleteScheme(schemeId: string) {
+    deleteScheme(schemeId);
+    allSchemes = loadAllSchemes();
+    if (currentScheme.id === schemeId) {
+      currentScheme = allSchemes[0] || builtInSchemes[0];
+    }
   }
 
   // Quick save modifications to the current custom adjustment
@@ -275,16 +453,16 @@
     saveCustomScenario(currentScenario);
     customScenarios = loadCustomScenarios();
 
-    const updatedScheme = JSON.parse(JSON.stringify(currentScheme)) as DefenseSchemeConfig;
-    if (!updatedScheme.schemes) updatedScheme.schemes = {};
-    if (!updatedScheme.schemes[currentScenario.id]) {
-      updatedScheme.schemes[currentScenario.id] = {};
+    const updatedAttack = JSON.parse(JSON.stringify(attackSchemes));
+    if (!updatedAttack[currentScenario.id]) {
+      updatedAttack[currentScenario.id] = {};
     }
-    updatedScheme.schemes[currentScenario.id][rotation] = JSON.parse(JSON.stringify(movements));
-    handleSaveScheme(updatedScheme);
+    updatedAttack[currentScenario.id][rotation] = JSON.parse(JSON.stringify(movements));
+    attackSchemes = updatedAttack;
 
     // Save to SQLite database
-    saveScenarioToDb(currentScenario, updatedScheme.schemes[currentScenario.id]);
+    saveScenarioToDb(currentScenario, updatedAttack[currentScenario.id]);
+    isAttackModified = false;
   }
 
   // Delete a custom adjustment
@@ -297,9 +475,48 @@
     // Delete from SQLite database
     deleteScenarioFromDb(scenarioId);
   }
+
+  // Rename a custom base defense preset
+  function handleRenameScheme(schemeId: string, newName: string) {
+    const cleanName = newName.trim();
+    if (!cleanName) return;
+    const target = allSchemes.find(s => s.id === schemeId);
+    if (target && target.isCustom) {
+      const updated = { ...target, name: cleanName };
+      saveScheme(updated);
+      allSchemes = loadAllSchemes();
+      if (currentScheme.id === schemeId) {
+        currentScheme = updated;
+      }
+    }
+  }
+
+  // Rename a custom attack preset
+  function handleRenameAdjustment(scenarioId: string, newName: string) {
+    const cleanName = newName.trim();
+    if (!cleanName) return;
+    const target = customScenarios.find(s => s.id === scenarioId);
+    if (target && target.isCustom) {
+      const updated: AttackScenario = { ...target, name: cleanName, label: cleanName };
+      saveCustomScenario(updated);
+      customScenarios = loadCustomScenarios();
+      if (currentScenario.id === scenarioId) {
+        currentScenario = updated;
+      }
+      saveScenarioToDb(updated, attackSchemes[scenarioId]);
+    }
+  }
 </script>
 
-<div class="min-h-screen bg-[#070b12] text-slate-100 flex flex-col selection:bg-blue-600 selection:text-white">
+<div class="min-h-screen bg-[#070b12] text-slate-100 flex flex-col selection:bg-blue-600 selection:text-white relative">
+  <!-- Toast Feedback Notification -->
+  {#if shareToast}
+    <div class="fixed top-16 right-4 z-50 bg-emerald-950/95 text-emerald-200 border border-emerald-500/60 rounded-xl px-4 py-2.5 shadow-2xl backdrop-blur-md flex items-center gap-2 text-xs font-semibold">
+      <Check class="w-4 h-4 text-emerald-400 shrink-0" />
+      <span>{shareToast}</span>
+    </div>
+  {/if}
+
   <!-- TOP NAVIGATION HEADER -->
   <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 px-4 lg:px-8 py-3">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
@@ -333,16 +550,6 @@
       <div class="flex items-center gap-2">
         <button
           type="button"
-          onclick={() => isJsonModalOpen = true}
-          class="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 transition-colors cursor-pointer shadow-sm"
-          title="Inspect and edit defense coordinates JSON"
-        >
-          <FileCode class="w-3.5 h-3.5 text-amber-400" />
-          <span class="hidden md:inline">JSON Schemes</span>
-        </button>
-
-        <button
-          type="button"
           onclick={() => isDbModalOpen = true}
           class="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 transition-colors cursor-pointer shadow-sm"
           title="View SQLite database info (data/volleyball.db)"
@@ -352,25 +559,37 @@
           <span class="w-2 h-2 rounded-full {dbStatus?.connected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}"></span>
         </button>
 
+        <!-- Play Transition Button -->
         <button
           type="button"
-          onclick={() => isExportGifModalOpen = true}
-          class="flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg bg-gradient-to-r from-amber-500/20 to-rose-500/20 hover:from-amber-500/30 hover:to-rose-500/30 text-amber-300 border border-amber-500/40 transition-all cursor-pointer shadow-sm"
-          title="Export current rotation animation as an animated GIF"
+          onclick={handlePlayTransition}
+          class="flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg bg-gradient-to-r from-emerald-600/30 to-teal-600/30 hover:from-emerald-600/50 hover:to-teal-600/50 text-emerald-300 border border-emerald-500/40 transition-all cursor-pointer shadow-sm"
+          title="Play transition animation from Base Reading to Spike Defense"
         >
-          <Film class="w-3.5 h-3.5 text-amber-400" />
-          <span>Export GIF</span>
+          <Play class="w-3.5 h-3.5 fill-current" />
+          <span>Play Transition</span>
+        </button>
+
+        <!-- Share Tactic Button -->
+        <button
+          type="button"
+          onclick={handleShare}
+          class="flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 border border-blue-500/40 transition-all cursor-pointer shadow-sm"
+          title="Copy shareable link that loads this tactic and plays transition animation"
+        >
+          <Share2 class="w-3.5 h-3.5 text-blue-400" />
+          <span>Share</span>
         </button>
 
         <div class="px-3 py-1 text-xs font-black text-blue-400 bg-slate-900 rounded-lg border border-slate-800">
-          R{rotation}
+          {rotation === 1 ? 'Men Serving' : 'Women Serving'}
         </div>
       </div>
     </div>
   </header>
 
   <!-- MAIN APP CONTAINER -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+  <main class="flex-1 max-w-[1440px] w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
     
     <!-- LEFT COLUMN: COURT SIMULATOR & PLAYER FOCUS CARD (7 cols) -->
     <div class="lg:col-span-7 flex flex-col items-center gap-4 w-full">
@@ -385,40 +604,26 @@
         onSelectPlayer={(id) => selectedPlayerId = id}
         {showBlockShadow}
         {showZones}
+        {showAllArrows}
         {is3DView}
-        {isEditMode}
-        {editModeTarget}
+        {currentPositionMode}
         onUpdatePosition={handleUpdatePosition}
         onUpdateScenario={handleUpdateScenario}
       />
 
       <!-- Quick Guidance Footer under the court -->
-      <div class="w-full max-w-[560px] p-2.5 rounded-xl bg-slate-900/50 border border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
+      <div class="w-full max-w-[620px] p-2.5 rounded-xl bg-slate-900/50 border border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
         <div class="flex items-center gap-1.5">
           <Info class="w-3.5 h-3.5 text-blue-400 shrink-0" />
           <span>
-            {isEditMode
-              ? `Edit Mode Active: Drag attacker (red), target circle, or any defender (${editModeTarget === 'defense' ? 'Defense Position' : 'Base Position'}).`
-              : currentPositionMode === 'base'
-              ? 'Base Reading: Defenders in home zones watching the opposing setter.'
-              : 'Spike Defense: Block formed at the net and perimeter defenders aligned.'}
+            {currentPositionMode === 'base'
+              ? 'Base Reading: Drag any defender anytime to adjust reading formation. Off-preset positions can be saved as custom preset.'
+              : 'Spike Defense: Drag defenders, attacker, or ball to adjust spike defense. Off-preset positions can be saved as custom preset.'}
           </span>
         </div>
         <span class="text-[10px] text-slate-500 hidden sm:inline font-medium">
-          {isEditMode ? 'All players movable' : 'Click any player to inspect'}
+          Drag players anytime
         </span>
-      </div>
-
-      <!-- Player Focus Card / Team Role Card -->
-      <div class="w-full max-w-[560px]">
-        <PlayerFocusCard
-          {roster}
-          {movements}
-          {selectedPlayerId}
-          scenario={currentScenario}
-          {rotation}
-          onSelectPlayer={(id) => selectedPlayerId = id}
-        />
       </div>
     </div>
 
@@ -429,45 +634,49 @@
         {currentScenario}
         onSelectScenario={(s) => {
           currentScenario = s;
+          isAttackModified = false;
           progress = currentPositionMode === 'base' ? 0 : 1;
         }}
         {rotation}
         onChangeRotation={(r) => {
           rotation = r;
+          isBaseModified = false;
+          isAttackModified = false;
           progress = currentPositionMode === 'base' ? 0 : 1;
         }}
         {allSchemes}
         {currentScheme}
-        onChangeScheme={(s) => currentScheme = s}
-        onOpenJsonModal={() => isJsonModalOpen = true}
-        {coedBlockMode}
-        onChangeCoedBlockMode={(mode) => coedBlockMode = mode}
+        onChangeScheme={(s) => {
+          currentScheme = s;
+          isBaseModified = false;
+          progress = currentPositionMode === 'base' ? 0 : 1;
+        }}
+        onDeleteScheme={handleDeleteScheme}
+        onRenameScheme={handleRenameScheme}
+        onQuickSaveBaseScheme={handleQuickSaveBaseScheme}
         {currentPositionMode}
         onSelectPositionMode={handleSelectPositionMode}
-        {isEditMode}
-        onToggleEditMode={() => {
-          isEditMode = !isEditMode;
-          if (isEditMode) {
-            progress = editModeTarget === 'base' ? 0 : 1;
-          }
-        }}
-        {editModeTarget}
-        onChangeEditModeTarget={(t) => {
-          editModeTarget = t;
-          currentPositionMode = t === 'base' ? 'base' : 'spike';
-          animateToPosition(t === 'base' ? 0 : 1);
-        }}
-        onOpenSaveModal={() => isSaveModalOpen = true}
+        onPlayTransition={handlePlayTransition}
+        onShare={handleShare}
+        {isBaseModified}
+        {isAttackModified}
+        onResetBase={handleResetBase}
+        onResetAttack={handleResetAttack}
+        onOpenSaveModal={handleOpenSaveModal}
         onQuickSaveAdjustment={handleQuickSaveAdjustment}
         onDeleteAdjustment={handleDeleteAdjustment}
-        onOpenExportGifModal={() => isExportGifModalOpen = true}
+        onRenameAdjustment={handleRenameAdjustment}
         onOpenRosterModal={() => isRosterModalOpen = true}
+        {roster}
+        {attackSchemes}
         {is3DView}
         onToggle3D={() => is3DView = !is3DView}
         {showZones}
         onToggleZones={() => showZones = !showZones}
         {showBlockShadow}
         onToggleBlockShadow={() => showBlockShadow = !showBlockShadow}
+        {showAllArrows}
+        onToggleAllArrows={() => showAllArrows = !showAllArrows}
       />
     </div>
 
@@ -477,20 +686,11 @@
   <SaveAdjustmentModal
     open={isSaveModalOpen}
     onClose={() => isSaveModalOpen = false}
-    initialName={currentScenario.name}
-    initialLabel={currentScenario.label}
+    targetMode={saveTarget}
+    initialName={saveTarget === 'base' ? currentScheme?.name : currentScenario.name}
+    initialLabel={saveTarget === 'base' ? currentScheme?.name : currentScenario.label}
     initialType={currentScenario.type}
     onSave={handleSaveNewAdjustment}
-  />
-
-  <ExportGifModal
-    open={isExportGifModalOpen}
-    onClose={() => isExportGifModalOpen = false}
-    scenario={currentScenario}
-    {movements}
-    {roster}
-    {rotation}
-    {showBlockShadow}
   />
 
   <DatabaseModal
@@ -504,13 +704,5 @@
     onClose={() => isRosterModalOpen = false}
     {roster}
     onSaveRoster={handleSaveRoster}
-  />
-
-  <JsonManagerModal
-    open={isJsonModalOpen}
-    onClose={() => isJsonModalOpen = false}
-    {currentScheme}
-    {allSchemes}
-    onSaveScheme={handleSaveScheme}
   />
 </div>

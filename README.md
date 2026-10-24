@@ -1,89 +1,79 @@
 # VolleyDefense Tactics 🏐
 
-Interactive volleyball court defense positioning and animation tactical board, tailored for **COED** teams (3 men and 3 women in rotational play) as well as conventional systems.
+Interactive volleyball court defense positioning and transition simulator, tailored specifically for **COED 6v6 teams** (3 men and 3 women in rotational play) as well as conventional systems.
 
-Built with **Svelte 5 (Runes)** + **Vite** + **Tailwind CSS** (shadcn-inspired component architecture) + **TypeScript**.
-
----
-
-## 🌟 Key Features
-
-1. **Clear Transition Animations**:
-   - Smooth animations from **Base Reading Position** (pre-set) to **Adjusted Defensive Position** (formed block, defenders positioned on line alleys, cross diagonals, and tip coverage).
-   - Complete playback control: Play/Pause, real-time Scrubbing slider, speed selector (0.5x, 1x, 1.5x, 2x), and quick position snaps.
-
-2. **Opponent Attack Scenarios**:
-   - **Opponent Outside Hitter (Zone 4)**: Hard Cross, Fast Line Shot, Tip / Roll Shot behind block.
-   - **Opponent Right-Side / Opposite (Zone 2)**: Cross-Court, Line Shot.
-   - **Opponent Middle Blocker (Zone 3)**: Quick 1st Tempo.
-   - **Opponent Backrow (Zone 6)**: Pipe Attack (10-foot / 3-meter center).
-   - Dynamic attack trajectory vectors, block shadow coverage cone (shaded protected area vs open seams), and target impact zones.
-
-3. **COED League Setup (3 Men & 3 Women)**:
-   - Visual tokens with clear gender badges (`♂` blue / `♀` pink), jersey numbers, customizable team colors, and volleyball positions.
-   - Simple rotation selector (**R1 to R6**): automatically calculates which zone (P1 to P6) each player is currently defending in that rotation.
-
-4. **Defensive Schemes in Named JSON Files**:
-   - Built-in tactical schemes located in `src/data/schemes/`:
-     - `defesa-6-recuado-tradicional.json`: Rotational Defense 6 Deep (Perimeter)
-     - `defesa-6-avancado-cobertura.json`: Defense 6 Up (Tip Cover / Donut)
-     - `defesa-fechando-paralela.json`: Line-Sealing Defense
-     - `defesa-fechando-diagonal.json`: Cross-Sealing Defense
-   - **Visual JSON Manager & Editor**:
-     - View, live-edit, syntax-check, and apply JSON configs directly to the court.
-     - Export/download `.json` or import custom coach configurations.
-     - Drag-and-drop players on the court canvas to visually fine-tune coordinates.
-
-5. **Individual Player Focus & Coaching Insights**:
-   - Click any player on the court or list to inspect their displacement (in meters), specific tactical responsibility, and personalized coaching instructions for that scenario.
+Built with **Svelte 5 (Runes)**, **Vite**, **TypeScript**, and **Tailwind CSS**.
 
 ---
 
-## 🚀 Running Locally
+## 📖 Documentation & Specifications
+
+The complete architectural, tactical, and functional specifications are maintained as dedicated modules in the [`docs/`](./docs) directory:
+
+- [**System Requirements**](./docs/Requirements.md) — Concise checklist of all functional and architectural requirements (REQ-01 to REQ-19).
+- [**COED Volleyball Rules**](./docs/CoedRules.md) — 6v6 alternating gender rotation, multi-touch contact rules, and net blocking constraints.
+- [**UI & Layout Hierarchy**](./docs/layout/Layout.md) — Header exclusivity, View Options placement, tactical hierarchy, mobile-friendly touch constraints, and [interactive prototype](./docs/layout/prototype.html).
+- [**Shared Links & Guest Mode**](./docs/SharedLinks.md) — V1 compressed URL sharing (up to 3 tactics), zero-backend architecture, and read-only guest mode.
+- [**V2 Pro Tier Roadmap**](./docs/roadmap/ProTier.md) — Post-V1 roadmap: multi-device cloud sync, team accounts, and unlimited shortlinks.
+
+---
+
+## ⚡ Quick Start
 
 ### 1. Install dependencies
 ```bash
-yarn install --ignore-engines
-# or
-npm install --legacy-peer-deps
+pnpm install
 ```
 
 ### 2. Start development server
 ```bash
-yarn dev
+pnpm run dev
 ```
-Open `http://localhost:5174/` in your browser.
+Open `http://localhost:5173/` in your browser.
 
-### 3. Production build
+### 3. Code Validation (0 Errors / 0 Warnings)
 ```bash
-yarn build
+pnpm run scan
 ```
+Runs `oxlint` and `svelte-check` across all files.
 
 ---
 
-## 📁 Project Architecture
+## 📁 Project Structure
 
 ```
 volleyball-ideas/
+├── docs/
+│   ├── Requirements.md           # Concise system requirements checklist (REQ-01 to REQ-19)
+│   ├── CoedRules.md              # Official COED 6v6 league rules & blocking constraints
+│   ├── layout/
+│   │   ├── Layout.md             # UI architecture, view options & component hierarchy
+│   │   └── prototype.html        # Interactive responsive HTML/CSS/JS prototype
+│   ├── SharedLinks.md            # Public shared links & read-only guest mode
+│   └── roadmap/
+│       └── ProTier.md            # Post-V1 roadmap: cloud database, user accounts & shortlinks
+├── data/
+│   └── volleyball.db             # Local SQLite database
 ├── src/
 │   ├── components/
-│   │   ├── ui/                       # Shadcn-style primitives (Button, Card, Badge, Dialog)
-│   │   ├── Court.svelte              # Interactive court canvas with SVG vectors & tokens
-│   │   ├── Controls.svelte           # Timeline scrubber, speed, scenarios & rotations
-│   │   ├── PlayerFocusCard.svelte    # Individual & team tactical insights panel
-│   │   ├── JsonManagerModal.svelte   # JSON configuration viewer, editor & importer
-│   │   └── RosterModal.svelte        # COED (3M / 3F) lineup & role editor
+│   │   ├── ui/                   # Button, Card, Badge, Dialog primitives
+│   │   ├── Court.svelte          # SVG interactive court, vectors & player tokens
+│   │   ├── Controls.svelte       # Rotations, Stage Position, Presets & View options
+│   │   ├── CourtThumbnail.svelte # Miniature preset preview thumbnail
+│   │   ├── SaveAdjustmentModal.svelte # Modal to save custom base or attack presets
+│   │   ├── DatabaseModal.svelte  # SQLite database inspector
+│   │   └── RosterModal.svelte    # COED 3M / 3F lineup & role editor
 │   ├── data/
-│   │   ├── schemes/                  # Named JSON defensive scheme files
-│   │   ├── defaultRoster.ts          # Default COED roster
-│   │   ├── scenarios.ts              # Opponent attack catalog
-│   │   └── schemeRegistry.ts         # Scheme loading & localStorage persistence
+│   │   ├── coedRules.ts          # COED front-row analysis & blocking rules
+│   │   ├── defaultRoster.ts      # Default COED 3M / 3F roster
+│   │   ├── scenarios.ts          # Built-in opponent attack catalog
+│   │   ├── schemeRegistry.ts     # Base defense schemes & local persistence
+│   │   └── customScenarios.ts    # Custom attack scenarios manager
+│   ├── server/
+│   │   └── sqlitePlugin.ts       # Vite SQLite server integration
 │   ├── types/
-│   │   └── volleyball.ts             # TypeScript domain models
-│   ├── App.svelte                    # Root app component
-│   ├── app.css                       # Tailwind CSS & theme tokens
+│   │   └── volleyball.ts         # TypeScript domain models
+│   ├── App.svelte                # Root coordinator component
 │   └── main.ts
-├── scripts/
-│   └── generate_schemes.js           # Automated JSON scheme generator
 └── package.json
 ```

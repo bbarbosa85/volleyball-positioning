@@ -1,0 +1,3125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VolleyDefense Tactics — UI & Layout Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* -------------------------------------------------------------
+       CSS Design Tokens: Light & Dark Modes
+       ------------------------------------------------------------- */
+    :root, [data-theme="dark"] {
+      --bg-base: #090d16;
+      --bg-surface: #111827;
+      --bg-surface-elevated: #1f293d;
+      --bg-glass: rgba(17, 24, 39, 0.85);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(255, 255, 255, 0.18);
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --primary-glow: rgba(59, 130, 246, 0.35);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.3);
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --male-blue: #38bdf8;
+      --female-pink: #fb7185;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-faint: #64748b;
+      --court-floor-1: #1e293b;
+      --court-floor-2: #0f172a;
+      --court-perimeter: #cbd5e1;
+      --court-3m: #94a3b8;
+      --court-net: #ffffff;
+      --opponent-bg: #0b1120;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-heading: 'Outfit', sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg-base: #f1f5f9;
+      --bg-surface: #ffffff;
+      --bg-surface-elevated: #e2e8f0;
+      --bg-glass: rgba(255, 255, 255, 0.88);
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --border-highlight: rgba(0, 0, 0, 0.16);
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-glow: rgba(37, 99, 235, 0.25);
+      --emerald: #059669;
+      --emerald-glow: rgba(5, 150, 105, 0.25);
+      --amber: #d97706;
+      --rose: #e11d48;
+      --male-blue: #0284c7;
+      --female-pink: #e11d48;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-faint: #94a3b8;
+      --court-floor-1: #f8fafc;
+      --court-floor-2: #e2e8f0;
+      --court-perimeter: #334155;
+      --court-3m: #64748b;
+      --court-net: #1e293b;
+      --opponent-bg: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* -------------------------------------------------------------
+       Header: Global Actions (Clean 1-liner with vertical breathing room)
+       ------------------------------------------------------------- */
+    header.app-header {
+      background: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      border-bottom: none;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.5rem;
+      gap: 1rem;
+      max-width: 1720px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    .lucide-icon {
+      display: inline-block;
+      vertical-align: middle;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke: currentColor;
+      fill: none;
+      flex-shrink: 0;
+    }
+
+    .brand-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, #2563eb, #10b981);
+      display: grid;
+      place-items: center;
+      color: #ffffff;
+      box-shadow: 0 2px 8px var(--primary-glow);
+    }
+
+    .brand-icon svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text-main);
+      white-space: nowrap;
+      margin: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    /* Contained style share button */
+    .btn-share-contained {
+      height: 30px;
+      padding: 0 0.85rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      transition: background 0.15s, transform 0.15s;
+    }
+
+    .btn-share-contained:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    /* Border-less header action buttons */
+    .btn-header-icon {
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .btn-header-icon:hover {
+      background: rgba(125, 125, 125, 0.12);
+      color: var(--text-main);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      height: 36px;
+      padding: 0 0.85rem;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      user-select: none;
+      min-width: 44px; /* Touch target */
+    }
+
+    .btn-secondary {
+      background: rgba(125, 125, 125, 0.08);
+      border-color: var(--border-subtle);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(125, 125, 125, 0.16);
+      border-color: var(--border-highlight);
+    }
+
+    .btn-icon-only {
+      padding: 0;
+      width: 36px;
+      height: 36px;
+      font-size: 1.1rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      box-shadow: 0 4px 12px var(--emerald-glow);
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary.animating {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .badge-pill {
+      font-size: 0.72rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--radius-full);
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--male-blue);
+      font-weight: 600;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    /* -------------------------------------------------------------
+       Settings Cog Popover Menu (Houses View Overlays)
+       ------------------------------------------------------------- */
+    .settings-menu-container {
+      position: relative;
+    }
+
+    .settings-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      width: 290px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-highlight);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      gap: 0.85rem;
+      animation: popoverFade 0.18s ease;
+    }
+
+    .settings-dropdown.open {
+      display: flex;
+    }
+
+    .settings-dropdown-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-faint);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .setting-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.45rem 0;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .setting-label {
+      font-size: 0.85rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Modern Toggle Switch */
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: rgba(125, 125, 125, 0.25);
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .toggle-switch.checked {
+      background: var(--primary);
+    }
+
+    .toggle-knob {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .toggle-switch.checked .toggle-knob {
+      transform: translateX(20px);
+    }
+
+    .menu-divider {
+      height: 1px;
+      background: var(--border-subtle);
+      margin: 0.2rem 0;
+    }
+
+    /* -------------------------------------------------------------
+       Main Layout Shell
+       ------------------------------------------------------------- */
+    .app-main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 450px;
+      gap: 1.5rem;
+      padding: 1.5rem;
+      max-width: 1720px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    @media (max-width: 1100px) {
+      .app-main {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+        gap: 1rem;
+      }
+    }
+
+    /* -------------------------------------------------------------
+       Left Column: Court Simulator Area
+       ------------------------------------------------------------- */
+    .court-area {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    /* Court Container (Transparent by default; border visible when dirty) */
+    .court-card {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      touch-action: none; /* Prevents mobile scroll while dragging */
+      min-height: 580px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .court-card-header {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 0.85rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      z-index: 20;
+    }
+
+    .court-phase-toggle {
+      display: inline-flex;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.25rem;
+      gap: 0.35rem;
+    }
+
+    .court-phase-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      user-select: none;
+    }
+
+    .court-phase-btn:hover {
+      color: var(--text-main);
+    }
+
+    .court-phase-btn.active {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border-color: var(--border-highlight);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+
+    .court-phase-btn.active.base-active {
+      color: var(--primary);
+      border-color: rgba(59, 130, 246, 0.4);
+    }
+
+    .court-phase-btn.active.spike-active {
+      color: var(--rose);
+      border-color: rgba(244, 63, 94, 0.4);
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+      flex-shrink: 0;
+    }
+
+    .court-viewport {
+      width: 100%;
+      max-width: 660px;
+      aspect-ratio: 1 / 1.15;
+      position: relative;
+      perspective: 900px;
+      transition: transform 0.4s ease;
+      margin: auto 0;
+    }
+
+    .court-viewport.perspective-3d {
+      transform: rotateX(24deg) scale(0.95);
+    }
+
+    svg.court-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      filter: drop-shadow(0 15px 30px rgba(0,0,0,0.25));
+    }
+
+    /* Player Token Styling */
+    .player-token {
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .player-token:active,
+    .player-token.is-dragging {
+      cursor: grabbing;
+    }
+
+    .token-circle {
+      stroke-width: 1.2;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+      transition: filter 0.15s ease;
+    }
+
+    .player-token:hover .token-circle {
+      filter: drop-shadow(0 0 6px var(--primary));
+    }
+
+    .player-token:active .token-circle,
+    .player-token.is-dragging .token-circle {
+      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+    }
+
+    .token-male {
+      fill: #0284c7;
+      stroke: #38bdf8;
+    }
+
+    .token-female {
+      fill: #e11d48;
+      stroke: #fb7185;
+    }
+
+    .token-attacker {
+      fill: #dc2626;
+      stroke: #f87171;
+    }
+
+    .token-setter {
+      fill: #7c3aed;
+      stroke: #a78bfa;
+    }
+
+    .ball-token {
+      user-select: none;
+      pointer-events: none; /* Ball is NOT draggable */
+      transition: transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1);
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+    }
+
+    .target-token {
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+      filter: drop-shadow(0 2px 6px rgba(244, 63, 94, 0.6));
+      transition: filter 0.15s ease;
+    }
+
+    .target-token:hover {
+      filter: drop-shadow(0 0 10px rgba(244, 63, 94, 0.9));
+    }
+
+    .target-token:active {
+      cursor: grabbing;
+    }
+
+    .token-text {
+      fill: #ffffff;
+      font-family: var(--font-body);
+      font-weight: 800;
+      text-anchor: middle;
+      dominant-baseline: central;
+      font-size: 3.2px;
+      pointer-events: none;
+    }
+
+    .token-subtext {
+      fill: var(--text-main);
+      font-size: 2.1px;
+      text-anchor: middle;
+      font-weight: 600;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+      pointer-events: none;
+    }
+
+    .court-help-footer {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.75rem;
+      font-size: 0.75rem;
+      color: var(--text-faint);
+    }
+
+    /* -------------------------------------------------------------
+       Right Column: Tactical Control Panel
+       ------------------------------------------------------------- */
+    .tactical-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .panel-card {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .panel-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-title {
+      font-family: var(--font-heading);
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-main);
+    }
+
+    .panel-subtitle {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+
+    /* Rotation Selector */
+    .segmented-control {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.25rem;
+      gap: 0.25rem;
+    }
+
+    .segmented-btn {
+      padding: 0.55rem 0.75rem;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: all 0.15s ease;
+      min-height: 40px;
+    }
+
+    .segmented-btn:hover {
+      color: var(--text-main);
+    }
+
+    .segmented-btn.active {
+      background: var(--bg-surface-elevated);
+      color: var(--text-main);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .segmented-control.locked {
+      border-color: rgba(245, 158, 11, 0.4);
+      background: rgba(245, 158, 11, 0.05);
+      cursor: not-allowed;
+    }
+
+    .segmented-btn.disabled {
+      opacity: 0.45;
+      cursor: not-allowed !important;
+    }
+
+    .rotation-locked-banner {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--amber);
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.28);
+      border-radius: var(--radius-sm);
+      padding: 0.4rem 0.65rem;
+      line-height: 1.3;
+      animation: alertSlideDown 0.2s ease-out;
+    }
+
+    @keyframes bannerShake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-4px); }
+      40%, 80% { transform: translateX(4px); }
+    }
+
+    .rotation-locked-banner.shake {
+      animation: bannerShake 0.35s ease;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+    }
+
+    /* Dirty Container State: Borders become visible when preset is dirty */
+    .court-card.is-dirty,
+    .panel-card.is-dirty {
+      border: 1px solid rgba(245, 158, 11, 0.75) !important;
+      box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25), 0 4px 18px rgba(245, 158, 11, 0.12);
+    }
+
+    .preset-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      position: relative;
+    }
+
+    .preset-section.active-focus.base-section {
+      border-color: rgba(59, 130, 246, 0.5);
+    }
+
+    .preset-section.active-focus.spike-section {
+      border-color: rgba(244, 63, 94, 0.5);
+    }
+
+    .phase-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.2rem 0.55rem;
+      border-radius: var(--radius-full);
+      transition: all 0.2s ease;
+    }
+
+    .phase-badge.active-base {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .phase-badge.active-spike {
+      background: rgba(244, 63, 94, 0.15);
+      color: var(--rose);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .phase-badge.passive {
+      background: rgba(125, 125, 125, 0.08);
+      color: var(--text-faint);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Section Subheaders */
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-faint);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-label .tag {
+      font-size: 0.68rem;
+      background: rgba(125, 125, 125, 0.1);
+      padding: 0.1rem 0.45rem;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      text-transform: none;
+    }
+
+    /* Preset Grid */
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 0.65rem;
+    }
+
+    /* Preset Card Anatomy */
+    .preset-card {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.65rem;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      position: relative;
+      user-select: none;
+    }
+
+    .preset-card:hover {
+      border-color: var(--border-highlight);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    }
+
+    .preset-card.selected {
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.08);
+      box-shadow: 0 0 0 1px var(--primary), 0 4px 12px var(--primary-glow);
+    }
+
+    .preset-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.25rem;
+    }
+
+    .preset-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      overflow: hidden;
+    }
+
+    .preset-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-custom-tag {
+      font-size: 0.6rem;
+      padding: 0.05rem 0.35rem;
+      border-radius: var(--radius-sm);
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--amber);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      font-weight: 700;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .preset-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+    }
+
+    /* Predefined immutable presets do not show edit/rename action */
+    .preset-card:not(:has(.user-custom-tag)) .preset-actions {
+      display: none !important;
+    }
+
+    .icon-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: var(--radius-sm);
+      display: grid;
+      place-items: center;
+      border: none;
+      background: transparent;
+      color: var(--text-faint);
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.15s ease;
+    }
+
+    .icon-btn:hover {
+      color: var(--text-main);
+      background: rgba(125, 125, 125, 0.15);
+    }
+
+    .icon-btn.delete:hover {
+      color: var(--rose);
+      background: rgba(244, 63, 94, 0.15);
+    }
+
+    /* Mini Thumbnail Preview */
+    .preset-thumbnail {
+      width: 100%;
+      height: 64px;
+      background: var(--bg-base);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Section-Scoped Modification Quick-Alert (Approach A: Focused Edit Lock) */
+    .modification-alert {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.76rem;
+      margin-bottom: 0.65rem;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .modification-alert.base-alert {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+
+    .modification-alert.base-alert .alert-text {
+      color: var(--primary);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .modification-alert.attack-alert {
+      background: rgba(244, 63, 94, 0.12);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+    }
+
+    .modification-alert.attack-alert .alert-text {
+      color: var(--rose);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .alert-btns {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .alert-btn {
+      font-size: 0.72rem;
+      padding: 0.25rem 0.55rem;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+    }
+
+    .alert-btn.save {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    .alert-btn.save:hover {
+      background: var(--primary-hover);
+    }
+
+    .alert-btn.save-new {
+      background: var(--amber);
+      color: #000000;
+    }
+
+    .alert-btn.save-new:hover {
+      background: #d97706;
+    }
+
+    .alert-btn.reset {
+      background: rgba(125, 125, 125, 0.15);
+      color: var(--text-main);
+    }
+
+    .alert-btn.reset:hover {
+      background: rgba(125, 125, 125, 0.28);
+    }
+
+    /* Approach A: Focused Edit Lock States */
+    .preset-card.modified {
+      border-color: var(--amber) !important;
+      box-shadow: 0 0 0 1px var(--amber), 0 0 14px rgba(245, 158, 11, 0.35) !important;
+    }
+
+    .preset-card.disabled {
+      opacity: 0.36 !important;
+      filter: grayscale(0.5);
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+      transform: none !important;
+    }
+
+    /* -------------------------------------------------------------
+       Modal Dialogs & Share Modal
+       ------------------------------------------------------------- */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: none;
+      place-items: center;
+      padding: 1.25rem;
+      overflow-y: auto;
+    }
+
+    .modal-backdrop.open {
+      display: grid;
+    }
+
+    .modal-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-highlight);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 680px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .close-modal-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.25rem;
+      line-height: 1;
+      padding: 0.25rem;
+      border-radius: var(--radius-sm);
+    }
+
+    .close-modal-btn:hover {
+      color: var(--text-main);
+    }
+
+    /* Share Modal Specifics */
+    .share-section-box {
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .share-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .share-section-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .share-section-desc {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .share-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .share-preset-card {
+      background: var(--bg-surface);
+      border: 2px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.6rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      position: relative;
+      transition: all 0.15s ease;
+    }
+
+    .share-preset-card:hover {
+      border-color: var(--border-highlight);
+    }
+
+    .share-preset-card.checked {
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    .share-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .share-card-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .share-checkbox {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 2px solid var(--border-subtle);
+      display: grid;
+      place-items: center;
+      font-size: 0.7rem;
+      color: #ffffff;
+      background: transparent;
+    }
+
+    .share-preset-card.checked .share-checkbox {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .share-thumbnail-svg {
+      width: 100%;
+      height: 60px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-base);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes popoverFade {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =============================================================
+       1. Top Header: Exclusively hosts global actions
+       ============================================================= -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-icon">
+        <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="M14.83 14.83 19.07 19.07"/><path d="m9.17 14.83-4.24 4.24"/><circle cx="12" cy="12" r="4"/></svg>
+      </div>
+      <div class="brand-text">
+        <h1>VolleyDefense Tactics</h1>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- Share Button (Contained Style) -->
+      <button class="btn btn-share-contained" id="btnShare" title="Share tactics via compressed URL link">
+        <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        <span>Share</span>
+      </button>
+
+      <!-- Quick Theme Toggle (Border-less icon button) -->
+      <button class="btn-header-icon" id="btnThemeToggle" title="Toggle Light / Dark Mode">
+        <span id="themeIcon">
+          <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </span>
+      </button>
+
+      <!-- Settings Cog (Border-less icon button) -->
+      <div class="settings-menu-container">
+        <button class="btn-header-icon" id="btnSettings" title="Settings & View Overlays">
+          <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div class="settings-dropdown" id="settingsDropdown">
+          <div class="settings-dropdown-header">
+            <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span>Court View Overlays</span>
+          </div>
+
+          <!-- Zones Toggle -->
+          <div class="setting-item" id="settingZones">
+            <div class="setting-label">
+              <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+              <span>Court Zones (1–6)</span>
+            </div>
+            <div class="toggle-switch checked" id="switchZones">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+
+          <!-- All Arrows Toggle -->
+          <div class="setting-item" id="settingArrows">
+            <div class="setting-label">
+              <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+              <span>All Vector Arrows</span>
+            </div>
+            <div class="toggle-switch checked" id="switchArrows">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+
+          <!-- Block Shadow Toggle -->
+          <div class="setting-item" id="settingShadow">
+            <div class="setting-label">
+              <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>Blocker Shadow Cone</span>
+            </div>
+            <div class="toggle-switch checked" id="switchShadow">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+
+          <!-- 3D Perspective Court Toggle -->
+          <div class="setting-item" id="setting3D">
+            <div class="setting-label">
+              <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+              <span>3D Perspective Court</span>
+            </div>
+            <div class="toggle-switch" id="switch3D">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+
+          <div class="menu-divider"></div>
+
+          <!-- Dark / Light Theme Toggle -->
+          <div class="setting-item" id="settingTheme">
+            <div class="setting-label">
+              <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+              <span>Theme</span>
+            </div>
+            <span style="font-size:0.8rem; font-weight:600; color:var(--text-muted);" id="themeStatusLabel">Dark Mode</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- =============================================================
+       2. Main Content Grid
+       ============================================================= -->
+  <main class="app-main">
+
+    <!-- -----------------------------------------------------------
+         Left Column: Interactive Court Canvas (Full Clean View)
+         ----------------------------------------------------------- -->
+    <section class="court-area">
+
+      <!-- Court Card -->
+      <div class="court-card">
+        <!-- Court Header Bar (Stage Selector) -->
+        <div class="court-card-header">
+          <div class="court-phase-toggle" role="tablist">
+            <button class="court-phase-btn active base-active" id="btnStageBase" role="tab" aria-selected="true" title="Switch to Base Formation">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>1. Base Formation</span>
+            </button>
+            <button class="court-phase-btn" id="btnStageSpike" role="tab" aria-selected="false" title="Switch to Defensive Formation">
+              <svg class="lucide-icon" width="15" height="15" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+              <span>2. Defensive Formation</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="court-viewport" id="courtViewport">
+          <!-- Scaled 9m x 9m Half-Court SVG (Normalized 0-100 coordinates) -->
+          <svg class="court-canvas" id="courtSvg" viewBox="-15 -25 130 145">
+            <defs>
+              <!-- Court Gradients -->
+              <linearGradient id="courtGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="var(--court-floor-1)"/>
+                <stop offset="100%" stop-color="var(--court-floor-2)"/>
+              </linearGradient>
+
+              <!-- Blocker Shadow Gradient -->
+              <linearGradient id="shadowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="rgba(16, 185, 129, 0.45)"/>
+                <stop offset="100%" stop-color="rgba(16, 185, 129, 0.02)"/>
+              </linearGradient>
+
+              <!-- Vector Arrow Markers (Sleek, Proportional Tactical Arrows) -->
+              <marker id="arrowHead" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="3.2" markerHeight="3.2" orient="auto-start-reverse">
+                <path d="M 1 2 L 8 5 L 1 8 z" fill="#38bdf8"/>
+              </marker>
+              <marker id="attackArrowHead" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="3.4" markerHeight="3.4" orient="auto-start-reverse">
+                <path d="M 1 2 L 8 5 L 1 8 z" fill="#f43f5e"/>
+              </marker>
+            </defs>
+
+            <!-- Opponent Side Canvas (y <= 0) -->
+            <rect x="0" y="-20" width="100" height="20" fill="var(--opponent-bg)" stroke="var(--border-subtle)" stroke-dasharray="2 2" rx="4"/>
+            <text x="50" y="-10" fill="var(--text-faint)" font-size="3" text-anchor="middle" font-weight="700" letter-spacing="0.1em">OPPONENT ATTACK SIDE</text>
+
+            <!-- Half-Court Perimeter (0 to 100 x, 0 to 100 y) -->
+            <rect x="0" y="0" width="100" height="100" fill="url(#courtGrad)" stroke="var(--court-perimeter)" stroke-width="1.8" rx="2"/>
+
+            <!-- 3-Meter Attack Line (y = 33.3) -->
+            <line x1="0" y1="33.3" x2="100" y2="33.3" stroke="var(--court-3m)" stroke-width="1.2" stroke-dasharray="3 2"/>
+            <text x="98" y="31.8" fill="var(--text-faint)" font-size="2.4" text-anchor="end" font-weight="600">3M LINE</text>
+
+            <!-- Baseline (y = 100) -->
+            <line x1="0" y1="100" x2="100" y2="100" stroke="var(--court-perimeter)" stroke-width="1.8"/>
+
+            <!-- Center Net (y = 0) with White/Red Antennas -->
+            <line x1="-5" y1="0" x2="105" y2="0" stroke="var(--court-net)" stroke-width="2.5"/>
+            <!-- Antenna Left (x = 0) -->
+            <line x1="0" y1="-8" x2="0" y2="8" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="2 2"/>
+            <!-- Antenna Right (x = 100) -->
+            <line x1="100" y1="-8" x2="100" y2="8" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="2 2"/>
+
+            <!-- Zone Numbers Overlay (Group) -->
+            <g id="zoneNumbersGroup">
+              <!-- Front Row: 4 (Left), 3 (Middle), 2 (Right) -->
+              <text x="18" y="20" fill="var(--text-faint)" opacity="0.22" font-size="5.5" font-weight="800" text-anchor="middle">4</text>
+              <text x="50" y="20" fill="var(--text-faint)" opacity="0.22" font-size="5.5" font-weight="800" text-anchor="middle">3</text>
+              <text x="82" y="20" fill="var(--text-faint)" opacity="0.22" font-size="5.5" font-weight="800" text-anchor="middle">2</text>
+              <!-- Back Row: 5 (Left), 6 (Middle), 1 (Right) -->
+              <text x="18" y="70" fill="var(--text-faint)" opacity="0.22" font-size="5.5" font-weight="800" text-anchor="middle">5</text>
+              <text x="50" y="70" fill="var(--text-faint)" opacity="0.22" font-size="5.5" font-weight="800" text-anchor="middle">6</text>
+              <text x="82" y="70" fill="var(--text-faint)" opacity="0.22" font-size="5.5" font-weight="800" text-anchor="middle">1</text>
+            </g>
+
+            <!-- Defensive Block Shadow Cone (Cast from net blocker, visible only in Spike Reaction) -->
+            <polygon id="blockShadowCone" points="15,0 28,0 48,100 8,100" fill="url(#shadowGrad)" style="display: none;"/>
+
+            <!-- Attack Trajectory Line (Visible only in Spike Reaction) -->
+            <line id="attackLine" x1="18" y1="-10" x2="65" y2="75" stroke="#f43f5e" stroke-width="0.9" stroke-dasharray="2.2 1.6" marker-end="url(#attackArrowHead)" style="display: none; transition: opacity 0.3s ease;"/>
+
+            <!-- Draggable Attack Destination Target (Part of Spike Reaction) -->
+            <g id="attackTargetToken" class="target-token" transform="translate(65, 75)" style="display: none;" title="Drag to adjust landing target">
+              <circle r="4" fill="rgba(244, 63, 94, 0.12)" stroke="#f43f5e" stroke-width="0.8" stroke-dasharray="1.8 1.4"/>
+              <circle r="2" fill="rgba(244, 63, 94, 0.3)" stroke="#f43f5e" stroke-width="0.8"/>
+              <circle r="0.7" fill="#f43f5e"/>
+              <line x1="-5.2" y1="0" x2="-2.4" y2="0" stroke="#f43f5e" stroke-width="0.75"/>
+              <line x1="2.4" y1="0" x2="5.2" y2="0" stroke="#f43f5e" stroke-width="0.75"/>
+              <line x1="0" y1="-5.2" x2="0" y2="-2.4" stroke="#f43f5e" stroke-width="0.75"/>
+              <line x1="0" y1="2.4" x2="0" y2="5.2" stroke="#f43f5e" stroke-width="0.75"/>
+            </g>
+
+            <!-- Motion Vector Arrows Group -->
+            <g id="motionVectorsGroup">
+              <!-- Dynamic vectors drawn from Base to Spike spots -->
+              <line id="vectorP4" x1="20" y1="20" x2="16" y2="3" stroke="#38bdf8" stroke-width="0.75" stroke-dasharray="1.8 1.4" marker-end="url(#arrowHead)"/>
+              <line id="vectorP3" x1="50" y1="20" x2="26" y2="3" stroke="#38bdf8" stroke-width="0.75" stroke-dasharray="1.8 1.4" marker-end="url(#arrowHead)"/>
+              <line id="vectorP2" x1="80" y1="20" x2="65" y2="22" stroke="#38bdf8" stroke-width="0.75" stroke-dasharray="1.8 1.4" marker-end="url(#arrowHead)"/>
+              <line id="vectorP5" x1="20" y1="75" x2="14" y2="60" stroke="#38bdf8" stroke-width="0.75" stroke-dasharray="1.8 1.4" marker-end="url(#arrowHead)"/>
+              <line id="vectorP6" x1="50" y1="75" x2="52" y2="85" stroke="#38bdf8" stroke-width="0.75" stroke-dasharray="1.8 1.4" marker-end="url(#arrowHead)"/>
+              <line id="vectorP1" x1="80" y1="75" x2="82" y2="65" stroke="#38bdf8" stroke-width="0.75" stroke-dasharray="1.8 1.4" marker-end="url(#arrowHead)"/>
+            </g>
+
+            <!-- Opponent Team (Attacker, Setter, Ball) - y <= 0% -->
+            <g id="opponentGroup">
+              <!-- Opponent Setter (S) at net -->
+              <g class="player-token" id="tokenSetter" transform="translate(68, -6)">
+                <circle r="3.6" class="token-circle token-setter"/>
+                <text class="token-text" font-size="2.8px" y="0.2">S</text>
+              </g>
+
+              <!-- Opponent Attacker (Spiker) -->
+              <g class="player-token" id="tokenAttacker" transform="translate(15, -12)">
+                <circle r="3.8" class="token-circle token-attacker"/>
+                <text class="token-text" font-size="2.8px" y="0.3">A</text>
+              </g>
+
+              <!-- Volleyball (Grouped with Setter in Base Read, glides to Attacker in Spike Reaction) -->
+              <g id="volleyballGroup" class="ball-token" transform="translate(64, -7)">
+                <circle r="2.2" fill="#facc15" stroke="#ffffff" stroke-width="0.6"/>
+                <path d="M-1.8 0 A1.8 1.8 0 0 0 1.8 0" stroke="#ca8a04" stroke-width="0.4" fill="none"/>
+                <line x1="0" y1="-2" x2="0" y2="2" stroke="#ca8a04" stroke-width="0.4"/>
+              </g>
+            </g>
+
+            <!-- 6 Defender Player Tokens (Color indicates gender, number indicates position) -->
+            <g id="defenderTokensGroup">
+              <!-- P4: Left Front -->
+              <g class="player-token" id="tokenP4" transform="translate(20, 20)">
+                <circle r="3.8" class="token-circle token-male" id="circleP4"/>
+                <text class="token-text" y="0.3">4</text>
+              </g>
+
+              <!-- P3: Middle Blocker -->
+              <g class="player-token" id="tokenP3" transform="translate(50, 20)">
+                <circle r="3.8" class="token-circle token-male" id="circleP3"/>
+                <text class="token-text" y="0.3">3</text>
+              </g>
+
+              <!-- P2: Right Front -->
+              <g class="player-token" id="tokenP2" transform="translate(80, 20)">
+                <circle r="3.8" class="token-circle token-female" id="circleP2"/>
+                <text class="token-text" y="0.3">2</text>
+              </g>
+
+              <!-- P5: Left Back -->
+              <g class="player-token" id="tokenP5" transform="translate(20, 75)">
+                <circle r="3.8" class="token-circle token-female" id="circleP5"/>
+                <text class="token-text" y="0.3">5</text>
+              </g>
+
+              <!-- P6: Middle Back -->
+              <g class="player-token" id="tokenP6" transform="translate(50, 75)">
+                <circle r="3.8" class="token-circle token-male" id="circleP6"/>
+                <text class="token-text" y="0.3">6</text>
+              </g>
+
+              <!-- P1: Right Back -->
+              <g class="player-token" id="tokenP1" transform="translate(80, 75)">
+                <circle r="3.8" class="token-circle token-female" id="circleP1"/>
+                <text class="token-text" y="0.3">1</text>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- -----------------------------------------------------------
+         Right Column: Tactical Control Panel
+         ----------------------------------------------------------- -->
+    <aside class="tactical-panel">
+
+      <!-- Block 1: Rotation Match Context (Outside tactical setup container) -->
+      <div class="panel-card" id="cardRotationContext">
+        <div class="panel-card-header">
+          <div class="panel-title">
+            <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+            <span>1. Rotation Context</span>
+          </div>
+        </div>
+
+        <div class="segmented-control" id="rotControl">
+          <button class="segmented-btn active" id="rotMen">
+            <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24" style="color:var(--male-blue);"><circle cx="10" cy="14" r="5"/><path d="M19 5l-5.4 5.4"/><path d="M19 5h-5"/><path d="M19 5v5"/></svg>
+            <span>Man Serving (R1)</span>
+          </button>
+          <button class="segmented-btn" id="rotWomen">
+            <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24" style="color:var(--female-pink);"><circle cx="12" cy="9" r="5"/><path d="M12 14v7"/><path d="M9 18h6"/></svg>
+            <span>Woman Serving (R4)</span>
+          </button>
+        </div>
+
+        <div class="rotation-locked-banner" id="rotLockedBanner" style="display: none;">
+          <svg class="lucide-icon" width="13" height="13" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span>Rotation locked with unsaved changes. Save or Reset to switch.</span>
+        </div>
+      </div>
+
+      <!-- Block 2: Base Defense Formations -->
+      <div class="panel-card base-card" id="cardBasePresets">
+        <div class="panel-card-header">
+          <div class="panel-title">
+            <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>2. Base Formation</span>
+          </div>
+        </div>
+
+        <div class="preset-section base-section" id="sectionBasePresets">
+          <!-- Base Scoped Modification Quick-Alert (Approach A: Focused Edit Lock) -->
+          <div class="modification-alert base-alert" id="baseModAlert" style="display: none;">
+            <div class="alert-text">
+              <svg class="lucide-icon" width="13" height="13" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span id="baseModAlertText">Base Formation modified</span>
+            </div>
+            <div class="alert-btns">
+              <button class="alert-btn save" id="btnSaveBaseMod" title="Save changes directly to this custom base preset">Save</button>
+              <button class="alert-btn save-new" id="btnSaveNewBaseMod" title="Save changes as a new custom base preset">Save as New</button>
+              <button class="alert-btn reset" id="btnResetBaseMod" title="Discard changes and revert base">Reset</button>
+            </div>
+          </div>
+
+          <div class="preset-grid">
+            <!-- Preset Card 1: Default Deep Base (Predefined - No Edit Button) -->
+            <div class="preset-card selected" data-preset="base-deep">
+              <div class="preset-card-top">
+                <div class="preset-title-wrap">
+                  <span class="preset-name" title="Deep Base Read">Deep Base Read</span>
+                </div>
+                <div class="preset-actions"></div>
+              </div>
+              <div class="preset-thumbnail">
+                <svg width="100%" height="100%" viewBox="0 0 100 100">
+                  <rect width="100" height="100" fill="var(--bg-base)"/>
+                  <line x1="0" y1="33" x2="100" y2="33" stroke="var(--court-3m)" stroke-width="2"/>
+                  <circle cx="20" cy="20" r="6" fill="#38bdf8"/>
+                  <circle cx="50" cy="20" r="6" fill="#38bdf8"/>
+                  <circle cx="80" cy="20" r="6" fill="#fb7185"/>
+                  <circle cx="20" cy="75" r="6" fill="#fb7185"/>
+                  <circle cx="50" cy="75" r="6" fill="#38bdf8"/>
+                  <circle cx="80" cy="75" r="6" fill="#fb7185"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Preset Card 2: Tip Cover Ready (Custom Preset - With Rename & Delete) -->
+            <div class="preset-card" data-preset="base-tip">
+              <div class="preset-card-top">
+                <div class="preset-title-wrap">
+                  <span class="preset-name" title="Short / Tip Ready">Short Tip Ready</span>
+                  <span class="user-custom-tag"><svg class="lucide-icon" width="10" height="10" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Custom</span>
+                </div>
+                <div class="preset-actions">
+                  <button class="icon-btn" title="Edit / Rename"><svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg></button>
+                  <button class="icon-btn delete" title="Delete Preset"><svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
+                </div>
+              </div>
+              <div class="preset-thumbnail">
+                <svg width="100%" height="100%" viewBox="0 0 100 100">
+                  <rect width="100" height="100" fill="var(--bg-base)"/>
+                  <line x1="0" y1="33" x2="100" y2="33" stroke="var(--court-3m)" stroke-width="2"/>
+                  <circle cx="20" cy="15" r="6" fill="#38bdf8"/>
+                  <circle cx="50" cy="15" r="6" fill="#38bdf8"/>
+                  <circle cx="75" cy="30" r="6" fill="#fb7185"/>
+                  <circle cx="25" cy="55" r="6" fill="#fb7185"/>
+                  <circle cx="50" cy="75" r="6" fill="#38bdf8"/>
+                  <circle cx="75" cy="65" r="6" fill="#fb7185"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Block 3: Attack Defense Reactions -->
+      <div class="panel-card attack-card" id="cardAttackPresets">
+        <div class="panel-card-header">
+          <div class="panel-title">
+            <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+            <span>3. Defensive Formation</span>
+          </div>
+        </div>
+
+        <div class="preset-section spike-section" id="sectionAttackPresets">
+          <!-- Attack Scoped Modification Quick-Alert (Approach A: Focused Edit Lock) -->
+          <div class="modification-alert attack-alert" id="attackModAlert" style="display: none;">
+            <div class="alert-text">
+              <svg class="lucide-icon" width="13" height="13" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span id="attackModAlertText">Defensive Formation modified</span>
+            </div>
+            <div class="alert-btns">
+              <button class="alert-btn save" id="btnSaveAttackMod" title="Save changes directly to this custom attack preset">Save</button>
+              <button class="alert-btn save-new" id="btnSaveNewAttackMod" title="Save changes as a new custom attack preset">Save as New</button>
+              <button class="alert-btn reset" id="btnResetAttackMod" title="Discard changes and revert reaction">Reset</button>
+            </div>
+          </div>
+
+          <div class="preset-grid">
+            <!-- Attack Preset 1 (Predefined - No Edit Button) -->
+            <div class="preset-card selected" data-attack="outside-cross">
+              <div class="preset-card-top">
+                <div class="preset-title-wrap">
+                  <span class="preset-name" title="Outside Cross Spike">Outside Cross</span>
+                </div>
+                <div class="preset-actions"></div>
+              </div>
+              <div class="preset-thumbnail">
+                <svg width="100%" height="100%" viewBox="0 0 100 100">
+                  <rect width="100" height="100" fill="var(--bg-base)"/>
+                  <line x1="15" y1="0" x2="70" y2="70" stroke="#f43f5e" stroke-width="3" stroke-dasharray="3 3"/>
+                  <circle cx="16" cy="6" r="6" fill="#38bdf8"/>
+                  <circle cx="28" cy="6" r="6" fill="#38bdf8"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Attack Preset 2 (Predefined - No Edit Button) -->
+            <div class="preset-card" data-attack="outside-line">
+              <div class="preset-card-top">
+                <div class="preset-title-wrap">
+                  <span class="preset-name" title="Fast Line Hit">Fast Line D</span>
+                </div>
+                <div class="preset-actions"></div>
+              </div>
+              <div class="preset-thumbnail">
+                <svg width="100%" height="100%" viewBox="0 0 100 100">
+                  <rect width="100" height="100" fill="var(--bg-base)"/>
+                  <line x1="10" y1="0" x2="10" y2="80" stroke="#f43f5e" stroke-width="3" stroke-dasharray="3 3"/>
+                  <circle cx="10" cy="6" r="6" fill="#38bdf8"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Attack Preset 3 (Custom Preset - With Rename & Delete) -->
+            <div class="preset-card" data-attack="middle-quick">
+              <div class="preset-card-top">
+                <div class="preset-title-wrap">
+                  <span class="preset-name" title="Middle Quick 1">Middle Quick</span>
+                  <span class="user-custom-tag"><svg class="lucide-icon" width="10" height="10" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Custom</span>
+                </div>
+                <div class="preset-actions">
+                  <button class="icon-btn" title="Edit"><svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg></button>
+                  <button class="icon-btn delete" title="Delete"><svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
+                </div>
+              </div>
+              <div class="preset-thumbnail">
+                <svg width="100%" height="100%" viewBox="0 0 100 100">
+                  <rect width="100" height="100" fill="var(--bg-base)"/>
+                  <line x1="50" y1="0" x2="50" y2="60" stroke="#f43f5e" stroke-width="3" stroke-dasharray="3 3"/>
+                  <circle cx="50" cy="6" r="6" fill="#38bdf8"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Attack Preset 4 (Predefined - No Edit Button) -->
+            <div class="preset-card" data-attack="deep-tip">
+              <div class="preset-card-top">
+                <div class="preset-title-wrap">
+                  <span class="preset-name" title="Deep Tip Cover">Deep Corner Tip</span>
+                </div>
+                <div class="preset-actions"></div>
+              </div>
+              <div class="preset-thumbnail">
+                <svg width="100%" height="100%" viewBox="0 0 100 100">
+                  <rect width="100" height="100" fill="var(--bg-base)"/>
+                  <line x1="15" y1="0" x2="85" y2="85" stroke="#f59e0b" stroke-width="3" stroke-dasharray="2 2"/>
+                  <circle cx="75" cy="70" r="6" fill="#fb7185"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- =============================================================
+       Share Modal (Thumbnails + Clear Base vs Spike Sections)
+       ============================================================= -->
+  <div class="modal-backdrop" id="modalShare">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">Share Tactical Bundle</h2>
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">
+            V1 Compressed URL: Bundles selected <strong>Rotation Context</strong> multiplier with up to <strong>3 Base Formations</strong> + <strong>3 Defensive Formations</strong>.
+          </p>
+        </div>
+        <button class="close-modal-btn" onclick="closeModal('modalShare')"><svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+
+      <!-- Tactic Title Input -->
+      <div>
+        <label style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-faint);">Playbook / Tactic Title</label>
+        <input type="text" value="Lincoln High Defensive Plan" style="width:100%; margin-top:0.35rem; background:var(--bg-base); border:1px solid var(--border-subtle); color:var(--text-main); padding:0.65rem 0.8rem; border-radius:var(--radius-sm); font-size:0.85rem; font-weight:500;">
+      </div>
+
+      <!-- SECTION 0: Rotation Context Multiplier -->
+      <div class="share-section-box">
+        <div class="share-section-header">
+          <div>
+            <div class="share-section-title" style="color: var(--amber);">
+              <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+              <span>Rotation Context (Tactical Multiplier)</span>
+            </div>
+            <div class="share-section-desc">Defensive formations are calibrated to serving rotations. Pick rotation to bundle with tactics:</div>
+          </div>
+          <span class="badge-pill" id="shareRotBadge" style="color:var(--amber); background:rgba(245,158,11,0.15); border-color:rgba(245,158,11,0.3);">R1 Active</span>
+        </div>
+
+        <div class="segmented-control" style="margin-top: 0.35rem;">
+          <button class="segmented-btn active" id="shareRotMen" type="button" onclick="setShareRotation('men')">
+            <span>♂</span> <span>Man Serving (R1 - 1M Net)</span>
+          </button>
+          <button class="segmented-btn" id="shareRotWomen" type="button" onclick="setShareRotation('women')">
+            <span>♀</span> <span>Woman Serving (R4 - 2M Net)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION 1: Base Defense Presets (Start Coordinates) -->
+      <div class="share-section-box">
+        <div class="share-section-header">
+          <div>
+            <div class="share-section-title" style="color: var(--primary);">
+              <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>1. Base Formation Presets (Start Phase)</span>
+            </div>
+            <div class="share-section-desc">Initial positioning of all 6 defenders before the opponent set</div>
+          </div>
+          <span class="badge-pill" id="baseShareCount">2 / 3 Selected</span>
+        </div>
+
+        <div class="share-grid">
+          <!-- Share Card Base 1 -->
+          <div class="share-preset-card checked" onclick="toggleShareItem(this, 'base')">
+            <div class="share-card-top">
+              <span class="share-card-title">Deep Base Read</span>
+              <div class="share-checkbox"><svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            </div>
+            <svg class="share-thumbnail-svg" viewBox="0 0 100 100">
+              <line x1="0" y1="33" x2="100" y2="33" stroke="var(--court-3m)" stroke-width="2"/>
+              <circle cx="20" cy="20" r="6" fill="#38bdf8"/>
+              <circle cx="50" cy="20" r="6" fill="#38bdf8"/>
+              <circle cx="80" cy="20" r="6" fill="#fb7185"/>
+              <circle cx="20" cy="75" r="6" fill="#fb7185"/>
+              <circle cx="50" cy="75" r="6" fill="#38bdf8"/>
+              <circle cx="80" cy="75" r="6" fill="#fb7185"/>
+            </svg>
+          </div>
+
+          <!-- Share Card Base 2 -->
+          <div class="share-preset-card checked" onclick="toggleShareItem(this, 'base')">
+            <div class="share-card-top">
+              <span class="share-card-title">Short Tip Ready</span>
+              <div class="share-checkbox"><svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            </div>
+            <svg class="share-thumbnail-svg" viewBox="0 0 100 100">
+              <line x1="0" y1="33" x2="100" y2="33" stroke="var(--court-3m)" stroke-width="2"/>
+              <circle cx="20" cy="15" r="6" fill="#38bdf8"/>
+              <circle cx="50" cy="15" r="6" fill="#38bdf8"/>
+              <circle cx="75" cy="30" r="6" fill="#fb7185"/>
+              <circle cx="25" cy="55" r="6" fill="#fb7185"/>
+              <circle cx="50" cy="75" r="6" fill="#38bdf8"/>
+              <circle cx="75" cy="65" r="6" fill="#fb7185"/>
+            </svg>
+          </div>
+
+          <!-- Share Card Base 3 -->
+          <div class="share-preset-card" onclick="toggleShareItem(this, 'base')">
+            <div class="share-card-top">
+              <span class="share-card-title">Rotational Shift</span>
+              <div class="share-checkbox"></div>
+            </div>
+            <svg class="share-thumbnail-svg" viewBox="0 0 100 100">
+              <line x1="0" y1="33" x2="100" y2="33" stroke="var(--court-3m)" stroke-width="2"/>
+              <circle cx="30" cy="22" r="6" fill="#38bdf8"/>
+              <circle cx="60" cy="22" r="6" fill="#38bdf8"/>
+              <circle cx="85" cy="25" r="6" fill="#fb7185"/>
+              <circle cx="18" cy="70" r="6" fill="#fb7185"/>
+              <circle cx="48" cy="70" r="6" fill="#38bdf8"/>
+              <circle cx="78" cy="70" r="6" fill="#fb7185"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: Attack Presets (End Coordinates) -->
+      <div class="share-section-box">
+        <div class="share-section-header">
+          <div>
+            <div class="share-section-title" style="color: var(--rose);">
+              <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+              <span>2. Defensive Formation Presets (Reaction Phase)</span>
+            </div>
+            <div class="share-section-desc">Defensive blocks and court coverage adjustments when the ball is spiked</div>
+          </div>
+          <span class="badge-pill" id="attackShareCount" style="color:var(--rose); background:rgba(244,63,94,0.15); border-color:rgba(244,63,94,0.3);">2 / 3 Selected</span>
+        </div>
+
+        <div class="share-grid">
+          <!-- Share Card Attack 1 -->
+          <div class="share-preset-card checked" onclick="toggleShareItem(this, 'attack')">
+            <div class="share-card-top">
+              <span class="share-card-title">Outside Cross</span>
+              <div class="share-checkbox"><svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            </div>
+            <svg class="share-thumbnail-svg" viewBox="0 0 100 100">
+              <line x1="15" y1="0" x2="70" y2="70" stroke="#f43f5e" stroke-width="3" stroke-dasharray="3 3"/>
+              <circle cx="16" cy="6" r="6" fill="#38bdf8"/>
+              <circle cx="28" cy="6" r="6" fill="#38bdf8"/>
+            </svg>
+          </div>
+
+          <!-- Share Card Attack 2 -->
+          <div class="share-preset-card checked" onclick="toggleShareItem(this, 'attack')">
+            <div class="share-card-top">
+              <span class="share-card-title">Fast Line D</span>
+              <div class="share-checkbox"><svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            </div>
+            <svg class="share-thumbnail-svg" viewBox="0 0 100 100">
+              <line x1="10" y1="0" x2="10" y2="80" stroke="#f43f5e" stroke-width="3" stroke-dasharray="3 3"/>
+              <circle cx="10" cy="6" r="6" fill="#38bdf8"/>
+            </svg>
+          </div>
+
+          <!-- Share Card Attack 3 -->
+          <div class="share-preset-card" onclick="toggleShareItem(this, 'attack')">
+            <div class="share-card-top">
+              <span class="share-card-title">Middle Quick</span>
+              <div class="share-checkbox"></div>
+            </div>
+            <svg class="share-thumbnail-svg" viewBox="0 0 100 100">
+              <line x1="50" y1="0" x2="50" y2="60" stroke="#f43f5e" stroke-width="3" stroke-dasharray="3 3"/>
+              <circle cx="50" cy="6" r="6" fill="#38bdf8"/>
+            </svg>
+          </div>
+
+          <!-- Share Card Attack 4 -->
+          <div class="share-preset-card" onclick="toggleShareItem(this, 'attack')">
+            <div class="share-card-top">
+              <span class="share-card-title">Deep Corner Tip</span>
+              <div class="share-checkbox"></div>
+            </div>
+            <svg class="share-thumbnail-svg" viewBox="0 0 100 100">
+              <line x1="15" y1="0" x2="85" y2="85" stroke="#f59e0b" stroke-width="3" stroke-dasharray="2 2"/>
+              <circle cx="75" cy="70" r="6" fill="#fb7185"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer & Action -->
+      <button class="btn btn-primary" style="height:46px; font-size:0.95rem;" onclick="copyShareLink()">
+        <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+        <span>Generate & Copy Share Link (#share=...)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- =============================================================
+       Client JavaScript Logic
+       ============================================================= -->
+  <script>
+    // State
+    let currentTheme = 'dark';
+    let isSpikeStage = false;
+    let is3D = false;
+    let isAnimating = false;
+
+    // View Options State
+    const overlayState = {
+      zones: true,
+      arrows: true,
+      shadow: true,
+      perspective3d: false
+    };
+
+    // Elements
+    const htmlEl = document.documentElement;
+    const btnThemeToggle = document.getElementById('btnThemeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeStatusLabel = document.getElementById('themeStatusLabel');
+
+    const btnSettings = document.getElementById('btnSettings');
+    const settingsDropdown = document.getElementById('settingsDropdown');
+
+    const switchZones = document.getElementById('switchZones');
+    const switchArrows = document.getElementById('switchArrows');
+    const switchShadow = document.getElementById('switchShadow');
+    const switch3D = document.getElementById('switch3D');
+
+    const courtViewport = document.getElementById('courtViewport');
+    const zoneNumbersGroup = document.getElementById('zoneNumbersGroup');
+    const motionVectorsGroup = document.getElementById('motionVectorsGroup');
+    const blockShadowCone = document.getElementById('blockShadowCone');
+    const attackLine = document.getElementById('attackLine');
+    const attackTargetToken = document.getElementById('attackTargetToken');
+    const courtSvg = document.getElementById('courtSvg');
+    const tokenSetter = document.getElementById('tokenSetter');
+    const tokenAttacker = document.getElementById('tokenAttacker');
+    const volleyballGroup = document.getElementById('volleyballGroup');
+
+    const baseModAlert = document.getElementById('baseModAlert');
+    const baseModAlertText = document.getElementById('baseModAlertText');
+    const btnSaveBaseMod = document.getElementById('btnSaveBaseMod');
+    const btnSaveNewBaseMod = document.getElementById('btnSaveNewBaseMod');
+    const btnResetBaseMod = document.getElementById('btnResetBaseMod');
+
+    const attackModAlert = document.getElementById('attackModAlert');
+    const attackModAlertText = document.getElementById('attackModAlertText');
+    const btnSaveAttackMod = document.getElementById('btnSaveAttackMod');
+    const btnSaveNewAttackMod = document.getElementById('btnSaveNewAttackMod');
+    const btnResetAttackMod = document.getElementById('btnResetAttackMod');
+
+    const btnStageBase = document.getElementById('btnStageBase');
+    const btnStageSpike = document.getElementById('btnStageSpike');
+
+    const cardBasePresets = document.getElementById('cardBasePresets');
+    const cardAttackPresets = document.getElementById('cardAttackPresets');
+    const sectionBasePresets = document.getElementById('sectionBasePresets');
+    const sectionAttackPresets = document.getElementById('sectionAttackPresets');
+
+    // Theme Toggle Logic
+    const sunSvg = `<svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
+    const moonSvg = `<svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
+
+    function setTheme(theme) {
+      currentTheme = theme;
+      htmlEl.setAttribute('data-theme', theme);
+      if (theme === 'light') {
+        themeIcon.innerHTML = moonSvg;
+        themeStatusLabel.textContent = 'Light Mode';
+      } else {
+        themeIcon.innerHTML = sunSvg;
+        themeStatusLabel.textContent = 'Dark Mode';
+      }
+    }
+
+    btnThemeToggle.addEventListener('click', () => {
+      setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    });
+
+    document.getElementById('settingTheme').addEventListener('click', () => {
+      setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    });
+
+    // Settings Dropdown Toggle
+    btnSettings.addEventListener('click', (e) => {
+      e.stopPropagation();
+      settingsDropdown.classList.toggle('open');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!settingsDropdown.contains(e.target) && e.target !== btnSettings) {
+        settingsDropdown.classList.remove('open');
+      }
+    });
+
+    // View Overlay Toggles (Inside Settings)
+    function updateOverlayViews() {
+      // Zones
+      switchZones.classList.toggle('checked', overlayState.zones);
+      zoneNumbersGroup.style.display = overlayState.zones ? 'block' : 'none';
+
+      // Arrows
+      switchArrows.classList.toggle('checked', overlayState.arrows);
+      motionVectorsGroup.style.display = overlayState.arrows ? 'block' : 'none';
+
+      // Shadow (visible only on end spike position)
+      switchShadow.classList.toggle('checked', overlayState.shadow);
+      blockShadowCone.style.display = (overlayState.shadow && isSpikeStage) ? 'block' : 'none';
+
+      // 3D Perspective
+      switch3D.classList.toggle('checked', overlayState.perspective3d);
+      courtViewport.classList.toggle('perspective-3d', overlayState.perspective3d);
+    }
+
+    document.getElementById('settingZones').addEventListener('click', () => {
+      overlayState.zones = !overlayState.zones;
+      updateOverlayViews();
+    });
+
+    document.getElementById('settingArrows').addEventListener('click', () => {
+      overlayState.arrows = !overlayState.arrows;
+      updateOverlayViews();
+    });
+
+    document.getElementById('settingShadow').addEventListener('click', () => {
+      overlayState.shadow = !overlayState.shadow;
+      updateOverlayViews();
+    });
+
+    document.getElementById('setting3D').addEventListener('click', () => {
+      overlayState.perspective3d = !overlayState.perspective3d;
+      updateOverlayViews();
+    });
+
+    // -------------------------------------------------------------
+    // ROTATIONAL PLAYBOOKS ARCHITECTURE (Rotation owns separate Base & Attack presets)
+    // In COED 6v6, rotation determines front-row net blocking eligibility:
+    // • Men Serving (R1): Only 1 Man on net (P3), women pull off net. Solo block.
+    // • Women Serving (R4): 2 Men on net (P4, P2), 1 woman front. Double block.
+    // Presets are rotation-scoped: each rotation maintains dedicated Base and Attack formations.
+    // -------------------------------------------------------------
+    let currentRotation = 'men';
+    let isBaseDirty = false;
+    let isAttackDirty = false;
+
+    const rotationalPlaybooks = {
+      men: {
+        id: 'men',
+        name: 'Man Serving (R1 - 1M Net)',
+        activeBase: 'base-deep-men',
+        activeAttack: 'outside-cross-men',
+        basePresets: {
+          'base-deep-men': {
+            name: 'Solo-Block Deep Read',
+            isCustom: false,
+            attacker: { x: 18, y: -12 },
+            setter: { x: 68, y: -6 },
+            defenders: {
+              tokenP4: { x: 20, y: 22 }, // woman pulled off net
+              tokenP3: { x: 50, y: 18 }, // male solo blocker ready
+              tokenP2: { x: 80, y: 22 }, // woman pulled off net
+              tokenP5: { x: 20, y: 75 },
+              tokenP6: { x: 50, y: 75 },
+              tokenP1: { x: 80, y: 75 }
+            }
+          },
+          'base-tip-men': {
+            name: 'Short Tip Ready',
+            isCustom: true,
+            attacker: { x: 25, y: -10 },
+            setter: { x: 65, y: -6 },
+            defenders: {
+              tokenP4: { x: 22, y: 16 },
+              tokenP3: { x: 50, y: 15 },
+              tokenP2: { x: 74, y: 28 },
+              tokenP5: { x: 25, y: 55 },
+              tokenP6: { x: 50, y: 75 },
+              tokenP1: { x: 75, y: 65 }
+            }
+          }
+        },
+        attackConfigs: {
+          'outside-cross-men': {
+            name: 'Outside Cross (Solo Block)',
+            isCustom: false,
+            attacker: { x: 15, y: -12 },
+            setter: { x: 68, y: -6 },
+            ball: { x: 18, y: -10 },
+            target: { x: 65, y: 75 },
+            blockShadow: "20,0 35,0 55,100 15,100",
+            defenders: {
+              tokenP4: { x: 20, y: 20 }, // woman off-net tip cover
+              tokenP3: { x: 24, y: 3 },  // P3 (man) solo block
+              tokenP2: { x: 68, y: 22 }, // woman off-net short
+              tokenP5: { x: 14, y: 60 },
+              tokenP6: { x: 52, y: 85 },
+              tokenP1: { x: 82, y: 65 }
+            }
+          },
+          'outside-line-men': {
+            name: 'Line Cover (Solo Block)',
+            isCustom: false,
+            attacker: { x: 12, y: -12 },
+            setter: { x: 68, y: -6 },
+            ball: { x: 14, y: -10 },
+            target: { x: 14, y: 85 },
+            blockShadow: "16,0 28,0 34,100 6,100",
+            defenders: {
+              tokenP4: { x: 18, y: 18 },
+              tokenP3: { x: 20, y: 3 },
+              tokenP2: { x: 64, y: 20 },
+              tokenP5: { x: 14, y: 75 },
+              tokenP6: { x: 48, y: 72 },
+              tokenP1: { x: 78, y: 58 }
+            }
+          },
+          'deep-tip-men': {
+            name: 'Deep Corner Tip',
+            isCustom: false,
+            attacker: { x: 15, y: -12 },
+            setter: { x: 68, y: -6 },
+            ball: { x: 18, y: -10 },
+            target: { x: 85, y: 85 },
+            blockShadow: "20,0 35,0 55,100 15,100",
+            defenders: {
+              tokenP4: { x: 24, y: 16 },
+              tokenP3: { x: 26, y: 3 },
+              tokenP2: { x: 65, y: 20 },
+              tokenP5: { x: 20, y: 55 },
+              tokenP6: { x: 55, y: 75 },
+              tokenP1: { x: 85, y: 82 }
+            }
+          }
+        }
+      },
+      women: {
+        id: 'women',
+        name: 'Woman Serving (R4 - 2M Net)',
+        activeBase: 'base-deep-women',
+        activeAttack: 'outside-cross-women',
+        basePresets: {
+          'base-deep-women': {
+            name: 'Double-Block Perimeter Read',
+            isCustom: false,
+            attacker: { x: 18, y: -12 },
+            setter: { x: 68, y: -6 },
+            defenders: {
+              tokenP4: { x: 18, y: 15 }, // male blocker (left)
+              tokenP3: { x: 50, y: 25 }, // woman setter / center read
+              tokenP2: { x: 82, y: 15 }, // male blocker (right)
+              tokenP5: { x: 18, y: 75 },
+              tokenP6: { x: 50, y: 75 },
+              tokenP1: { x: 82, y: 75 }
+            }
+          },
+          'base-split-women': {
+            name: 'Split Seam Ready',
+            isCustom: true,
+            attacker: { x: 25, y: -10 },
+            setter: { x: 65, y: -6 },
+            defenders: {
+              tokenP4: { x: 16, y: 12 },
+              tokenP3: { x: 50, y: 22 },
+              tokenP2: { x: 80, y: 16 },
+              tokenP5: { x: 22, y: 60 },
+              tokenP6: { x: 50, y: 78 },
+              tokenP1: { x: 78, y: 65 }
+            }
+          }
+        },
+        attackConfigs: {
+          'outside-cross-women': {
+            name: 'Outside Cross (Double Wall)',
+            isCustom: false,
+            attacker: { x: 15, y: -12 },
+            setter: { x: 68, y: -6 },
+            ball: { x: 18, y: -10 },
+            target: { x: 65, y: 75 },
+            blockShadow: "14,0 30,0 52,100 8,100",
+            defenders: {
+              tokenP4: { x: 14, y: 3 },  // P4 (man) outside block
+              tokenP3: { x: 48, y: 24 }, // P3 (woman) in-hole defense
+              tokenP2: { x: 25, y: 3 },  // P2 (man) middle close block
+              tokenP5: { x: 15, y: 68 },
+              tokenP6: { x: 54, y: 85 },
+              tokenP1: { x: 80, y: 65 }
+            }
+          },
+          'outside-line-women': {
+            name: 'Line Wall (Double Block)',
+            isCustom: false,
+            attacker: { x: 12, y: -12 },
+            setter: { x: 68, y: -6 },
+            ball: { x: 14, y: -10 },
+            target: { x: 14, y: 85 },
+            blockShadow: "10,0 24,0 30,100 0,100",
+            defenders: {
+              tokenP4: { x: 11, y: 3 },  // P4 (man) solid pin block
+              tokenP3: { x: 52, y: 26 }, // P3 (woman) short tip
+              tokenP2: { x: 22, y: 3 },  // P2 (man) close
+              tokenP5: { x: 15, y: 80 },
+              tokenP6: { x: 48, y: 72 },
+              tokenP1: { x: 78, y: 58 }
+            }
+          },
+          'deep-tip-women': {
+            name: 'Tip Seam (P3 Center Coverage)',
+            isCustom: false,
+            attacker: { x: 15, y: -12 },
+            setter: { x: 68, y: -6 },
+            ball: { x: 18, y: -10 },
+            target: { x: 85, y: 85 },
+            blockShadow: "14,0 30,0 52,100 8,100",
+            defenders: {
+              tokenP4: { x: 14, y: 3 },
+              tokenP3: { x: 34, y: 22 }, // P3 (woman) steps up for tip
+              tokenP2: { x: 26, y: 3 },
+              tokenP5: { x: 20, y: 58 },
+              tokenP6: { x: 55, y: 78 },
+              tokenP1: { x: 85, y: 82 }
+            }
+          }
+        }
+      }
+    };
+
+    const initialDefaultPlaybooks = JSON.parse(JSON.stringify(rotationalPlaybooks));
+
+    let basePresets = rotationalPlaybooks.men.basePresets;
+    let attackConfigs = rotationalPlaybooks.men.attackConfigs;
+    let currentBasePreset = rotationalPlaybooks.men.activeBase;
+    let currentAttackPreset = rotationalPlaybooks.men.activeAttack;
+
+    const positions = {
+      base: JSON.parse(JSON.stringify(basePresets[currentBasePreset].defenders)),
+      spike: JSON.parse(JSON.stringify(attackConfigs[currentAttackPreset].defenders))
+    };
+
+    // Dynamic update of motion vector arrows connecting Base spots to Spike reaction spots
+    function updateMotionVectors() {
+      ['tokenP4', 'tokenP3', 'tokenP2', 'tokenP5', 'tokenP6', 'tokenP1'].forEach(id => {
+        const line = document.getElementById(id.replace('token', 'vector'));
+        if (line && positions.base[id] && positions.spike[id]) {
+          line.setAttribute('x1', positions.base[id].x);
+          line.setAttribute('y1', positions.base[id].y);
+          line.setAttribute('x2', positions.spike[id].x);
+          line.setAttribute('y2', positions.spike[id].y);
+        }
+      });
+    }
+
+    function updateTokens(stage, animate = false) {
+      const currentConfig = attackConfigs[currentAttackPreset] || attackConfigs['outside-cross'];
+      const currentBaseConfig = basePresets[currentBasePreset] || basePresets['base-deep'];
+      const targetPos = stage === 'spike' ? positions.spike : positions.base;
+
+      Object.entries(targetPos).forEach(([id, coords]) => {
+        const el = document.getElementById(id);
+        if (el) {
+          if (animate) {
+            el.style.transition = 'transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1)';
+          } else {
+            el.style.transition = 'none';
+          }
+          el.setAttribute('transform', `translate(${coords.x}, ${coords.y})`);
+        }
+      });
+
+      if (stage === 'spike') {
+        isSpikeStage = true;
+
+        // Court Header Bar state
+        btnStageSpike.classList.add('active', 'spike-active');
+        btnStageSpike.setAttribute('aria-selected', 'true');
+        btnStageBase.classList.remove('active', 'base-active');
+        btnStageBase.setAttribute('aria-selected', 'false');
+
+        // Attacker token adjusts to attack scenario
+        if (tokenAttacker) {
+          tokenAttacker.style.transition = animate ? 'transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
+          tokenAttacker.setAttribute('transform', `translate(${currentConfig.attacker.x}, ${currentConfig.attacker.y})`);
+        }
+
+        // Setter token adjusts to attack scenario
+        if (tokenSetter) {
+          tokenSetter.style.transition = animate ? 'transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
+          const setPos = currentConfig.setter || { x: 68, y: -6 };
+          tokenSetter.setAttribute('transform', `translate(${setPos.x}, ${setPos.y})`);
+        }
+
+        // Ball glides from Setter to Attacker and stays with the Attacker
+        if (volleyballGroup) {
+          volleyballGroup.style.transition = animate ? 'transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
+          volleyballGroup.setAttribute('transform', `translate(${currentConfig.ball.x}, ${currentConfig.ball.y})`);
+        }
+
+        // Attacker Arrow points from Attacker/Ball to defensive target
+        if (attackLine) {
+          attackLine.setAttribute('x1', currentConfig.ball.x);
+          attackLine.setAttribute('y1', currentConfig.ball.y);
+          attackLine.setAttribute('x2', currentConfig.target.x);
+          attackLine.setAttribute('y2', currentConfig.target.y);
+          attackLine.style.display = 'block';
+        }
+
+        // Draggable Attack Destination Target (Part of Spike Reaction)
+        if (attackTargetToken) {
+          attackTargetToken.style.transition = animate ? 'transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
+          attackTargetToken.setAttribute('transform', `translate(${currentConfig.target.x}, ${currentConfig.target.y})`);
+          attackTargetToken.style.display = 'block';
+        }
+
+        // Block Shadow Cone
+        if (blockShadowCone) {
+          blockShadowCone.setAttribute('points', currentConfig.blockShadow);
+          blockShadowCone.style.display = overlayState.shadow ? 'block' : 'none';
+        }
+
+        // In Spike reaction, motion vectors are hidden because defenders have already moved
+        if (motionVectorsGroup) {
+          motionVectorsGroup.style.display = 'none';
+        }
+
+        // Right Panel Focus & Visual Cues (Glow & Highlight)
+        if (cardAttackPresets) cardAttackPresets.classList.add('active-focus');
+        if (cardBasePresets) cardBasePresets.classList.remove('active-focus');
+        sectionAttackPresets.classList.add('active-focus');
+        sectionBasePresets.classList.remove('active-focus');
+      } else {
+        isSpikeStage = false;
+
+        // Court Header Bar state
+        btnStageBase.classList.add('active', 'base-active');
+        btnStageBase.setAttribute('aria-selected', 'true');
+        btnStageSpike.classList.remove('active', 'spike-active');
+        btnStageSpike.setAttribute('aria-selected', 'false');
+
+        // Attacker token adjusts to base read scenario
+        if (tokenAttacker) {
+          tokenAttacker.style.transition = animate ? 'transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
+          tokenAttacker.setAttribute('transform', `translate(${currentBaseConfig.attacker.x}, ${currentBaseConfig.attacker.y})`);
+        }
+
+        // Setter token adjusts to base read scenario
+        if (tokenSetter) {
+          tokenSetter.style.transition = animate ? 'transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
+          tokenSetter.setAttribute('transform', `translate(${currentBaseConfig.setter.x}, ${currentBaseConfig.setter.y})`);
+        }
+
+        // Ball is fixed and grouped with the setter in Base Read
+        if (volleyballGroup) {
+          volleyballGroup.style.transition = animate ? 'transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
+          volleyballGroup.setAttribute('transform', `translate(${currentBaseConfig.setter.x - 4}, ${currentBaseConfig.setter.y - 1})`);
+        }
+
+        // Attacker arrow strictly hidden in Base Read
+        if (attackLine) {
+          attackLine.style.display = 'none';
+        }
+
+        // Draggable target strictly hidden in Base Read
+        if (attackTargetToken) {
+          attackTargetToken.style.display = 'none';
+        }
+
+        // Block shadow cone strictly hidden in Base Read
+        if (blockShadowCone) {
+          blockShadowCone.style.display = 'none';
+        }
+
+        // In Base Read, motion vectors are displayed and dynamically updated
+        if (motionVectorsGroup) {
+          motionVectorsGroup.style.display = overlayState.arrows ? 'block' : 'none';
+          updateMotionVectors();
+        }
+
+        // Right Panel Focus & Visual Cues (Glow & Highlight)
+        if (cardBasePresets) cardBasePresets.classList.add('active-focus');
+        if (cardAttackPresets) cardAttackPresets.classList.remove('active-focus');
+        sectionBasePresets.classList.add('active-focus');
+        sectionAttackPresets.classList.remove('active-focus');
+      }
+    }
+
+    // Initialize state
+    updateTokens('base', false);
+
+    // Stage Toggles (Direct Smooth Transition)
+    btnStageBase.addEventListener('click', () => updateTokens('base', true));
+    btnStageSpike.addEventListener('click', () => updateTokens('spike', true));
+
+    // Preset Selection Behavior (Auto-animates directly into selected tactical state)
+    function attachBasePresetListener(card) {
+      card.addEventListener('click', () => {
+        if (card.classList.contains('disabled')) return;
+        document.querySelectorAll('[data-preset]').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        currentBasePreset = card.getAttribute('data-preset');
+        if (basePresets[currentBasePreset]) {
+          positions.base = JSON.parse(JSON.stringify(basePresets[currentBasePreset].defenders));
+        }
+        updateMotionVectors();
+        // Auto-animate smoothly to Base reading formation
+        updateTokens('base', true);
+      });
+    }
+
+    function attachAttackPresetListener(card) {
+      card.addEventListener('click', () => {
+        if (card.classList.contains('disabled')) return;
+        document.querySelectorAll('[data-attack]').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        currentAttackPreset = card.getAttribute('data-attack');
+        const cfg = attackConfigs[currentAttackPreset] || attackConfigs['outside-cross'];
+        if (cfg.defenders) {
+          positions.spike = JSON.parse(JSON.stringify(cfg.defenders));
+        }
+        updateMotionVectors();
+        // Auto-animate smoothly to Attack defense reaction
+        updateTokens('spike', true);
+      });
+    }
+
+    document.querySelectorAll('[data-preset]').forEach(attachBasePresetListener);
+    document.querySelectorAll('[data-attack]').forEach(attachAttackPresetListener);
+
+    // Stop propagation on preset action buttons (edit / delete)
+    document.querySelectorAll('.preset-actions .icon-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => e.stopPropagation());
+    });
+
+    // Direct Manipulation (Dragging Attack Target & Tokens)
+    function getSvgCoords(e) {
+      const pt = courtSvg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const transformed = pt.matrixTransform(courtSvg.getScreenCTM().inverse());
+      return {
+        x: Math.round(transformed.x * 10) / 10,
+        y: Math.round(transformed.y * 10) / 10
+      };
+    }
+
+    let activeDragKind = null;
+
+    // Helper functions for Approach A: Section-Scoped Focused Edit Lock
+    function getActiveBaseCard() {
+      return document.querySelector('#sectionBasePresets .preset-card.selected');
+    }
+
+    function getActiveAttackCard() {
+      return document.querySelector('#sectionAttackPresets .preset-card.selected');
+    }
+
+    function isCustomPreset(card) {
+      return !!(card && card.querySelector('.user-custom-tag'));
+    }
+
+    // BASE PRESETS LOCK CONTROLLER
+    function unlockBasePresets() {
+      document.querySelectorAll('#sectionBasePresets .preset-card').forEach(card => {
+        card.classList.remove('modified', 'disabled');
+        card.removeAttribute('aria-disabled');
+      });
+      if (baseModAlert) baseModAlert.style.display = 'none';
+      isBaseDirty = false;
+      updateRotationLockState();
+    }
+
+    function markBaseModified(message) {
+      const activeCard = getActiveBaseCard();
+      if (!activeCard) return;
+
+      const isCustom = isCustomPreset(activeCard);
+      activeCard.classList.add('modified');
+
+      // Disable ONLY sibling cards within Base Formations section
+      document.querySelectorAll('#sectionBasePresets .preset-card').forEach(card => {
+        if (card !== activeCard) {
+          card.classList.add('disabled');
+          card.setAttribute('aria-disabled', 'true');
+        }
+      });
+
+      if (baseModAlert) {
+        baseModAlert.style.display = 'flex';
+        if (baseModAlertText) {
+          baseModAlertText.textContent = message || (isCustom ? 'Custom base modified' : 'Default base modified');
+        }
+      }
+
+      if (btnSaveBaseMod) btnSaveBaseMod.style.display = isCustom ? 'inline-block' : 'none';
+      if (btnSaveNewBaseMod) btnSaveNewBaseMod.style.display = 'inline-block';
+      if (btnResetBaseMod) btnResetBaseMod.style.display = 'inline-block';
+
+      isBaseDirty = true;
+      updateRotationLockState();
+    }
+
+    // [Save] Base: Overwrite custom base preset
+    if (btnSaveBaseMod) {
+      btnSaveBaseMod.addEventListener('click', () => {
+        const activeCard = getActiveBaseCard();
+        if (activeCard && isCustomPreset(activeCard)) {
+          if (currentBasePreset && basePresets[currentBasePreset]) {
+            basePresets[currentBasePreset].defenders = JSON.parse(JSON.stringify(positions.base));
+            // attacker and setter are already stored in basePresets[currentBasePreset]
+          }
+        }
+        unlockBasePresets();
+      });
+    }
+
+    // [Save as New] Base: Fork into new custom base preset
+    if (btnSaveNewBaseMod) {
+      btnSaveNewBaseMod.addEventListener('click', () => {
+        const defaultName = 'Custom Base ' + (document.querySelectorAll('#sectionBasePresets .preset-card').length + 1);
+        const newName = prompt('Enter a name for the new base preset:', defaultName);
+        if (!newName) return;
+
+        const newId = 'custom-base-' + Date.now();
+        const curBase = basePresets[currentBasePreset] || initialDefaultPlaybooks[currentRotation].basePresets['base-deep-' + currentRotation];
+        basePresets[newId] = {
+          attacker: { ...curBase.attacker },
+          setter: { ...curBase.setter },
+          defenders: JSON.parse(JSON.stringify(positions.base))
+        };
+        currentBasePreset = newId;
+
+        const grid = document.querySelector('#sectionBasePresets .preset-grid');
+        const newCard = document.createElement('div');
+        newCard.className = 'preset-card selected';
+        newCard.setAttribute('data-preset', newId);
+        newCard.innerHTML = `
+          <div class="preset-card-top">
+            <div class="preset-title-wrap">
+              <span class="preset-name" title="${newName}">${newName}</span>
+              <span class="user-custom-tag"><svg class="lucide-icon" width="10" height="10" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Custom</span>
+            </div>
+            <div class="preset-actions">
+              <button class="icon-btn" title="Edit"><svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg></button>
+              <button class="icon-btn delete" title="Delete"><svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
+            </div>
+          </div>
+          <div class="preset-thumbnail">
+            <svg width="100%" height="100%" viewBox="0 0 100 100">
+              <rect width="100" height="100" fill="var(--bg-base)"/>
+              <line x1="0" y1="33" x2="100" y2="33" stroke="var(--court-3m)" stroke-width="2"/>
+              <circle cx="20" cy="20" r="6" fill="#38bdf8"/>
+              <circle cx="50" cy="20" r="6" fill="#38bdf8"/>
+              <circle cx="80" cy="20" r="6" fill="#fb7185"/>
+              <circle cx="20" cy="75" r="6" fill="#fb7185"/>
+              <circle cx="50" cy="75" r="6" fill="#38bdf8"/>
+              <circle cx="80" cy="75" r="6" fill="#fb7185"/>
+            </svg>
+          </div>
+        `;
+        attachBasePresetListener(newCard);
+        newCard.querySelectorAll('.preset-actions .icon-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => e.stopPropagation());
+        });
+        document.querySelectorAll('#sectionBasePresets .preset-card').forEach(c => c.classList.remove('selected'));
+        grid.appendChild(newCard);
+        unlockBasePresets();
+      });
+    }
+
+    // [Reset] Base: Revert base coordinates
+    if (btnResetBaseMod) {
+      btnResetBaseMod.addEventListener('click', () => {
+        const playbook = rotationalPlaybooks[currentRotation];
+        const initialDef = initialDefaultPlaybooks[currentRotation];
+        if (initialDef && initialDef.basePresets[currentBasePreset]) {
+          playbook.basePresets[currentBasePreset] = JSON.parse(JSON.stringify(initialDef.basePresets[currentBasePreset]));
+        }
+        if (basePresets[currentBasePreset]) {
+          positions.base = JSON.parse(JSON.stringify(basePresets[currentBasePreset].defenders));
+        }
+        if (!isSpikeStage) {
+          updateTokens('base', true);
+        }
+        unlockBasePresets();
+      });
+    }
+
+    // ATTACK PRESETS LOCK CONTROLLER
+    function unlockAttackPresets() {
+      document.querySelectorAll('#sectionAttackPresets .preset-card').forEach(card => {
+        card.classList.remove('modified', 'disabled');
+        card.removeAttribute('aria-disabled');
+      });
+      if (attackModAlert) attackModAlert.style.display = 'none';
+      isAttackDirty = false;
+      updateRotationLockState();
+    }
+
+    function markAttackModified(message) {
+      const activeCard = getActiveAttackCard();
+      if (!activeCard) return;
+
+      const isCustom = isCustomPreset(activeCard);
+      activeCard.classList.add('modified');
+
+      // Disable ONLY sibling cards within Attack Reactions section
+      document.querySelectorAll('#sectionAttackPresets .preset-card').forEach(card => {
+        if (card !== activeCard) {
+          card.classList.add('disabled');
+          card.setAttribute('aria-disabled', 'true');
+        }
+      });
+
+      if (attackModAlert) {
+        attackModAlert.style.display = 'flex';
+        if (attackModAlertText) {
+          attackModAlertText.textContent = message || (isCustom ? 'Custom reaction modified' : 'Default reaction modified');
+        }
+      }
+
+      if (btnSaveAttackMod) btnSaveAttackMod.style.display = isCustom ? 'inline-block' : 'none';
+      if (btnSaveNewAttackMod) btnSaveNewAttackMod.style.display = 'inline-block';
+      if (btnResetAttackMod) btnResetAttackMod.style.display = 'inline-block';
+
+      isAttackDirty = true;
+      updateRotationLockState();
+    }
+
+    // [Save] Attack: Overwrite custom attack preset
+    if (btnSaveAttackMod) {
+      btnSaveAttackMod.addEventListener('click', () => {
+        const activeCard = getActiveAttackCard();
+        if (activeCard && isCustomPreset(activeCard)) {
+          if (currentAttackPreset && attackConfigs[currentAttackPreset]) {
+            attackConfigs[currentAttackPreset].defenders = JSON.parse(JSON.stringify(positions.spike));
+          }
+        }
+        unlockAttackPresets();
+      });
+    }
+
+    // [Save as New] Attack: Fork into new custom attack preset
+    if (btnSaveNewAttackMod) {
+      btnSaveNewAttackMod.addEventListener('click', () => {
+        const defaultName = 'Custom Reaction ' + (document.querySelectorAll('#sectionAttackPresets .preset-card').length + 1);
+        const newName = prompt('Enter a name for the new attack preset:', defaultName);
+        if (!newName) return;
+
+        const newId = 'custom-attack-' + Date.now();
+        const currentConfig = attackConfigs[currentAttackPreset] || initialDefaultPlaybooks[currentRotation].attackConfigs['outside-cross-' + currentRotation];
+        attackConfigs[newId] = {
+          attacker: { ...currentConfig.attacker },
+          setter: { ...(currentConfig.setter || { x: 68, y: -6 }) },
+          ball: { ...currentConfig.ball },
+          target: { ...currentConfig.target },
+          blockShadow: currentConfig.blockShadow,
+          defenders: JSON.parse(JSON.stringify(positions.spike))
+        };
+        currentAttackPreset = newId;
+
+        const grid = document.querySelector('#sectionAttackPresets .preset-grid');
+        const newCard = document.createElement('div');
+        newCard.className = 'preset-card selected';
+        newCard.setAttribute('data-attack', newId);
+        newCard.innerHTML = `
+          <div class="preset-card-top">
+            <div class="preset-title-wrap">
+              <span class="preset-name" title="${newName}">${newName}</span>
+              <span class="user-custom-tag"><svg class="lucide-icon" width="10" height="10" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Custom</span>
+            </div>
+            <div class="preset-actions">
+              <button class="icon-btn" title="Edit"><svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg></button>
+              <button class="icon-btn delete" title="Delete"><svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
+            </div>
+          </div>
+          <div class="preset-thumbnail">
+            <svg width="100%" height="100%" viewBox="0 0 100 100">
+              <rect width="100" height="100" fill="var(--bg-base)"/>
+              <line x1="15" y1="0" x2="${currentConfig.target.x}" y2="${currentConfig.target.y}" stroke="#f43f5e" stroke-width="3" stroke-dasharray="3 3"/>
+              <circle cx="20" cy="6" r="6" fill="#38bdf8"/>
+            </svg>
+          </div>
+        `;
+        attachAttackPresetListener(newCard);
+        newCard.querySelectorAll('.preset-actions .icon-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => e.stopPropagation());
+        });
+        document.querySelectorAll('#sectionAttackPresets .preset-card').forEach(c => c.classList.remove('selected'));
+        grid.appendChild(newCard);
+        unlockAttackPresets();
+      });
+    }
+
+    // [Reset] Attack: Revert attack reaction coordinates
+    if (btnResetAttackMod) {
+      btnResetAttackMod.addEventListener('click', () => {
+        const playbook = rotationalPlaybooks[currentRotation];
+        const initialDef = initialDefaultPlaybooks[currentRotation];
+        if (initialDef && initialDef.attackConfigs[currentAttackPreset]) {
+          playbook.attackConfigs[currentAttackPreset] = JSON.parse(JSON.stringify(initialDef.attackConfigs[currentAttackPreset]));
+        }
+        if (attackConfigs[currentAttackPreset] && attackConfigs[currentAttackPreset].defenders) {
+          positions.spike = JSON.parse(JSON.stringify(attackConfigs[currentAttackPreset].defenders));
+        }
+        if (isSpikeStage) {
+          updateTokens('spike', true);
+        }
+        unlockAttackPresets();
+      });
+    }
+
+    // Draggable Target Token (part of Attack Reaction - ball is NOT draggable, but target is!)
+    let dragPointerId = null;
+    let dragOffset = { x: 0, y: 0 };
+
+    if (attackTargetToken) {
+      attackTargetToken.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        activeDragKind = 'target';
+        dragPointerId = e.pointerId;
+        const coords = getSvgCoords(e);
+        const currentConfig = attackConfigs[currentAttackPreset] || attackConfigs['outside-cross'];
+        dragOffset.x = coords.x - currentConfig.target.x;
+        dragOffset.y = coords.y - currentConfig.target.y;
+        courtSvg.setPointerCapture(e.pointerId);
+      });
+    }
+
+    // Draggable Attacker Token (part of preset: Base preset in Base Read, Attack preset in Spike Reaction)
+    if (tokenAttacker) {
+      tokenAttacker.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        activeDragKind = 'attacker';
+        dragPointerId = e.pointerId;
+        const coords = getSvgCoords(e);
+        const curAtt = isSpikeStage
+          ? (attackConfigs[currentAttackPreset] || attackConfigs['outside-cross']).attacker
+          : (basePresets[currentBasePreset] || basePresets['base-deep']).attacker;
+        dragOffset.x = coords.x - curAtt.x;
+        dragOffset.y = coords.y - curAtt.y;
+        tokenAttacker.classList.add('is-dragging');
+        courtSvg.setPointerCapture(e.pointerId);
+      });
+    }
+
+    // Draggable Setter Token (part of preset: Base preset in Base Read, Attack preset in Spike Reaction)
+    if (tokenSetter) {
+      tokenSetter.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        activeDragKind = 'setter';
+        dragPointerId = e.pointerId;
+        const coords = getSvgCoords(e);
+        const curSet = isSpikeStage
+          ? ((attackConfigs[currentAttackPreset] || attackConfigs['outside-cross']).setter || { x: 68, y: -6 })
+          : ((basePresets[currentBasePreset] || basePresets['base-deep']).setter || { x: 68, y: -6 });
+        dragOffset.x = coords.x - curSet.x;
+        dragOffset.y = coords.y - curSet.y;
+        tokenSetter.classList.add('is-dragging');
+        courtSvg.setPointerCapture(e.pointerId);
+      });
+    }
+
+    // Draggable Defender Tokens
+    ['tokenP4', 'tokenP3', 'tokenP2', 'tokenP5', 'tokenP6', 'tokenP1'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          activeDragKind = id;
+          dragPointerId = e.pointerId;
+          const coords = getSvgCoords(e);
+          const stageKey = isSpikeStage ? 'spike' : 'base';
+          const curPos = positions[stageKey][id] || { x: coords.x, y: coords.y };
+          dragOffset.x = coords.x - curPos.x;
+          dragOffset.y = coords.y - curPos.y;
+          el.classList.add('is-dragging');
+          courtSvg.setPointerCapture(e.pointerId);
+        });
+      }
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!activeDragKind) return;
+      const coords = getSvgCoords(e);
+
+      if (activeDragKind === 'target') {
+        const currentConfig = attackConfigs[currentAttackPreset] || attackConfigs['outside-cross'];
+        const rawX = coords.x - dragOffset.x;
+        const rawY = coords.y - dragOffset.y;
+        const targetX = Math.round(Math.max(4, Math.min(96, rawX)) * 10) / 10;
+        const targetY = Math.round(Math.max(4, Math.min(96, rawY)) * 10) / 10;
+        attackTargetToken.style.transition = 'none';
+        attackTargetToken.setAttribute('transform', `translate(${targetX}, ${targetY})`);
+        attackLine.setAttribute('x2', targetX);
+        attackLine.setAttribute('y2', targetY);
+        currentConfig.target = { x: targetX, y: targetY };
+        markAttackModified('Attack target modified');
+      } else if (activeDragKind === 'attacker') {
+        const rawX = coords.x - dragOffset.x;
+        const rawY = coords.y - dragOffset.y;
+        const attX = Math.round(Math.max(4, Math.min(96, rawX)) * 10) / 10;
+        const attY = Math.round(Math.max(-18, Math.min(-2, rawY)) * 10) / 10;
+        tokenAttacker.style.transition = 'none';
+        tokenAttacker.setAttribute('transform', `translate(${attX}, ${attY})`);
+        if (isSpikeStage) {
+          const currentConfig = attackConfigs[currentAttackPreset] || attackConfigs['outside-cross'];
+          currentConfig.attacker = { x: attX, y: attY };
+          currentConfig.ball = { x: attX + 3, y: attY + 2 };
+          if (volleyballGroup) {
+            volleyballGroup.style.transition = 'none';
+            volleyballGroup.setAttribute('transform', `translate(${currentConfig.ball.x}, ${currentConfig.ball.y})`);
+            attackLine.setAttribute('x1', currentConfig.ball.x);
+            attackLine.setAttribute('y1', currentConfig.ball.y);
+          }
+          markAttackModified('Attacker modified');
+        } else {
+          const currentBase = basePresets[currentBasePreset] || basePresets['base-deep'];
+          currentBase.attacker = { x: attX, y: attY };
+          markBaseModified('Attacker modified');
+        }
+      } else if (activeDragKind === 'setter') {
+        const rawX = coords.x - dragOffset.x;
+        const rawY = coords.y - dragOffset.y;
+        const setX = Math.round(Math.max(4, Math.min(96, rawX)) * 10) / 10;
+        const setY = Math.round(Math.max(-18, Math.min(-2, rawY)) * 10) / 10;
+        tokenSetter.style.transition = 'none';
+        tokenSetter.setAttribute('transform', `translate(${setX}, ${setY})`);
+        if (isSpikeStage) {
+          const currentConfig = attackConfigs[currentAttackPreset] || attackConfigs['outside-cross'];
+          currentConfig.setter = { x: setX, y: setY };
+          markAttackModified('Setter modified');
+        } else {
+          const currentBase = basePresets[currentBasePreset] || basePresets['base-deep'];
+          currentBase.setter = { x: setX, y: setY };
+          if (volleyballGroup) {
+            volleyballGroup.style.transition = 'none';
+            volleyballGroup.setAttribute('transform', `translate(${setX - 4}, ${setY - 1})`);
+          }
+          markBaseModified('Setter modified');
+        }
+      } else if (activeDragKind.startsWith('tokenP')) {
+        const rawX = coords.x - dragOffset.x;
+        const rawY = coords.y - dragOffset.y;
+        const defX = Math.round(Math.max(4, Math.min(96, rawX)) * 10) / 10;
+        const defY = Math.round(Math.max(4, Math.min(96, rawY)) * 10) / 10;
+        const el = document.getElementById(activeDragKind);
+        if (el) {
+          el.style.transition = 'none';
+          el.setAttribute('transform', `translate(${defX}, ${defY})`);
+          const stageKey = isSpikeStage ? 'spike' : 'base';
+          positions[stageKey][activeDragKind] = { x: defX, y: defY };
+          updateMotionVectors();
+          if (isSpikeStage) {
+            markAttackModified('Defensive Formation modified');
+          } else {
+            markBaseModified('Base Formation modified');
+          }
+        }
+      }
+    });
+
+    function stopDragging(e) {
+      if (dragPointerId !== null) {
+        try {
+          courtSvg.releasePointerCapture(dragPointerId);
+        } catch (_) {}
+      }
+      if (activeDragKind) {
+        const el = document.getElementById(activeDragKind);
+        if (el) el.classList.remove('is-dragging');
+      }
+      activeDragKind = null;
+      dragPointerId = null;
+    }
+
+    window.addEventListener('pointerup', stopDragging);
+    window.addEventListener('pointercancel', stopDragging);
+
+    // Rotation Selector (2 Contexts: Men Serving R1 vs Women Serving R4)
+    const rotMen = document.getElementById('rotMen');
+    const rotWomen = document.getElementById('rotWomen');
+
+    function applyRotationGender(rotation) {
+      const circleP4 = document.getElementById('circleP4');
+      const circleP3 = document.getElementById('circleP3');
+      const circleP2 = document.getElementById('circleP2');
+      const circleP5 = document.getElementById('circleP5');
+      const circleP6 = document.getElementById('circleP6');
+      const circleP1 = document.getElementById('circleP1');
+
+      if (rotation === 'men') {
+        // Men Serving (R1): P4(M), P3(M), P2(F), P5(F), P6(M), P1(F)
+        circleP4.className.baseVal = 'token-circle token-male';
+        circleP3.className.baseVal = 'token-circle token-male';
+        circleP2.className.baseVal = 'token-circle token-female';
+        circleP5.className.baseVal = 'token-circle token-female';
+        circleP6.className.baseVal = 'token-circle token-male';
+        circleP1.className.baseVal = 'token-circle token-female';
+      } else {
+        // Women Serving (R4): P4(F), P3(M), P2(M), P5(M), P6(F), P1(F)
+        circleP4.className.baseVal = 'token-circle token-female';
+        circleP3.className.baseVal = 'token-circle token-male';
+        circleP2.className.baseVal = 'token-circle token-male';
+        circleP5.className.baseVal = 'token-circle token-male';
+        circleP6.className.baseVal = 'token-circle token-female';
+        circleP1.className.baseVal = 'token-circle token-female';
+      }
+    }
+
+    function updateContainerDirtyStates() {
+      const cardCourt = document.querySelector('.court-card');
+      const cardRotation = document.getElementById('cardRotationContext');
+      const cardBase = document.getElementById('cardBasePresets');
+      const cardAttack = document.getElementById('cardAttackPresets');
+
+      if (cardBase) cardBase.classList.toggle('is-dirty', isBaseDirty);
+      if (cardAttack) cardAttack.classList.toggle('is-dirty', isAttackDirty);
+
+      const isAnyDirty = isBaseDirty || isAttackDirty;
+      if (cardCourt) cardCourt.classList.toggle('is-dirty', isAnyDirty);
+      if (cardRotation) cardRotation.classList.toggle('is-dirty', isAnyDirty);
+    }
+
+    function updateRotationLockState() {
+      const isAnyDirty = isBaseDirty || isAttackDirty;
+      const rotControl = document.getElementById('rotControl');
+      const rotLockedBanner = document.getElementById('rotLockedBanner');
+
+      if (isAnyDirty) {
+        if (rotControl) rotControl.classList.add('locked');
+        if (rotMen) {
+          rotMen.classList.add('disabled');
+          rotMen.setAttribute('aria-disabled', 'true');
+        }
+        if (rotWomen) {
+          rotWomen.classList.add('disabled');
+          rotWomen.setAttribute('aria-disabled', 'true');
+        }
+        if (rotLockedBanner) rotLockedBanner.style.display = 'flex';
+      } else {
+        if (rotControl) rotControl.classList.remove('locked');
+        if (rotMen) {
+          rotMen.classList.remove('disabled');
+          rotMen.removeAttribute('aria-disabled');
+        }
+        if (rotWomen) {
+          rotWomen.classList.remove('disabled');
+          rotWomen.removeAttribute('aria-disabled');
+        }
+        if (rotLockedBanner) rotLockedBanner.style.display = 'none';
+      }
+      updateContainerDirtyStates();
+    }
+
+    function renderPresetsForRotation(rot) {
+      const playbook = rotationalPlaybooks[rot];
+      if (!playbook) return;
+
+      basePresets = playbook.basePresets;
+      attackConfigs = playbook.attackConfigs;
+      currentBasePreset = playbook.activeBase;
+      currentAttackPreset = playbook.activeAttack;
+
+      // Render Base Presets Grid
+      const baseGrid = document.querySelector('#sectionBasePresets .preset-grid');
+      if (baseGrid) {
+        baseGrid.innerHTML = '';
+        Object.entries(basePresets).forEach(([id, preset]) => {
+          const card = document.createElement('div');
+          card.className = 'preset-card' + (id === currentBasePreset ? ' selected' : '');
+          card.setAttribute('data-preset', id);
+
+          const isCustom = preset.isCustom;
+          const actionsHtml = isCustom ? `
+            <button class="icon-btn" title="Edit / Rename"><svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg></button>
+            <button class="icon-btn delete" title="Delete Preset"><svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
+          ` : '';
+
+          const customTagHtml = isCustom ? `<span class="user-custom-tag"><svg class="lucide-icon" width="10" height="10" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Custom</span>` : '';
+
+          const d = preset.defenders;
+          const isMen = rot === 'men';
+          const cP4 = isMen ? '#fb7185' : '#38bdf8';
+          const cP3 = '#38bdf8';
+          const cP2 = isMen ? '#fb7185' : '#38bdf8';
+          const cP5 = isMen ? '#fb7185' : '#38bdf8';
+          const cP6 = isMen ? '#38bdf8' : '#fb7185';
+          const cP1 = '#fb7185';
+
+          card.innerHTML = `
+            <div class="preset-card-top">
+              <div class="preset-title-wrap">
+                <span class="preset-name" title="${preset.name}">${preset.name}</span>
+                ${customTagHtml}
+              </div>
+              <div class="preset-actions">${actionsHtml}</div>
+            </div>
+            <div class="preset-thumbnail">
+              <svg width="100%" height="100%" viewBox="0 0 100 100">
+                <rect width="100" height="100" fill="var(--bg-base)"/>
+                <line x1="0" y1="33" x2="100" y2="33" stroke="var(--court-3m)" stroke-width="2"/>
+                <circle cx="${d.tokenP4.x}" cy="${d.tokenP4.y}" r="6" fill="${cP4}"/>
+                <circle cx="${d.tokenP3.x}" cy="${d.tokenP3.y}" r="6" fill="${cP3}"/>
+                <circle cx="${d.tokenP2.x}" cy="${d.tokenP2.y}" r="6" fill="${cP2}"/>
+                <circle cx="${d.tokenP5.x}" cy="${d.tokenP5.y}" r="6" fill="${cP5}"/>
+                <circle cx="${d.tokenP6.x}" cy="${d.tokenP6.y}" r="6" fill="${cP6}"/>
+                <circle cx="${d.tokenP1.x}" cy="${d.tokenP1.y}" r="6" fill="${cP1}"/>
+              </svg>
+            </div>
+          `;
+          attachBasePresetListener(card);
+          card.querySelectorAll('.preset-actions .icon-btn').forEach(btn => btn.addEventListener('click', e => e.stopPropagation()));
+          baseGrid.appendChild(card);
+        });
+      }
+
+      // Render Attack Presets Grid
+      const attackGrid = document.querySelector('#sectionAttackPresets .preset-grid');
+      if (attackGrid) {
+        attackGrid.innerHTML = '';
+        Object.entries(attackConfigs).forEach(([id, config]) => {
+          const card = document.createElement('div');
+          card.className = 'preset-card' + (id === currentAttackPreset ? ' selected' : '');
+          card.setAttribute('data-attack', id);
+
+          const isCustom = config.isCustom;
+          const actionsHtml = isCustom ? `
+            <button class="icon-btn" title="Edit / Rename"><svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg></button>
+            <button class="icon-btn delete" title="Delete Preset"><svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
+          ` : '';
+
+          const customTagHtml = isCustom ? `<span class="user-custom-tag"><svg class="lucide-icon" width="10" height="10" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Custom</span>` : '';
+
+          card.innerHTML = `
+            <div class="preset-card-top">
+              <div class="preset-title-wrap">
+                <span class="preset-name" title="${config.name}">${config.name}</span>
+                ${customTagHtml}
+              </div>
+              <div class="preset-actions">${actionsHtml}</div>
+            </div>
+            <div class="preset-thumbnail">
+              <svg width="100%" height="100%" viewBox="0 0 100 100">
+                <rect width="100" height="100" fill="var(--bg-base)"/>
+                <line x1="${config.attacker.x}" y1="0" x2="${config.target.x}" y2="${config.target.y}" stroke="#f43f5e" stroke-width="3" stroke-dasharray="3 3"/>
+                <circle cx="${config.defenders.tokenP4.x}" cy="${config.defenders.tokenP4.y}" r="6" fill="#38bdf8"/>
+                <circle cx="${config.defenders.tokenP3.x}" cy="${config.defenders.tokenP3.y}" r="6" fill="#38bdf8"/>
+              </svg>
+            </div>
+          `;
+          attachAttackPresetListener(card);
+          card.querySelectorAll('.preset-actions .icon-btn').forEach(btn => btn.addEventListener('click', e => e.stopPropagation()));
+          attackGrid.appendChild(card);
+        });
+      }
+
+      positions.base = JSON.parse(JSON.stringify(basePresets[currentBasePreset].defenders));
+      positions.spike = JSON.parse(JSON.stringify(attackConfigs[currentAttackPreset].defenders));
+      updateMotionVectors();
+      updateTokens(isSpikeStage ? 'spike' : 'base', false);
+    }
+
+    function flashRotationLockWarning() {
+      const banner = document.getElementById('rotLockedBanner');
+      if (banner) {
+        banner.classList.remove('shake');
+        void banner.offsetWidth;
+        banner.classList.add('shake');
+      }
+    }
+
+    function setRotation(rot) {
+      if (isBaseDirty || isAttackDirty) {
+        flashRotationLockWarning();
+        return; // Strict Freeze: Block switching when dirty!
+      }
+      currentRotation = rot;
+      if (rot === 'men') {
+        rotMen.classList.add('active');
+        rotWomen.classList.remove('active');
+      } else {
+        rotWomen.classList.add('active');
+        rotMen.classList.remove('active');
+      }
+      applyRotationGender(rot);
+      renderPresetsForRotation(rot);
+    }
+
+    // Strict Freeze: Capturing-phase listener intercepts ANY click on the rotation control while dirty
+    const rotControlEl = document.getElementById('rotControl');
+    if (rotControlEl) {
+      rotControlEl.addEventListener('click', (e) => {
+        if (isBaseDirty || isAttackDirty) {
+          e.preventDefault();
+          e.stopPropagation();
+          flashRotationLockWarning();
+        }
+      }, true);
+    }
+
+    rotMen.addEventListener('click', (e) => {
+      if (isBaseDirty || isAttackDirty) {
+        e.preventDefault();
+        e.stopPropagation();
+        flashRotationLockWarning();
+        return;
+      }
+      setRotation('men');
+    });
+
+    rotWomen.addEventListener('click', (e) => {
+      if (isBaseDirty || isAttackDirty) {
+        e.preventDefault();
+        e.stopPropagation();
+        flashRotationLockWarning();
+        return;
+      }
+      setRotation('women');
+    });
+
+    // Initialize initial presets for default rotation (Men Serving)
+    renderPresetsForRotation('men');
+
+    // Share Modal Trigger
+    const modalShare = document.getElementById('modalShare');
+    document.getElementById('btnShare').addEventListener('click', () => modalShare.classList.add('open'));
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    // Share Selection Logic (Limits to 3 Base and 3 Attack)
+    function toggleShareItem(card, type) {
+      const isChecked = card.classList.contains('checked');
+      const container = card.parentElement;
+      const currentChecked = container.querySelectorAll('.share-preset-card.checked').length;
+
+      if (!isChecked && currentChecked >= 3) {
+        alert(`You can select up to 3 ${type === 'base' ? 'Base Defense' : 'Attack Reaction'} presets in V1.`);
+        return;
+      }
+
+      const checkSvg = `<svg class="lucide-icon" width="12" height="12" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
+      card.classList.toggle('checked');
+      const box = card.querySelector('.share-checkbox');
+      box.innerHTML = card.classList.contains('checked') ? checkSvg : '';
+
+      // Update counters
+      const newCheckedCount = container.querySelectorAll('.share-preset-card.checked').length;
+      if (type === 'base') {
+        document.getElementById('baseShareCount').textContent = `${newCheckedCount} / 3 Selected`;
+      } else {
+        document.getElementById('attackShareCount').textContent = `${newCheckedCount} / 3 Selected`;
+      }
+    }
+
+    let shareRotation = 'men';
+    function setShareRotation(rot) {
+      shareRotation = rot;
+      const btnMen = document.getElementById('shareRotMen');
+      const btnWomen = document.getElementById('shareRotWomen');
+      const badge = document.getElementById('shareRotBadge');
+      if (btnMen) btnMen.classList.toggle('active', rot === 'men');
+      if (btnWomen) btnWomen.classList.toggle('active', rot === 'women');
+      if (badge) badge.textContent = rot === 'men' ? 'R1 Active' : 'R4 Active';
+    }
+
+    function copyShareLink() {
+      const rotLabel = shareRotation === 'men' ? 'Man Serving (R1 - 1M Net)' : 'Woman Serving (R4 - 2M Net)';
+      alert(`Tactic bundle compressed into URL hash!\n\nRotation Context Multiplier: ${rotLabel}\n\nCopied to clipboard:\nhttps://volleydefense.app/#share=eNp9Vstu3CYQvfNVg6u...`);
+      closeModal('modalShare');
+    }
+  </script>
+</body>
+</html>

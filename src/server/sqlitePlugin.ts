@@ -136,8 +136,13 @@ export function sqlitePlugin(options: SqlitePluginOptions = {}): Plugin {
             for (const m of rawMovements) {
               if (!schemes[m.scenario_id]) schemes[m.scenario_id] = {};
               if (!schemes[m.scenario_id][m.rotation]) schemes[m.scenario_id][m.rotation] = [];
+              const rot = Number(m.rotation) || 1;
+              const playerNum = parseInt(String(m.player_id).replace(/\D/g, ''), 10) || 1;
+              // At rotation R, player P is in zone Z = ((P - R) % 6 + 6) % 6 + 1
+              const calculatedZone = ((((playerNum - rot) % 6) + 6) % 6) + 1;
               schemes[m.scenario_id][m.rotation].push({
                 playerId: m.player_id,
+                zone: typeof m.zone === 'number' ? m.zone : calculatedZone,
                 basePosition: { x: m.base_x, y: m.base_y },
                 defensePosition: { x: m.def_x, y: m.def_y },
                 role: m.role,

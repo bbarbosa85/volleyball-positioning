@@ -243,24 +243,29 @@ export async function exportCourtAnimationGif(options: GifExportOptions): Promis
     ctx.lineTo(targetCanvas.x, targetCanvas.y);
     ctx.stroke();
 
-    // Target Landing Circle
-    ctx.fillStyle = 'rgba(244, 63, 94, 0.2)';
-    ctx.strokeStyle = '#f43f5e';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(targetCanvas.x, targetCanvas.y, 14, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    // Inner target dot
-    ctx.fillStyle = '#f43f5e';
-    ctx.beginPath();
-    ctx.arc(targetCanvas.x, targetCanvas.y, 4, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Attacker: Realistic Volleyball Ball
-    const ballR = 14;
+    // Opponent Attacker Person Token (ATK)
+    const atkR = 14;
     ctx.save();
     ctx.translate(attackerCanvas.x, attackerCanvas.y);
+    ctx.fillStyle = '#e11d48';
+    ctx.strokeStyle = '#fda4af';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, atkR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('ATK', 0, 0);
+    ctx.restore();
+
+    // The Ball at Target Landing Spot (Realistic Volleyball)
+    const ballR = 13;
+    ctx.save();
+    ctx.translate(targetCanvas.x, targetCanvas.y);
     // Outer drop shadow
     ctx.shadowColor = 'rgba(245, 158, 11, 0.5)';
     ctx.shadowBlur = 8;

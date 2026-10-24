@@ -21,7 +21,7 @@ export function applyCoedBlockingRules(
   rotation: number,
   scenario: AttackScenario,
   blockMode: CoedBlockMode = 'single_man',
-  isEditMode: boolean = false
+  preserveUserPositions: boolean = false
 ): { movements: PlayerMovement[]; analysis: CoedFrontRowAnalysis } {
   // Map player to zone
   const playerZoneMap = new Map<string, number>();
@@ -80,9 +80,9 @@ export function applyCoedBlockingRules(
     }
   }
 
-  // In Edit Mode or for custom scenarios, PRESERVE user coordinates completely!
+  // When positions are modified or for custom scenarios, PRESERVE user coordinates completely!
   // All players can be dragged and positioned freely without snapping back.
-  if (isEditMode || scenario.isCustom) {
+  if (preserveUserPositions || scenario.isCustom) {
     const adjustedMovements: PlayerMovement[] = rawMovements.map(m => {
       const isBlocker = activeBlockerIds.includes(m.playerId);
       return {
