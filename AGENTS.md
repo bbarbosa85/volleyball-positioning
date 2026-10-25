@@ -22,8 +22,8 @@
 - Reference the installed daisyUI skill: `.agents/skills/daisyui/SKILL.md`.
 - Use semantic daisyUI classes (`btn`, `badge`, `card`, `alert`, `modal`, `input`, `join`, `dropdown`, etc.) and semantic colors (`primary`, `secondary`, `neutral`, `base-100`, `base-200`, `base-300`, `warning`, `error`, `info`, `success`).
 - **Themes**:
-  - Dark theme: `'business'` (`data-theme="business"`).
-  - Light theme: `'nord'` (`data-theme="nord"`).
+  - The Svelte application uses generic semantic themes: `'dark'` (`data-theme="dark"`) and `'light'` (`data-theme="light"`).
+  - Specific daisyUI theme mappings are configured centrally in `src/app.css` using the `@plugin "./theme-bridge.js"` block (e.g. `dark: business`, `light: bumblebee`). No specific daisyUI theme names should be hardcoded inside Svelte components.
 
 ### 5. Verification Standard
 - Always ensure `pnpm run scan` passes with **0 errors and 0 warnings** before finishing any task:

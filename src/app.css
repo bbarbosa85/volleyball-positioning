@@ -1,9 +1,13 @@
 @import "tailwindcss";
 @plugin "daisyui" {
-  themes: nord, business --default;
+  themes: false;
+}
+@plugin "./theme-bridge.js" {
+  light: bumblebee;
+  dark: business;
 }
 
-:root, [data-theme="business"] {
+:root, [data-theme="dark"] {
   --court-wood: #181c24;
   --court-primary: #1c4e80;
   --court-accent: #2b70b3;
@@ -12,7 +16,7 @@
   --attack-line-color: rgba(234, 105, 71, 0.9);
 }
 
-[data-theme="nord"], :root.theme-light, body.theme-light {
+[data-theme="light"], :root.theme-light, body.theme-light {
   --court-wood: #eceff4;
   --court-primary: #d8dee9;
   --court-accent: #5e81ac;

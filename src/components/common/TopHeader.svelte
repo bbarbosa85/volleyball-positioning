@@ -71,7 +71,7 @@
         type="button"
         onclick={onToggleTheme}
         class="btn btn-sm btn-ghost btn-circle"
-        title={isDarkMode ? 'Switch to Light Mode (nord)' : 'Switch to Dark Mode (business)'}
+        title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
       >
         {#if isDarkMode}
           <Sun class="w-4 h-4 text-warning" />

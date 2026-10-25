@@ -21,8 +21,6 @@
   import ShareModal from './components/ShareModal.svelte';
   import TopHeader from './components/common/TopHeader.svelte';
 
-  import { Check } from '@lucide/svelte';
-
   // State
   let isDarkMode = $state<boolean>(true);
   let isShareModalOpen = $state<boolean>(false);
@@ -44,9 +42,6 @@
   let saveTarget = $state<'base' | 'attack'>('base');
   let isSaveModalOpen = $state<boolean>(false);
 
-  // Share feedback toast
-  let shareToast = $state<string | null>(null);
-  let shareToastTimer: any = null;
 
   // All available scenarios: Custom first, then standard presets
   const allScenarios = $derived<AttackScenario[]>([
@@ -69,7 +64,7 @@
   // Load persistence (localStorage only)
   onMount(() => {
     if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', isDarkMode ? 'business' : 'nord');
+      document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
     }
     // 1. Initial localStorage load
     const loaded = loadAllSchemes();
@@ -87,7 +82,7 @@
       const paramPlay = params.get('play');
 
       if (paramRot === '1' || paramRot === '2') {
-        rotation = parseInt(paramRot);
+        rotation = parseInt(paramRot, 10);
       }
       if (paramBase) {
         const foundScheme = allSchemes.find(s => s.id === paramBase && s.rotation === rotation);
@@ -190,7 +185,7 @@
   function toggleTheme() {
     isDarkMode = !isDarkMode;
     if (typeof document !== 'undefined') {
-      const theme = isDarkMode ? 'business' : 'nord';
+      const theme = isDarkMode ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', theme);
       document.body.classList.toggle('theme-light', !isDarkMode);
     }
@@ -471,15 +466,6 @@
 </script>
 
 <div class="min-h-screen bg-base-100 text-base-content flex flex-col selection:bg-primary selection:text-primary-content relative">
-  <!-- Toast Feedback Notification -->
-  {#if shareToast}
-    <div class="fixed top-16 right-4 z-50">
-      <div role="alert" class="alert alert-success shadow-2xl py-2.5 px-4 text-xs font-semibold flex items-center gap-2">
-        <Check class="w-4 h-4 shrink-0" />
-        <span>{shareToast}</span>
-      </div>
-    </div>
-  {/if}
 
   <!-- TOP NAVIGATION HEADER: Clean 1-liner (REQ-09, Layout.md Section 2) -->
   <TopHeader
@@ -487,13 +473,13 @@
     onToggleTheme={toggleTheme}
     onShare={handleShare}
     {showZones}
-    onToggleZones={() => showZones = !showZones}
+    onToggleZones={() => { showZones = !showZones; }}
     {showAllArrows}
-    onToggleArrows={() => showAllArrows = !showAllArrows}
+    onToggleArrows={() => { showAllArrows = !showAllArrows; }}
     {showBlockShadow}
-    onToggleBlockShadow={() => showBlockShadow = !showBlockShadow}
+    onToggleBlockShadow={() => { showBlockShadow = !showBlockShadow; }}
     {is3DView}
-    onToggle3D={() => is3DView = !is3DView}
+    onToggle3D={() => { is3DView = !is3DView; }}
   />
 
   <!-- MAIN APP CONTAINER -->
@@ -508,7 +494,7 @@
         {rotation}
         {progress}
         {selectedPlayerId}
-        onSelectPlayer={(id) => selectedPlayerId = id}
+        onSelectPlayer={(id) => { selectedPlayerId = id; }}
         {showBlockShadow}
         {showZones}
         {showAllArrows}
@@ -565,7 +551,7 @@
   <!-- MODALS -->
   <ShareModal
     open={isShareModalOpen}
-    onClose={() => isShareModalOpen = false}
+    onClose={() => { isShareModalOpen = false; }}
     activeRotation={rotation}
     currentSchemeId={currentScheme?.id}
     currentScenarioId={currentScenario?.id}
@@ -577,7 +563,7 @@
 
   <SaveAdjustmentModal
     open={isSaveModalOpen}
-    onClose={() => isSaveModalOpen = false}
+    onClose={() => { isSaveModalOpen = false; }}
     targetMode={saveTarget}
     initialName={saveTarget === 'base' ? currentScheme?.name : currentScenario.name}
     initialLabel={saveTarget === 'base' ? currentScheme?.name : currentScenario.label}
