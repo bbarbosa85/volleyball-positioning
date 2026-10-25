@@ -13,7 +13,7 @@
   const classes = $derived(
     twMerge(
       clsx(
-        'rounded-xl border border-slate-800/80 bg-slate-900/80 backdrop-blur-md shadow-xl text-slate-100',
+        'card bg-base-200/90 border border-base-300/80 shadow-xl backdrop-blur-md text-base-content',
         className
       )
     )

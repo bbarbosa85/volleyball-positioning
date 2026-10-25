@@ -51,6 +51,8 @@ export interface AttackScenario {
   label: string;
   attackerX: number; // 0-100 on opponent court (0=left, 100=right)
   attackerY: number; // 0-100 on opponent court (0=baseline, 100=net)
+  setterX?: number; // 0-100 on opponent court
+  setterY?: number; // 0-100 on opponent court
   targetX: number; // expected hot zone of the spike on defending court (0-100)
   targetY: number; // expected hot zone of the spike on defending court (0-100 from net to baseline)
   secondaryTargetX?: number;
@@ -58,6 +60,7 @@ export interface AttackScenario {
   description: string;
   defensiveKey: string;
   isCustom?: boolean;
+  rotation?: 1 | 2;
 }
 
 export interface RotationState {
@@ -72,6 +75,7 @@ export interface DefenseSchemeConfig {
   description: string;
   systemType: '6-recuado' | '6-avancado' | 'fechando-linha' | 'fechando-diagonal' | 'custom';
   isCustom?: boolean;
+  rotation?: 1 | 2;
   // Mapping: scenarioId -> rotation (1..6) -> movements for all 6 players
   schemes: Record<string, Record<number, PlayerMovement[]>>;
 }

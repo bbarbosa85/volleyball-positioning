@@ -115,15 +115,19 @@ Positioned at the top of the right panel:
 - **Serving Rotation Lineup**:
   - **Man Serving**: 1 Man on the Net (P3), 2 Women Front (P4, P2). Since women cannot block at the net in COED, only 1 legal net blocker exists (models traditional Rotation 1 / R1 lineup).
   - **Woman Serving**: 2 Men on the Net (P4, P2), 1 Woman Front (P3). The defense features 2 legal net blockers capable of running a double wall (models traditional Rotation 4 / R4 lineup).
-- **Architectural Scope & Multiplier**: Presets are **strictly rotation-scoped**. Because blocking rules and legal net participation shift fundamentally between rotations, *Man Serving* and *Woman Serving* each maintain their own dedicated, calibrated sets of Base Formations and Defensive Formations rather than sharing a generic list.
+- **Architectural Scope & Multiplier**: Presets are **strictly rotation-scoped**. Because blocking rules and legal net participation shift fundamentally between rotations, *Man Serving* and *Woman Serving* each maintain their own dedicated, calibrated sets of presets:
+  - **Man Serving**: 3 predefined Defensive Formations (*Outside Cross (Solo Block)*, *Outside Line (Solo Block)*, *Middle Quick (Solo Block)*) and 2 Base Formations (*Deep Base Read*, *Short Tip Ready*).
+  - **Woman Serving**: 3 predefined Defensive Formations (*Outside Cross (Double Wall)*, *Fast Line (Pinch Block)*, *Pipe Defense (Double Block)*) and 2 Base Formations (*Double Wall Read*, *Rotational Shift*).
+  - **Custom Presets**: Any custom preset created (for either Base Formation or Defensive Formation) is strictly locked to that rotation context and only appears when that serving rotation is active. Base presets saved in Man Serving never bleed into Woman Serving.
 - **Strict Freeze When Dirty**: If either Base Formation (Block 2) or Defensive Formation (Block 3) has unsaved modifications (`.modified`), Block 1 enters `.rotation-locked` and all containers gain `.is-dirty` outlines. Rotation switching buttons are disabled (`opacity: 0.45; cursor: not-allowed;`) and an amber banner appears: *"Rotation locked with unsaved changes. Save or Reset to switch."* Any click during freeze is captured, rejected, and shakes the warning banner. Switching is permitted only when both sections are clean.
 - **Container Styling**: Containers (`.panel-card`) maintain transparent backgrounds and transparent default borders; the container border lights up amber only when dirty.
-- **No Redundant Chips**: Labels like "Roster: 3M / 3F" are omitted since gender sequences and rules are self-evident from the segmented control and court tokens.
 
 ### 4.2 Block 2: Base Formation Card (`.base-card`)
 A standalone `.panel-card` dedicated to pre-contact reading defense:
 - Features card header `2. Base Formation` with defensive shield icon.
-- Renders the active rotation's base reading presets (e.g. *Solo-Block Deep Read* in Man Serving; *Double-Block Perimeter Read* in Woman Serving).
+- **Rotation-Dependent Playbook**: Base formations are strictly rotation-dependent. Presets saved under *Man Serving* (Rotation 1) are different from presets saved under *Woman Serving* (Rotation 2) and are kept strictly separated in both UI and storage.
+- **Contextual Description Callout**: When a Base preset is selected and has a description, a dedicated info callout with `Info` SVG appears directly above the grid, clearly explaining the reading stance and coverage intentions.
+- Renders the active rotation's base reading presets (e.g. *Deep Base Read*, *Short Tip Ready* in Man Serving; *Double Wall Read*, *Rotational Shift* in Woman Serving, plus any custom base presets created in the active rotation).
 - Transparent by default; lights up with an amber container border (`.is-dirty`) as soon as base coordinates are modified.
 - **Direct Transition**: Clicking any Base preset automatically glides the court to Base reading formation.
 - Hosts `#baseModAlert` contextual edit lock bar.
@@ -131,7 +135,10 @@ A standalone `.panel-card` dedicated to pre-contact reading defense:
 ### 4.3 Block 3: Defensive Formation Card (`.attack-card`)
 A standalone `.panel-card` dedicated to post-contact reaction coverage:
 - Features card header `3. Defensive Formation` with target reticle icon.
-- Renders the active rotation's defensive reactions (e.g. *Outside Cross (Solo Block)* in Man Serving; *Outside Cross (Double Wall)* in Woman Serving).
+- **Contextual Description & Key Callout**: When a Defensive preset is selected and has a description or defensive key, a dedicated info callout with `Info` SVG appears directly above the grid, clearly articulating the spiker trajectory, block positioning, and back-row digging keys.
+- Renders the active rotation's 3 defensive reactions:
+  - *Man Serving*: *Outside Cross (Solo Block)*, *Outside Line (Solo Block)*, *Middle Quick (Solo Block)*.
+  - *Woman Serving*: *Outside Cross (Double Wall)*, *Fast Line (Pinch Block)*, *Pipe Defense (Double Block)*.
 - Transparent by default; lights up with an amber container border (`.is-dirty`) as soon as reaction coordinates or attack targets are modified.
 - **Direct Transition**: Clicking any Defensive preset automatically glides defenders into their reaction spots and reveals the attack trajectory.
 - Hosts `#attackModAlert` contextual edit lock bar.

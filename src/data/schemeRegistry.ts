@@ -3,17 +3,35 @@ import defesa6Recuado from './schemes/defesa-6-recuado-tradicional.json';
 import defesa6Avancado from './schemes/defesa-6-avancado-cobertura.json';
 
 export const builtInSchemes: DefenseSchemeConfig[] = [
+  // Rotation 1 (Men Serving)
   {
     ...(defesa6Recuado as DefenseSchemeConfig),
-    id: 'defesa-6-recuado',
-    name: 'Deep',
-    description: 'Rotational 6 Deep (P6 deep baseline perimeter)'
+    id: 'r1_base_deep',
+    name: 'Deep Base Read',
+    rotation: 1,
+    description: 'Pre-contact reading stance with P6 defending deep baseline and solo blocker P3 holding net center.'
   },
   {
     ...(defesa6Avancado as DefenseSchemeConfig),
-    id: 'defesa-6-avancado',
-    name: 'Tip Cover',
-    description: 'Rotational 6 Advanced (P6 short covering tips & donut)'
+    id: 'r1_base_tip',
+    name: 'Short Tip Ready',
+    rotation: 1,
+    description: 'Front-row women pull off the net to protect short donut zones against deceptive tips.'
+  },
+  // Rotation 2 (Women Serving)
+  {
+    ...(defesa6Recuado as DefenseSchemeConfig),
+    id: 'r2_base_perimeter',
+    name: 'Double Wall Read',
+    rotation: 2,
+    description: 'Two-man front wall (P4 & P2) ready to close either wing; back-row defends deep perimeter.'
+  },
+  {
+    ...(defesa6Avancado as DefenseSchemeConfig),
+    id: 'r2_base_shift',
+    name: 'Rotational Shift',
+    rotation: 2,
+    description: 'Blockers and defenders shifted to the opponent strong side to close angles quickly.'
   }
 ];
 
@@ -26,7 +44,12 @@ export function loadAllSchemes(): DefenseSchemeConfig[] {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
         const builtInIds = new Set(builtInSchemes.map(s => s.id));
-        const customSchemes = parsed.filter((s: DefenseSchemeConfig) => s.isCustom && !builtInIds.has(s.id));
+        const customSchemes = parsed
+          .filter((s: DefenseSchemeConfig) => s.isCustom && !builtInIds.has(s.id))
+          .map((s: DefenseSchemeConfig) => ({
+            ...s,
+            rotation: (s.rotation === 2 ? 2 : 1) as (1 | 2)
+          }));
         return [...builtInSchemes, ...customSchemes];
       }
     }
@@ -98,21 +121,35 @@ export function getBaseMovements(
   const scenarioSchemes = scheme.schemes[scKey];
   if (scenarioSchemes) {
     if (scenarioSchemes[rotation]) {
-      return rotateMovementsForRotation(scenarioSchemes[rotation], rotation);
+      return scheme.isCustom
+        ? scenarioSchemes[rotation]
+        : rotateMovementsForRotation(scenarioSchemes[rotation], rotation);
     }
     if (scenarioSchemes[1]) {
-      return rotateMovementsForRotation(scenarioSchemes[1], rotation);
+      return scheme.isCustom
+        ? scenarioSchemes[1]
+        : rotateMovementsForRotation(scenarioSchemes[1], rotation);
     }
   }
   return [];
 }
+
+const scenarioAliasMap: Record<string, string> = {
+  r1_outside_cross: 'outside_cross',
+  r1_outside_line: 'outside_line',
+  r1_middle_quick: 'middle_quick',
+  r2_outside_cross: 'outside_cross',
+  r2_fast_line: 'outside_line',
+  r2_pipe_attack: 'pipe_attack'
+};
 
 export function getAttackScenarioMovements(
   scenarioId: string,
   rotation: number,
   customSource?: Record<string, Record<number, PlayerMovement[]>>
 ): PlayerMovement[] {
-  const source = customSource?.[scenarioId] || canonicalAttackSchemes[scenarioId];
+  const resolvedKey = scenarioAliasMap[scenarioId] || scenarioId;
+  const source = customSource?.[scenarioId] || canonicalAttackSchemes[scenarioId] || canonicalAttackSchemes[resolvedKey];
   if (source) {
     if (source[rotation]) {
       return rotateMovementsForRotation(source[rotation], rotation);

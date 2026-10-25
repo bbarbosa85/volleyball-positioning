@@ -8,7 +8,10 @@ export function loadCustomScenarios(): AttackScenario[] {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        return parsed;
+        return parsed.map((s: AttackScenario) => ({
+          ...s,
+          rotation: (s.rotation === 2 ? 2 : 1) as (1 | 2)
+        }));
       }
     }
   } catch (err) {

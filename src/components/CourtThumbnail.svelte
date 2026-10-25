@@ -54,7 +54,7 @@
   <svg
     viewBox="0 0 100 100"
     class="w-full h-full rounded-md overflow-hidden transition-all duration-200 {
-      active ? 'ring-1 ring-blue-400' : ''
+      active ? 'ring-1 ring-primary' : ''
     }"
   >
     <!-- Court Background -->
@@ -142,8 +142,8 @@
         {cx}
         {cy}
         r="4.2"
-        fill={isFemale ? '#facc15' : '#38bdf8'}
-        stroke="#0f172a"
+        fill={isFemale ? 'var(--color-warning)' : 'var(--color-primary)'}
+        stroke="var(--color-base-100)"
         stroke-width="1.2"
         class="filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"
       />
