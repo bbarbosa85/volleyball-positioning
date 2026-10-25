@@ -20,14 +20,14 @@ export default function themeBridge(options = {}) {
   return ({ addBase }) => {
     /** @type {Record<string, any>} */
     const allThemes = themes;
-    if (allThemes[lightTheme]) {
-      addBase({
-        '[data-theme="light"]': allThemes[lightTheme],
-      });
-    }
     if (allThemes[darkTheme]) {
       addBase({
-        ':root, [data-theme="dark"]': allThemes[darkTheme],
+        ':root:not([data-theme="light"]), [data-theme="dark"]': allThemes[darkTheme],
+      });
+    }
+    if (allThemes[lightTheme]) {
+      addBase({
+        ':root[data-theme="light"], [data-theme="light"]': allThemes[lightTheme],
       });
     }
   };

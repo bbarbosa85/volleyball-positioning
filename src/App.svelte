@@ -63,8 +63,13 @@
 
   // Load persistence (localStorage only)
   onMount(() => {
-    if (typeof document !== 'undefined') {
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        isDarkMode = savedTheme === 'dark';
+      }
       document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+      document.body.classList.toggle('theme-light', !isDarkMode);
     }
     // 1. Initial localStorage load
     const loaded = loadAllSchemes();
@@ -188,6 +193,11 @@
       const theme = isDarkMode ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', theme);
       document.body.classList.toggle('theme-light', !isDarkMode);
+      try {
+        localStorage.setItem('theme', theme);
+      } catch (e) {
+        console.warn('Could not save theme preference:', e);
+      }
     }
   }
 
