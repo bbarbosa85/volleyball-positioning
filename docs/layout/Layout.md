@@ -18,17 +18,18 @@ The application interface is divided into three primary regions: the **Top Heade
 ├──────────────────────────────────────┬──────────────────────────────────────┤
 │ LEFT: Court Simulator Area           │ RIGHT: Tactical Playbook Panel       │
 │                                      │                                      │
-│ ┌──────────────────────────────────┐ │ 1. ROTATION CONTEXT (Multiplier)    │
+│ ┌──────────────────────────────────┐ │ 1. ROTATION CONTEXT (Multiplier)     │
 │ │ [ 1. Base Formation ]➔[ 2. Def ] │ │    [Man Serving] [Woman Serving]     │
 │ ├──────────────────────────────────┤ ├──────────────────────────────────────┤
 │ │                                  │ │ 2. BASE FORMATION                    │
 │ │        COURT CANVAS              │ │    [Deep Read]  [Short Tip]          │
-│ │  (Full, Clean Viewport -         │ ├──────────────────────────────────────┤
-│ │   No Bottom Clutter)             │ │ 3. DEFENSIVE FORMATION               │
-│ │                                  │ │    [Outside Cross] [Fast Line D]     │
-│ │  • Net, Antennas & Poles         │ │                                      │
-│ │  • 6 Defender Tokens             │ │ (Containers have transparent borders;│
-│ │  • Vector Arrows to Spike Target │ │  amber border appears when dirty)    │
+│ │  (Full 18m x 9m Court Viewport)  │ ├──────────────────────────────────────┤
+│ │                                  │ │ 3. DEFENSIVE FORMATION               │
+│ │  • Full Opponent Attack Side(9x9)│ │    [Outside Cross] [Fast Line D]     │
+│ │  • Center Net, Antennas & Poles  │ │                                      │
+│ │  • Defending Team Side (9x9m)    │ │ (Containers have transparent borders;│
+│ │  • 6 Defender Tokens             │ │  amber border appears when dirty)    │
+│ │  • Vector Arrows to Spike Target │ │                                      │
 │ │  • Attacker, Setter & Ball       │ │                                      │
 │ └──────────────────────────────────┘ │                                      │
 └──────────────────────────────────────┴──────────────────────────────────────┘
@@ -40,7 +41,7 @@ The application interface is divided into three primary regions: the **Top Heade
 
 Global actions are hosted **exclusively in the top header** as a clean, minimalist one-liner with vertical breathing room:
 - **Zero Visual Clutter**: No background colors, no glassmorphism overlays, and no bottom border lines (`background: transparent; border-bottom: none;`).
-- **Clean 1-Liner Logo Block with Vertical Padding**: Features comfortable vertical padding (`padding: 0.75rem 1.5rem;` max-width 1720px aligned with the main court layout), a compact 26px vector volleyball icon alongside the bold title `VolleyDefense Tactics`, and no forced 40px height or subtitle/description paragraphs.
+- **Clean 1-Liner Logo Block with Vertical Padding**: Features comfortable vertical padding (`padding: 0.75rem 1.5rem;` max-width 1720px aligned with the main court layout), a compact 26px vector volleyball icon alongside the bold title `VolleyDefense Tactics`, and no forced height or subtitle/description paragraphs.
 - **Contained Share Button**: The Share CTA is styled as a prominent contained button with a solid primary fill (`var(--primary)`), white text, vector SVG icon, and no border.
 - **Border-less Icon Controls**: Quick theme toggle (`Sun`/`Moon`) and view settings cog (`Settings`) are border-less, transparent icon buttons that highlight subtly on hover.
 - **Settings Cog Dropdown**: Houses Court View Overlays (*Court Zones 1–6*, *Motion Vector Arrows*, *Blocker Shadow Cone*, *3D Perspective Court*), keeping the court canvas completely clean.
@@ -72,23 +73,30 @@ The Stage Switcher is housed directly in the **Court Card Header Bar** centered 
 
 ### 3.2 Court Canvas Elements
 - **Container Styling & Dirty Outline**: The court container (`.court-card`) has a transparent background and default transparent border. When any preset is dirty, an amber border outline (`border: 1px solid rgba(245, 158, 11, 0.75);`) lights up automatically around the container.
-- **Theme-Aware Canvas Coordinates**: Scaled to 9m x 9m half-court with normalized `0 - 100%` coordinates. Floor colors and line strokes adapt seamlessly to Light and Dark modes.
-- **Net & Antennas**: Located at `y = 0%`. Center net line with red-and-white striped antennas at `x = 0%` and `x = 100%`.
-- **3-Meter Line**: Located at `y = 33.3%`.
-- **Baseline**: Located at `y = 100%`.
+- **Full 18m × 9m Regulation Court Simulation (Both Sides Displayed)**:
+  - The simulator renders **both sides of the court fully** (a regulation 18m × 9m volleyball court comprising two 9m × 9m half-courts divided by the center net).
+  - **Tactical Utility for Attack Coverage**: Displaying the full opponent attack side allows coaches and players to model and simulate attack scenarios from realistic depths, angles, and rotational configurations:
+    - **Front-Row Net Attacks**: Outside hitter swings (Zone 4), quick middle hits / slides (Zone 3), and opposite/right-side attacks (Zone 2).
+    - **Back-Row Attacks**: Pipe / Bic spikes originating from Zone 6 and D-ball / back-one attacks from Zone 1.
+    - **Out-of-System Angles**: High sets pushed wide, out-of-system passes 4–6 meters off the net, or chaotic defensive overpasses originating deep near the opponent baseline.
+- **Court Dimensions & Line Markings**:
+  - **Center Net & Antennas**: Positioned at `y = 0%`. Center dividing net line with red-and-white striped antennas at `x = 0%` and `x = 100%`.
+  - **Defending Half-Court (`y = 0%` to `100%`)**: 9m × 9m defensive surface with 3-meter line at `y = 33.3%`, defensive baseline at `y = 100%`, and defense court zones (1–6).
+  - **Opponent Attacking Half-Court (`y = -100%` to `0%`)**: Full 9m × 9m attacking surface with opponent 3-meter line at `y = -33.3%`, opponent baseline at `y = -100%`, and opponent court zones.
+  - **Theme-Aware Styling**: Floor textures and court line strokes adapt seamlessly to Light and Dark modes.
 - **6 Defender Tokens (Numbers & Gender Colors Only)**:
   - Tokens display **only the player's position number** (1–6) in bold, centered typography.
   - Gender identity is conveyed purely by **token fill/stroke color** (Blue for Men, Rose/Pink for Women).
   - **Zero Name Overhead**: Player names are excluded from the court display and data schema, maximizing readability, eliminating clutter, and keeping shared URLs ultra-compact.
 - **Opponent Team & Attack Configuration**:
-  - Positioned above `y = 0%` on the opponent's side.
-  - **Base Formation Position**: Ball is stationed with Setter `S`; no attack trajectory arrow, target reticle, or block shadow cone is displayed.
+  - Located on the full opponent attacking half-court (`y <= 0%`).
+  - **Base Formation Position**: Ball is stationed with Setter `S` (positioned at the setting point or transition pass); no attack trajectory arrow, target reticle, or block shadow cone is displayed.
   - **Defensive Formation Position**: Ball animates smoothly from Setter to Attacker `A` and remains with Attacker at the point of attack contact; spiker trajectory arrow, draggable landing target reticle, and blocker shadow cone appear.
   - **Non-Draggable Ball**: The ball is fixed and non-draggable; its position is driven strictly by phase (with setter in Base Formation, with attacker in Defensive Formation).
   - **Draggable Attack Landing Target**: The destination/target of where the attacker might send the ball into the defending court is interactive and draggable (`x: 4–96%`, `y: 4–96%`).
-  - **Dynamic Arrow Anchoring**: The attack trajectory arrow follows the target dynamically, with its origin anchored to the Attacker/Ball and its tip anchored to the draggable destination target. Moving the target automatically stretches, rotates, and updates the arrow.
+  - **Dynamic Arrow Anchoring**: The attack trajectory arrow follows the target dynamically, with its origin anchored to the Attacker/Ball and its tip anchored to the draggable destination target across the net. Moving the target automatically stretches, rotates, and updates the arrow.
   - **Interactive Opponent Tokens Scoped to Presets**:
-    - Both the attacker and setter tokens are draggable on the opponent's side of the net (`y <= 0%`).
+    - Both the attacker and setter tokens are draggable anywhere across the full opponent half-court (`y <= 0%`).
     - **Preset Phase Scoping**: Attacker and Setter positions are **integral parts of each preset**:
       - **Base Formations**: Persist defenders plus the pre-set reading positions of the opponent attacker and setter (with the ball fixed at the setter's hands).
       - **Defensive Formations**: Persist defenders plus the attack contact point of the opponent attacker, setter transition, and the landing target (with the ball at the attacker and the attack vector line drawn to the target).
@@ -105,8 +113,8 @@ The right controls are organized as **three distinct, independent panel-card blo
 ### 4.1 Block 1: Rotation Context (Tactical Multiplier)
 Positioned at the top of the right panel:
 - **Serving Rotation Lineup**:
-  - **Man Serving (Rotation 1)**: 1 Man on the Net (P3), 2 Women Front (P4, P2). Since women cannot block at the net in COED, only 1 legal net blocker exists.
-  - **Woman Serving (Rotation 4)**: 2 Men on the Net (P4, P2), 1 Woman Front (P3). The defense features 2 legal net blockers capable of running a double wall.
+  - **Man Serving**: 1 Man on the Net (P3), 2 Women Front (P4, P2). Since women cannot block at the net in COED, only 1 legal net blocker exists (models traditional Rotation 1 / R1 lineup).
+  - **Woman Serving**: 2 Men on the Net (P4, P2), 1 Woman Front (P3). The defense features 2 legal net blockers capable of running a double wall (models traditional Rotation 4 / R4 lineup).
 - **Architectural Scope & Multiplier**: Presets are **strictly rotation-scoped**. Because blocking rules and legal net participation shift fundamentally between rotations, *Man Serving* and *Woman Serving* each maintain their own dedicated, calibrated sets of Base Formations and Defensive Formations rather than sharing a generic list.
 - **Strict Freeze When Dirty**: If either Base Formation (Block 2) or Defensive Formation (Block 3) has unsaved modifications (`.modified`), Block 1 enters `.rotation-locked` and all containers gain `.is-dirty` outlines. Rotation switching buttons are disabled (`opacity: 0.45; cursor: not-allowed;`) and an amber banner appears: *"Rotation locked with unsaved changes. Save or Reset to switch."* Any click during freeze is captured, rejected, and shakes the warning banner. Switching is permitted only when both sections are clean.
 - **Container Styling**: Containers (`.panel-card`) maintain transparent backgrounds and transparent default borders; the container border lights up amber only when dirty.
@@ -233,7 +241,7 @@ When clicking **Share** in the header, the modal provides visual selection of th
 
 1. **Clear Phase & Context Separation**:
    - **Section 0: Rotation Context (Tactical Multiplier)** (`ArrowLeftRight` / `Users` SVG):
-     - Serving rotation segmented control (*Man Serving (R1)* vs. *Woman Serving (R4)*).
+     - Serving rotation segmented control (*Man Serving* vs. *Woman Serving*). Synchronizes dynamically with the on-court active rotation and updates the share grid cards accordingly.
      - Calibrates the tactical package so that recipients view the correct rotation lineup, net blocking eligibility, and court geometry.
    - **Section 1: Base Formation Presets (Start Coordinates / Reading Phase)** (`Shield` SVG):
      - Clear description: *"Initial positioning of all 6 defenders before the opponent set."*

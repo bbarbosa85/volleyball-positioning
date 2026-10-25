@@ -37,7 +37,8 @@ Because of the alternating gender sequence, the team naturally alternates betwee
         [Zone 5]    [Zone 6]    [Zone 1]
 ```
 
-### 2.1 Rotation 1: Men Serving (1 Man on Net • 2 Women Front)
+### 2.1 Man Serving (1 Man on Net • 2 Women Front)
+*(In the UI, this is labeled simply as **"Man Serving"**; in traditional 6-rotation notation, this lineup corresponds to Rotation 1 / R1).*
 - **Front Row (Zones 4, 3, 2)**:
   - **Zone 4**: Female (`F`) — Left-front
   - **Zone 3**: **Male (`M`)** — Middle-front (Solo Blocker on Net)
@@ -48,7 +49,8 @@ Because of the alternating gender sequence, the team naturally alternates betwee
   - **Zone 1**: Male (`M`) — Right-back (Server)
 - **Tactical Reality**: With only 1 man in the front row, the team has only **1 eligible blocker**.
 
-### 2.2 Rotation 2: Women Serving (2 Men on Net • 1 Woman Front)
+### 2.2 Woman Serving (2 Men on Net • 1 Woman Front)
+*(In the UI, this is labeled simply as **"Woman Serving"**; in traditional 6-rotation notation, this opposite 180° lineup corresponds to Rotation 4 / R4).*
 - **Front Row (Zones 4, 3, 2)**:
   - **Zone 4**: **Male (`M`)** — Left-front
   - **Zone 3**: Female (`F`) — Middle-front
@@ -72,26 +74,23 @@ In official competitive COED volleyball regulations:
 
 ---
 
-## 4. Front-Row Blocking Rules & Constraints
+## 4. Front-Row Blocking: Tactical Conventions & Defense
 
-In this simulator, official COED net-play rules and competitive defensive conventions are enforced:
+In this simulator, competitive COED defensive conventions are modeled:
 
-### 3.1 Women on the Net Do Not Block
-- In competitive COED play (played on standard 2.43m men's height net), female front-row players **do not contest the block** against opponent male attackers or hard swings.
+### 4.1 Tactical Convention: Men-Focused Blocking (Women Peeling Off)
+- **Competitive Tactical Convention (Not a Formal Rule Prohibition)**: Anyone on the court is permitted to block. However, in competitive COED play on a standard men's height net (2.43m / 7'11⅝"), female blockers are generally far less effective against hard male swings, and contesting the block frequently results in tool-outs, wipe-offs, or open defensive seams.
+- **Tactical Rationale**: To maximize defensive efficiency, competitive teams conventionally assign all primary blocking duties to the front-row men, while front-row women peel off the net to provide ground defense and short-court tip coverage.
 - **Defensive Behavior**: Front-row women pull off the net (approximately 2.5 to 3.5 meters into the court, or peel along the sideline/donut area) to:
   - Dig soft tips and roll shots dropped right behind the block.
   - Cover the sharp cross-court cut.
   - Guard the sideline alley when the blocker seals inside.
 
-### 3.2 Men-Only Blocking Policy
-- **Only front-row male players are eligible to block at the net**.
-- Back-row men cannot jump to block or participate in a completed block at the net.
-
-### 3.3 Single Blocker vs. Double Blocker Policy
-1. **When 1 Man is in the Front Row (Rotation 1)**:
+### 4.2 Single Blocker vs. Double Blocker Policy
+1. **When 1 Man is in the Front Row (Man Serving)**:
    - Always **1 Solo Blocker**.
    - The front-row man shifts along the net to seal the opponent attacker's primary hitting angle (line or cross depending on tactical scheme).
-2. **When 2 Men are in the Front Row (Rotation 2)**:
+2. **When 2 Men are in the Front Row (Woman Serving)**:
    - **Default (Single Man Block)**: The front-row man closest to the attack side (Zone 4 man for an opponent right-side attack, Zone 2 man for an opponent outside attack) jumps solo, while the second front-row man pulls off the net into the 3-meter zone to cover tips or dig off-speed shots.
    - **Double Block (Optional Mode)**: If double block mode is enabled, both front-row men close together at the point of attack to form a 2-man wall.
 

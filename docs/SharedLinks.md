@@ -57,7 +57,7 @@ https://volleydefense.app/#share=eNp9Vstu... (~500 - 800 characters)
 2. **Share Modal**:
    - **Tactic Title** (e.g. *"Defense vs. Lincoln High"*).
    - **0. Rotation Context (Tactical Multiplier)**:
-     - Segmented control selecting the serving rotation context (*Man Serving (R1)* vs. *Woman Serving (R4)*).
+     - Segmented control selecting the serving rotation context (*Man Serving* vs. *Woman Serving*).
      - Because serving rotations dictate front-row net blocker eligibility and court baseline geometry, presets are calibrated to this rotation multiplier.
    - **1. Base Formation Presets (Start Coordinates / Reading Phase)**:
      - Visual grid of preset cards featuring miniature court thumbnails.
@@ -99,7 +99,7 @@ Guests enjoy full interactive simulation capabilities within the shared bundle:
 3. **Direct Smooth Transitions**:
    - Selecting any shared Base or Attack preset automatically glides defenders into place along their tactical transition vectors.
 4. **Stage Position Toggle**:
-   - Guests can toggle between `Base Position` (0%) and `Set / Spike Position` (100%) to inspect both phases.
+   - Guests can toggle between `Base Formation` (0%) and `Defensive Formation` (100%) to inspect both phases.
 5. **View Options**:
    - Guests can toggle `Zones`, `All Arrows`, `Block Shadow`, and `3D View`.
 6. **"Save to My Tactics" (Local Import)**:
