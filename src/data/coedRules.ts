@@ -80,9 +80,9 @@ export function applyCoedBlockingRules(
     }
   }
 
-  // When positions are modified or for custom scenarios, PRESERVE user coordinates completely!
+  // When positions are modified or for customized presets, PRESERVE user coordinates completely!
   // All players can be dragged and positioned freely without snapping back.
-  if (preserveUserPositions || scenario.isCustom) {
+  if (preserveUserPositions || scenario) {
     const adjustedMovements: PlayerMovement[] = rawMovements.map(m => {
       const isBlocker = activeBlockerIds.includes(m.playerId);
       return {

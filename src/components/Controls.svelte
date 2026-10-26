@@ -1,17 +1,15 @@
 <script lang="ts">
   import type { AttackScenario, DefenseSchemeConfig, Player, PlayerMovement } from '../types/volleyball';
-  import Button from './ui/Button.svelte';
-  import Dialog from './ui/Dialog.svelte';
   import CourtThumbnail from './CourtThumbnail.svelte';
   import { getBaseMovements, getAttackScenarioMovements } from '../data/schemeRegistry';
-  import { Shield, Crosshair } from '@lucide/svelte';
+  import { Shield, Crosshair, Plus } from '@lucide/svelte';
 
   // Common reusable components
   import RotationContextCard from './common/RotationContextCard.svelte';
   import ModificationAlert from './common/ModificationAlert.svelte';
   import PresetDescriptionCallout from './common/PresetDescriptionCallout.svelte';
   import PresetCard from './common/PresetCard.svelte';
-  import MarkdownEditor from './common/MarkdownEditor.svelte';
+  import PresetEditModal from './common/PresetEditModal.svelte';
 
   interface Props {
     scenarios: AttackScenario[];
@@ -72,13 +70,8 @@
 
   const isAnyDirty = $derived(isBaseModified || isAttackModified);
 
-  const customAttackList = $derived(scenarios.filter(s => s.isCustom && s.rotation === rotation));
-  const presetAttackList = $derived(scenarios.filter(s => !s.isCustom && s.rotation === rotation));
-  const allAttackPresets = $derived([...presetAttackList, ...customAttackList]);
-
-  const customBaseList = $derived((allSchemes || []).filter(s => s.isCustom && s.rotation === rotation));
-  const presetBaseList = $derived((allSchemes || []).filter(s => !s.isCustom && s.rotation === rotation));
-  const allBasePresets = $derived([...presetBaseList, ...customBaseList]);
+  const currentBaseList = $derived((allSchemes || []).filter(s => s.rotation === rotation));
+  const currentAttackList = $derived(scenarios.filter(s => s.rotation === rotation));
 
   // Edit preset modal state
   let editModalState = $state<{
@@ -118,19 +111,17 @@
     editModalState.open = false;
   }
 
-  function handleConfirmEdit() {
-    const trimmed = editModalState.name.trim();
-    if (!trimmed) return;
+  function handleConfirmEdit(updates: { name: string; description: string; defensiveKey?: string }) {
     if (editModalState.type === 'base') {
       onRenameScheme?.(editModalState.id, {
-        name: trimmed,
-        description: editModalState.description
+        name: updates.name,
+        description: updates.description
       });
     } else {
       onRenameAdjustment?.(editModalState.id, {
-        name: trimmed,
-        description: editModalState.description,
-        defensiveKey: editModalState.defensiveKey
+        name: updates.name,
+        description: updates.description,
+        defensiveKey: updates.defensiveKey
       });
     }
     closeEditModal();
@@ -159,9 +150,15 @@
         <Shield class="w-4 h-4 text-primary" />
         <span>2. Base Formation</span>
       </div>
-      <span class="badge badge-primary badge-soft font-bold text-[11px] py-1">
-        Pre-Contact Reading
-      </span>
+      <button
+        type="button"
+        onclick={() => onOpenSaveModal?.('base')}
+        class="btn btn-xs btn-outline btn-primary gap-1"
+        title="Create new base formation preset"
+      >
+        <Plus class="w-3.5 h-3.5" />
+        <span>New Preset</span>
+      </button>
     </div>
 
     <!-- Base Scoped Quick-Alert Bar (Approach A: Focused Edit Lock) -->
@@ -169,7 +166,6 @@
       <ModificationAlert
         title="Base Formation modified"
         accent="blue"
-        isCustom={Boolean(currentScheme?.isCustom)}
         onSave={onQuickSaveBaseScheme}
         onSaveAsNew={() => onOpenSaveModal?.('base')}
         onReset={onResetBase}
@@ -184,16 +180,16 @@
 
     <!-- Base Presets Grid -->
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-      {#each allBasePresets as scheme (scheme.id)}
+      {#each currentBaseList as scheme (scheme.id)}
         {@const isCurrent = currentScheme?.id === scheme.id}
-        {@const isCustom = Boolean(scheme.isCustom)}
         {@const isDisabled = isBaseModified && !isCurrent}
+        {@const canDelete = currentBaseList.length > 1}
         <PresetCard
           title={scheme.name}
-          {isCustom}
           isSelected={isCurrent}
           isModified={isBaseModified}
           {isDisabled}
+          {canDelete}
           accent="blue"
           thumbnailSize="base"
           onSelect={() => {
@@ -228,9 +224,15 @@
         <Crosshair class="w-4 h-4 text-secondary" />
         <span>3. Defensive Formation</span>
       </div>
-      <span class="badge badge-secondary badge-soft font-bold text-[11px] py-1">
-        Post-Contact Reaction
-      </span>
+      <button
+        type="button"
+        onclick={() => onOpenSaveModal?.('attack')}
+        class="btn btn-xs btn-outline btn-secondary gap-1"
+        title="Create new defensive formation preset"
+      >
+        <Plus class="w-3.5 h-3.5" />
+        <span>New Preset</span>
+      </button>
     </div>
 
     <!-- Defensive Scoped Quick-Alert Bar (Approach A: Focused Edit Lock) -->
@@ -238,7 +240,6 @@
       <ModificationAlert
         title="Defensive Formation modified"
         accent="rose"
-        isCustom={Boolean(currentScenario?.isCustom)}
         onSave={onQuickSaveAdjustment}
         onSaveAsNew={() => onOpenSaveModal?.('attack')}
         onReset={onResetAttack}
@@ -254,16 +255,16 @@
 
     <!-- Defensive Presets Grid -->
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-      {#each allAttackPresets as sc (sc.id)}
+      {#each currentAttackList as sc (sc.id)}
         {@const isCurrent = currentScenario.id === sc.id}
-        {@const isCustom = Boolean(sc.isCustom)}
         {@const isDisabled = isAttackModified && !isCurrent}
+        {@const canDelete = currentAttackList.length > 1}
         <PresetCard
           title={sc.label || sc.name}
-          {isCustom}
           isSelected={isCurrent}
           isModified={isAttackModified}
           {isDisabled}
+          {canDelete}
           accent="rose"
           thumbnailSize="attack"
           onSelect={() => {
@@ -287,75 +288,12 @@
 </div>
 
 <!-- EDIT PRESET MODAL (Allows updating name and markdown description) -->
-<Dialog
+<PresetEditModal
   open={editModalState.open}
+  type={editModalState.type}
+  bind:name={editModalState.name}
+  bind:description={editModalState.description}
+  bind:defensiveKey={editModalState.defensiveKey}
   onClose={closeEditModal}
-  title={editModalState.type === 'base' ? 'Edit Base Formation Preset' : 'Edit Defensive Formation Preset'}
-  description="Update the preset name and tactical notes"
-  maxWidth="max-w-lg"
->
-  <form
-    onsubmit={(e) => {
-      e.preventDefault();
-      handleConfirmEdit();
-    }}
-    class="flex flex-col gap-4 mt-1 text-xs"
-  >
-    <div class="flex flex-col gap-1.5">
-      <label for="edit-preset-input" class="font-bold text-base-content/90">
-        Preset Name <span class="text-error">*</span>
-      </label>
-      <!-- svelte-ignore a11y_autofocus -->
-      <input
-        id="edit-preset-input"
-        type="text"
-        bind:value={editModalState.name}
-        placeholder="Enter preset name"
-        class="input input-bordered w-full text-xs"
-        required
-        autofocus
-      />
-    </div>
-
-    {#if editModalState.type === 'attack'}
-      <div class="flex flex-col gap-1.5">
-        <label for="edit-preset-key-input" class="font-bold text-base-content/90">
-          Defensive Key (Short Summary)
-        </label>
-        <input
-          id="edit-preset-key-input"
-          type="text"
-          bind:value={editModalState.defensiveKey}
-          placeholder="e.g. Line & Cross, Pipe Trap, Tip Coverage"
-          class="input input-bordered w-full text-xs"
-        />
-      </div>
-    {/if}
-
-    <MarkdownEditor
-      bind:value={editModalState.description}
-      label="Preset Description & Tactical Notes (Markdown)"
-      placeholder="Enter tactical assignments, positioning cues, or transition instructions..."
-      rows={3}
-    />
-
-    <div class="flex items-center justify-end gap-2 pt-3 border-t border-base-300">
-      <Button
-        type="button"
-        variant="secondary"
-        onclick={closeEditModal}
-        class="text-xs"
-      >
-        Cancel
-      </Button>
-      <Button
-        type="submit"
-        variant="default"
-        disabled={!editModalState.name.trim()}
-        class="btn btn-primary text-xs font-bold"
-      >
-        Save Changes
-      </Button>
-    </div>
-  </form>
-</Dialog>
+  onSave={handleConfirmEdit}
+/>

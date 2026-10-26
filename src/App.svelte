@@ -2,18 +2,16 @@
   import { onMount } from 'svelte';
   import type { Player, AttackScenario, DefenseSchemeConfig, CoedBlockMode, PlayerMovement } from './types/volleyball';
   import { defaultRoster } from './data/defaultRoster';
-  import { attackScenarios } from './data/scenarios';
+  import { loadAllScenarios, saveScenario, deleteScenario } from './data/scenarios';
   import {
     loadAllSchemes,
     saveScheme,
     deleteScheme,
-    builtInSchemes,
     composeMovements,
     canonicalAttackSchemes,
     rotateMovementsForRotation
   } from './data/schemeRegistry';
   import { applyCoedBlockingRules } from './data/coedRules';
-  import { loadCustomScenarios, saveCustomScenario, deleteCustomScenario } from './data/customScenarios';
 
   import Court from './components/Court.svelte';
   import Controls from './components/Controls.svelte';
@@ -25,12 +23,14 @@
   let isDarkMode = $state<boolean>(true);
   let isShareModalOpen = $state<boolean>(false);
 
-  let roster = $state<Player[]>(defaultRoster);
-  let allSchemes = $state<DefenseSchemeConfig[]>(builtInSchemes);
-  let currentScheme = $state<DefenseSchemeConfig>(builtInSchemes[0]);
-  let customScenarios = $state<AttackScenario[]>([]);
-  let currentScenario = $state<AttackScenario>(attackScenarios[0]);
   let rotation = $state<number>(1);
+  let roster = $state<Player[]>(defaultRoster);
+  const initialSchemes = loadAllSchemes();
+  let allSchemes = $state<DefenseSchemeConfig[]>(initialSchemes);
+  let currentScheme = $state<DefenseSchemeConfig>(initialSchemes.find(s => s.rotation === 1) || initialSchemes[0]);
+  const initialScenarios = loadAllScenarios();
+  let allScenarios = $state<AttackScenario[]>(initialScenarios);
+  let currentScenario = $state<AttackScenario>(initialScenarios.find(s => s.rotation === 1) || initialScenarios[0]);
   let coedBlockMode = $state<CoedBlockMode>('single_man');
 
   // Preset modification tracking & Modals
@@ -42,13 +42,6 @@
   let saveTarget = $state<'base' | 'attack'>('base');
   let isSaveModalOpen = $state<boolean>(false);
 
-
-  // All available scenarios: Custom first, then standard presets
-  const allScenarios = $derived<AttackScenario[]>([
-    ...customScenarios,
-    ...attackScenarios
-  ]);
-
   // Position mode & animation state
   let currentPositionMode = $state<'base' | 'spike'>('base');
   let progress = $state<number>(0);
@@ -57,6 +50,7 @@
   // View state
   let selectedPlayerId = $state<string | null>(null);
   let showBlockShadow = $state<boolean>(true);
+  let showCoverageRange = $state<boolean>(true);
   let showZones = $state<boolean>(false);
   let showAllArrows = $state<boolean>(false);
   let is3DView = $state<boolean>(false);
@@ -72,11 +66,8 @@
       document.body.classList.toggle('theme-light', !isDarkMode);
     }
     // 1. Initial localStorage load
-    const loaded = loadAllSchemes();
-    if (loaded && loaded.length > 0) {
-      allSchemes = loaded;
-    }
-    customScenarios = loadCustomScenarios();
+    allSchemes = loadAllSchemes();
+    allScenarios = loadAllScenarios();
 
     // 2. Parse URL share parameters
     try {
@@ -93,22 +84,22 @@
         const foundScheme = allSchemes.find(s => s.id === paramBase && s.rotation === rotation);
         if (foundScheme) currentScheme = foundScheme;
         else {
-          const matchingBase = allSchemes.find(s => s.rotation === rotation && !s.isCustom) || allSchemes.find(s => s.rotation === rotation);
+          const matchingBase = allSchemes.find(s => s.rotation === rotation);
           if (matchingBase) currentScheme = matchingBase;
         }
       } else {
-        const matchingBase = allSchemes.find(s => s.rotation === rotation && !s.isCustom) || allSchemes.find(s => s.rotation === rotation);
+        const matchingBase = allSchemes.find(s => s.rotation === rotation);
         if (matchingBase) currentScheme = matchingBase;
       }
       if (paramAttack) {
         const foundSc = allScenarios.find(s => s.id === paramAttack && s.rotation === rotation);
         if (foundSc) currentScenario = foundSc;
         else {
-          const matchingAttack = allScenarios.find(s => s.rotation === rotation && !s.isCustom) || allScenarios.find(s => s.rotation === rotation);
+          const matchingAttack = allScenarios.find(s => s.rotation === rotation);
           if (matchingAttack) currentScenario = matchingAttack;
         }
       } else {
-        const matchingAttack = allScenarios.find(s => s.rotation === rotation && !s.isCustom) || allScenarios.find(s => s.rotation === rotation);
+        const matchingAttack = allScenarios.find(s => s.rotation === rotation);
         if (matchingAttack) currentScenario = matchingAttack;
       }
       if (paramPlay === '1') {
@@ -209,11 +200,11 @@
     if (isBaseModified || isAttackModified) return;
     rotation = newRot;
     const matchingBases = allSchemes.filter(s => s.rotation === newRot);
-    const targetBase = matchingBases.find(s => !s.isCustom) || matchingBases[0];
+    const targetBase = matchingBases[0];
     if (targetBase) currentScheme = targetBase;
 
     const matchingAttacks = allScenarios.filter(s => s.rotation === newRot);
-    const targetAttack = matchingAttacks.find(s => !s.isCustom) || matchingAttacks[0];
+    const targetAttack = matchingAttacks[0];
     if (targetAttack) currentScenario = targetAttack;
 
     isBaseModified = false;
@@ -223,7 +214,7 @@
 
   function handleResetBase() {
     const freshSchemes = loadAllSchemes();
-    const clean = freshSchemes.find(s => s.id === currentScheme.id) || builtInSchemes.find(s => s.id === currentScheme.id);
+    const clean = freshSchemes.find(s => s.id === currentScheme.id);
     if (clean) {
       currentScheme = JSON.parse(JSON.stringify(clean));
     }
@@ -231,7 +222,8 @@
   }
 
   function handleResetAttack() {
-    const pristineSc = allScenarios.find(s => s.id === currentScenario.id);
+    const freshScenarios = loadAllScenarios();
+    const pristineSc = freshScenarios.find(s => s.id === currentScenario.id);
     if (pristineSc) {
       currentScenario = JSON.parse(JSON.stringify(pristineSc));
     }
@@ -298,13 +290,11 @@
       ...updates
     };
     isAttackModified = true;
-    if (currentScenario.isCustom) {
-      saveCustomScenario(currentScenario);
-      customScenarios = loadCustomScenarios();
-    }
+    saveScenario(currentScenario);
+    allScenarios = loadAllScenarios();
   }
 
-  // Save current dragged court setup as a brand new named custom adjustment (either base or attack)
+  // Save current dragged court setup as a brand new named preset (either base or attack)
   function handleSaveNewAdjustment(data: {
     name: string;
     label: string;
@@ -313,8 +303,8 @@
     defensiveKey: string;
   }) {
     if (saveTarget === 'base') {
-      // Save as new custom Base Defense Preset (strictly rotation-scoped)
-      const newSchemeId = `custom_base_${Date.now()}`;
+      // Save as new Base Defense Preset (strictly rotation-scoped)
+      const newSchemeId = `base_${Date.now()}`;
       const baseMovementsToSave = movements.map(m => ({
         ...m,
         basePosition: { ...m.basePosition }
@@ -330,9 +320,8 @@
         id: newSchemeId,
         fileName: `${newSchemeId}.json`,
         name: data.name,
-        description: data.description || 'Custom base formation preset',
+        description: data.description || 'Base formation preset',
         systemType: 'custom',
-        isCustom: true,
         rotation: rotation as (1 | 2),
         schemes: newSchemesRecord
       };
@@ -343,14 +332,14 @@
       return;
     }
 
-    // Save as new custom Attack Preset (scoped to active rotation)
-    const newId = `custom_adj_${Date.now()}`;
+    // Save as new Defensive Formation Preset (scoped to active rotation)
+    const newId = `adj_${Date.now()}`;
     const newScenario: AttackScenario = {
       id: newId,
       name: data.name,
       label: data.label,
       type: data.type,
-      originZone: 'Custom Adjustment',
+      originZone: 'Defensive Formation',
       rotation: rotation as (1 | 2),
       attackerX: currentScenario.attackerX ?? 82,
       attackerY: currentScenario.attackerY ?? 86,
@@ -359,13 +348,11 @@
       targetX: currentScenario.targetX ?? 50,
       targetY: currentScenario.targetY ?? 70,
       description: data.description,
-      defensiveKey: data.defensiveKey,
-      isCustom: true
+      defensiveKey: data.defensiveKey
     };
 
-    // Save in custom scenarios
-    saveCustomScenario(newScenario);
-    customScenarios = loadCustomScenarios();
+    saveScenario(newScenario);
+    allScenarios = loadAllScenarios();
 
     // Save current defender positions for this new scenario across rotations in attackSchemes
     const updatedAttack = JSON.parse(JSON.stringify(attackSchemes));
@@ -380,9 +367,8 @@
     isAttackModified = false;
   }
 
-  // Quick save modifications to the current custom base defense preset
+  // Quick save modifications to the current base defense preset
   function handleQuickSaveBaseScheme() {
-    if (!currentScheme.isCustom) return;
     const updated = JSON.parse(JSON.stringify(currentScheme)) as DefenseSchemeConfig;
     if (!updated.schemes) updated.schemes = {};
     const targetKey = updated.schemes['base_formation'] ? 'base_formation' : (Object.keys(updated.schemes)[0] || 'base_formation');
@@ -398,21 +384,20 @@
     isBaseModified = false;
   }
 
-  // Delete a custom base defense preset
+  // Delete a base defense preset
   function handleDeleteScheme(schemeId: string) {
-    deleteScheme(schemeId);
-    allSchemes = loadAllSchemes();
+    const remaining = deleteScheme(schemeId);
+    allSchemes = remaining;
     if (currentScheme.id === schemeId) {
-      const fallback = allSchemes.find(s => s.rotation === rotation && !s.isCustom) || allSchemes.find(s => s.rotation === rotation);
+      const fallback = allSchemes.find(s => s.rotation === rotation) || allSchemes[0];
       if (fallback) currentScheme = fallback;
     }
   }
 
-  // Quick save modifications to the current custom adjustment
+  // Quick save modifications to the current defensive formation preset
   function handleQuickSaveAdjustment() {
-    if (!currentScenario.isCustom) return;
-    saveCustomScenario(currentScenario);
-    customScenarios = loadCustomScenarios();
+    saveScenario(currentScenario);
+    allScenarios = loadAllScenarios();
 
     const updatedAttack = JSON.parse(JSON.stringify(attackSchemes));
     if (!updatedAttack[currentScenario.id]) {
@@ -424,22 +409,22 @@
     isAttackModified = false;
   }
 
-  // Delete a custom adjustment
+  // Delete a defensive formation preset
   function handleDeleteAdjustment(scenarioId: string) {
-    const remaining = deleteCustomScenario(scenarioId);
-    customScenarios = remaining;
+    const remaining = deleteScenario(scenarioId);
+    allScenarios = remaining;
     if (currentScenario.id === scenarioId) {
-      const fallback = allScenarios.find(s => s.rotation === rotation && !s.isCustom) || allScenarios.find(s => s.rotation === rotation);
+      const fallback = allScenarios.find(s => s.rotation === rotation) || allScenarios[0];
       if (fallback) currentScenario = fallback;
     }
   }
 
-  // Edit a custom base defense preset (name and description)
+  // Edit a base defense preset (name and description)
   function handleRenameScheme(schemeId: string, updates: { name: string; description?: string }) {
     const cleanName = updates.name.trim();
     if (!cleanName) return;
     const target = allSchemes.find(s => s.id === schemeId);
-    if (target && target.isCustom) {
+    if (target) {
       const updated: DefenseSchemeConfig = {
         ...target,
         name: cleanName,
@@ -453,12 +438,12 @@
     }
   }
 
-  // Edit a custom attack preset (name, description, defensiveKey)
+  // Edit an attack preset (name, description, defensiveKey)
   function handleRenameAdjustment(scenarioId: string, updates: { name: string; description?: string; defensiveKey?: string }) {
     const cleanName = updates.name.trim();
     if (!cleanName) return;
-    const target = customScenarios.find(s => s.id === scenarioId);
-    if (target && target.isCustom) {
+    const target = allScenarios.find(s => s.id === scenarioId);
+    if (target) {
       const updated: AttackScenario = {
         ...target,
         name: cleanName,
@@ -466,8 +451,8 @@
         description: updates.description !== undefined ? updates.description.trim() : (target.description || ''),
         defensiveKey: updates.defensiveKey !== undefined ? updates.defensiveKey.trim() : (target.defensiveKey || '')
       };
-      saveCustomScenario(updated);
-      customScenarios = loadCustomScenarios();
+      saveScenario(updated);
+      allScenarios = loadAllScenarios();
       if (currentScenario.id === scenarioId) {
         currentScenario = updated;
       }
@@ -482,14 +467,6 @@
     {isDarkMode}
     onToggleTheme={toggleTheme}
     onShare={handleShare}
-    {showZones}
-    onToggleZones={() => { showZones = !showZones; }}
-    {showAllArrows}
-    onToggleArrows={() => { showAllArrows = !showAllArrows; }}
-    {showBlockShadow}
-    onToggleBlockShadow={() => { showBlockShadow = !showBlockShadow; }}
-    {is3DView}
-    onToggle3D={() => { is3DView = !is3DView; }}
   />
 
   <!-- MAIN APP CONTAINER -->
@@ -506,9 +483,15 @@
         {selectedPlayerId}
         onSelectPlayer={(id) => { selectedPlayerId = id; }}
         {showBlockShadow}
+        onToggleBlockShadow={() => { showBlockShadow = !showBlockShadow; }}
+        {showCoverageRange}
+        onToggleCoverageRange={() => { showCoverageRange = !showCoverageRange; }}
         {showZones}
+        onToggleZones={() => { showZones = !showZones; }}
         {showAllArrows}
+        onToggleArrows={() => { showAllArrows = !showAllArrows; }}
         {is3DView}
+        onToggle3D={() => { is3DView = !is3DView; }}
         {currentPositionMode}
         onSelectPositionMode={handleSelectPositionMode}
         isDirty={isBaseModified || isAttackModified}

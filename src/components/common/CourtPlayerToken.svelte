@@ -7,6 +7,7 @@
     isBlocker?: boolean;
     isSelected?: boolean;
     isDragging?: boolean;
+    showCoverage?: boolean;
     onSelect: () => void;
     onStartDrag: (e: MouseEvent | TouchEvent) => void;
   }
@@ -19,11 +20,20 @@
     isBlocker = false,
     isSelected = false,
     isDragging = false,
+    showCoverage = false,
     onSelect,
     onStartDrag
   }: Props = $props();
 
-  const isMale = $derived(gender === 'M');
+  const isFemale = $derived(gender === 'F');
+
+  const auraColorClass = $derived(isFemale ? 'bg-warning/50' : 'bg-info/50');
+
+  const tokenColorClass = $derived(
+    isFemale
+      ? 'bg-warning text-warning-content border-warning-content/30 shadow-warning/30 font-black'
+      : 'bg-info text-info-content border-info-content/30 shadow-info/30 font-black'
+  );
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
@@ -45,18 +55,31 @@
   } select-none"
   style="left: {currentX}%; top: {currentY}%;"
 >
+  <!-- Coverage Range Circle (Estimated Defense Reach for Non-Blockers in Defensive Formation) -->
+  {#if showCoverage}
+    <div
+      class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full pointer-events-none transition-all duration-300 ease-out {
+        isFemale
+          ? 'bg-warning/15 border-2 border-dashed border-warning/45 shadow-[0_0_18px_rgba(234,179,8,0.18)] text-warning'
+          : 'bg-info/15 border-2 border-dashed border-info/45 shadow-[0_0_18px_rgba(59,130,246,0.18)] text-info'
+      } {isSelected ? 'scale-105 border-solid ring-2 ring-base-content/20' : ''}"
+      style="z-index: -1;"
+    >
+      <!-- Concentric subtle inner guide ring -->
+      <div
+        class="absolute inset-3 rounded-full border border-current opacity-20 pointer-events-none"
+      ></div>
+    </div>
+  {/if}
+
   <!-- Selected Glow & Emphasis Aura -->
   {#if isSelected}
-    <div class="absolute -inset-3.5 rounded-full {isMale ? 'bg-primary/50' : 'bg-warning/50'} blur-lg animate-pulse pointer-events-none"></div>
+    <div class="absolute -inset-3.5 rounded-full {auraColorClass} blur-lg animate-pulse pointer-events-none"></div>
   {/if}
 
   <!-- Main Token Circle -->
   <div
-    class="relative w-11 h-11 rounded-full flex items-center justify-center font-black text-sm shadow-xl border-2 transition-transform duration-150 group-hover:scale-115 {
-      isMale
-        ? 'bg-primary text-primary-content border-primary-content/30 shadow-primary/30'
-        : 'bg-warning text-warning-content border-warning-content/30 shadow-warning/30 font-black'
-    } {
+    class="relative w-11 h-11 rounded-full flex items-center justify-center font-black text-sm shadow-xl border-2 transition-transform duration-150 group-hover:scale-115 {tokenColorClass} {
       isSelected
         ? 'ring-4 ring-primary-content shadow-[0_0_22px_rgba(255,255,255,0.9)] scale-120 z-40'
         : isBlocker

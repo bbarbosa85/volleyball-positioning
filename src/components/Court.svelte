@@ -4,6 +4,7 @@
 
   // Common reusable components
   import CourtPhaseToggle from './common/CourtPhaseToggle.svelte';
+  import CourtOverlayControls from './common/CourtOverlayControls.svelte';
   import CourtNet from './common/CourtNet.svelte';
   import CourtZones from './common/CourtZones.svelte';
   import CourtPlayerToken from './common/CourtPlayerToken.svelte';
@@ -18,9 +19,15 @@
     selectedPlayerId: string | null;
     onSelectPlayer: (id: string | null) => void;
     showBlockShadow?: boolean;
+    onToggleBlockShadow?: () => void;
     showZones?: boolean;
+    onToggleZones?: () => void;
     showAllArrows?: boolean;
+    onToggleArrows?: () => void;
+    showCoverageRange?: boolean;
+    onToggleCoverageRange?: () => void;
     is3DView?: boolean;
+    onToggle3D?: () => void;
     currentPositionMode?: 'base' | 'spike';
     onSelectPositionMode?: (mode: 'base' | 'spike') => void;
     isDirty?: boolean;
@@ -37,9 +44,15 @@
     selectedPlayerId,
     onSelectPlayer,
     showBlockShadow = true,
+    onToggleBlockShadow,
     showZones = true,
+    onToggleZones,
     showAllArrows = false,
+    onToggleArrows,
+    showCoverageRange = true,
+    onToggleCoverageRange,
     is3DView = false,
+    onToggle3D,
     currentPositionMode = 'base',
     onSelectPositionMode,
     isDirty = false,
@@ -117,10 +130,20 @@
     opponentY: scenario.setterY !== undefined && scenario.setterY > 0 ? scenario.setterY : 88
   });
 
-  // Phase-anchored ball position: with setter in base (0), glides to attacker in spike (1)
+  // Phase-anchored ball position: top center of setter in base (0), bottom center of attacker in spike (1)
+  const setterBall = $derived({
+    x: setter.x,
+    y: setter.y - 3.5
+  });
+
+  const attackerBall = $derived({
+    x: attacker.x,
+    y: attacker.y + 3.5
+  });
+
   const ballPos = $derived({
-    x: (setter.x - 3.5) + ((attacker.x + 3.5) - (setter.x - 3.5)) * progress,
-    y: (setter.y - 1.5) + ((attacker.y + 1.5) - (setter.y - 1.5)) * progress
+    x: setterBall.x + (attackerBall.x - setterBall.x) * progress,
+    y: setterBall.y + (attackerBall.y - setterBall.y) * progress
   });
 
   // Target impact point on our defending half
@@ -196,6 +219,20 @@
     {onSelectPositionMode}
   />
 
+  <!-- Court Overlay Controls: Icons with tooltips on top of court container -->
+  <CourtOverlayControls
+    {showZones}
+    {onToggleZones}
+    {showAllArrows}
+    {onToggleArrows}
+    {showBlockShadow}
+    {onToggleBlockShadow}
+    {showCoverageRange}
+    {onToggleCoverageRange}
+    {is3DView}
+    {onToggle3D}
+  />
+
   <!-- Outer 3D Perspective Wrapper -->
   <div
     class="relative w-full max-w-[620px] flex justify-center py-2 transition-transform duration-700 ease-out"
@@ -222,14 +259,21 @@
       <!-- FULL VOLLEYBALL COURT BOUNDARY (18m x 9m) -->
       <div
         bind:this={courtBoundaryBox}
-        class="relative w-[90%] h-[93%] bg-gradient-to-b from-[#111f36] via-[#142642] to-[#111f36] border-[2.5px] border-white/85 rounded-sm shadow-inner overflow-visible"
+        class="relative w-[90%] h-[93%] rounded-sm shadow-md overflow-visible transition-colors duration-300"
+        style="background: var(--court-bg); border: 2.5px solid var(--court-border);"
       >
         <!-- Floor wood grain texture -->
-        <div class="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:10%_100%] pointer-events-none rounded-sm overflow-hidden"></div>
+        <div
+          class="absolute inset-0 pointer-events-none rounded-sm overflow-hidden"
+          style="opacity: 0.12; background: linear-gradient(to right, var(--court-grain) 1px, transparent 1px); background-size: 10% 100%;"
+        ></div>
 
         <!-- 1. OPPONENT HALF COURT (0% TO 50%) -->
         <div class="absolute top-0 left-0 right-0 h-1/2 pointer-events-none">
-          <div class="absolute top-[66.67%] left-0 right-0 h-[3px] bg-white/60"></div>
+          <div
+            class="absolute top-[66.67%] left-0 right-0 h-[3px] transition-colors duration-300"
+            style="background-color: var(--court-line);"
+          ></div>
         </div>
 
         <!-- 2. CENTER LINE & ELEVATED ISOMETRIC 3D NET -->
@@ -237,8 +281,14 @@
 
         <!-- 3. DEFENDING HALF COURT (50% TO 100%) -->
         <div class="absolute top-1/2 bottom-0 left-0 right-0 pointer-events-none">
-          <div class="absolute top-[33.33%] left-0 right-0 h-[3px] bg-white/60"></div>
-          <div class="absolute top-0 bottom-0 left-1/2 w-[1px] border-l border-dashed border-white/15"></div>
+          <div
+            class="absolute top-[33.33%] left-0 right-0 h-[3px] transition-colors duration-300"
+            style="background-color: var(--court-line);"
+          ></div>
+          <div
+            class="absolute top-0 bottom-0 left-1/2 w-[1px] border-l border-dashed transition-colors duration-300"
+            style="border-color: var(--court-line-dashed);"
+          ></div>
           <CourtZones visible={showZones} />
         </div>
 
@@ -262,7 +312,7 @@
               <span class="text-xs font-black tracking-tight uppercase drop-shadow">ATK</span>
             </div>
           </div>
-          <span class="absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[8px] font-bold text-error-content bg-base-300 px-1.5 py-0.5 rounded border border-base-content/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow">
+          <span class="absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[8px] font-bold text-base-content bg-base-300 px-1.5 py-0.5 rounded border border-base-content/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow">
             Drag Attacker
           </span>
         </div>
@@ -283,11 +333,11 @@
           title="Drag opponent setter"
         >
           <div class="relative flex items-center justify-center w-10 h-10">
-            <div class="w-10 h-10 rounded-2xl bg-accent text-accent-content flex items-center justify-center shadow-lg border-2 border-accent-content/30 transition-transform group-hover:scale-115">
-              <span class="text-xs font-black tracking-tight uppercase drop-shadow">SET</span>
+            <div class="w-10 h-10 rounded-2xl bg-secondary text-white flex items-center justify-center shadow-lg border-2 border-white/30 transition-transform group-hover:scale-115">
+              <span class="text-xs font-black tracking-tight uppercase drop-shadow-sm">SET</span>
             </div>
           </div>
-          <span class="absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[8px] font-bold text-accent-content bg-base-300 px-1.5 py-0.5 rounded border border-base-content/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow">
+          <span class="absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[8px] font-bold text-base-content bg-base-300 px-1.5 py-0.5 rounded border border-base-content/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow">
             Drag Setter
           </span>
         </div>
@@ -319,6 +369,7 @@
             gender={p?.gender}
             {isBlocker}
             {isSelected}
+            showCoverage={showCoverageRange && isDefensivePhase && !isBlocker}
             isDragging={activeDrag?.kind === 'player' && activeDrag.id === playerItem.playerId}
             onSelect={() => onSelectPlayer(isSelected ? null : playerItem.playerId)}
             onStartDrag={() => {

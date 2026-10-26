@@ -19,10 +19,9 @@
     class: className = ''
   }: Props = $props();
 
-  function getPlayerGender(playerId: string): 'M' | 'F' {
+  function getPlayer(playerId: string): Player | undefined {
     const clean = playerId.toLowerCase().trim();
-    const p = roster.find(player => player.id.toLowerCase() === clean);
-    return p?.gender === 'F' ? 'F' : 'M';
+    return roster.find(player => player.id.toLowerCase() === clean);
   }
 
   // Defending court is 9m x 9m (square). We map 0..100% court coordinates to 6..94 in SVG viewBox 0 0 100 100
@@ -136,13 +135,14 @@
       {@const pos = mode === 'base' ? m.basePosition : m.defensePosition}
       {@const cx = toSvgX(pos.x)}
       {@const cy = toSvgY(pos.y)}
-      {@const isFemale = getPlayerGender(m.playerId) === 'F'}
-      <!-- Player Dot: Yellow/Amber for women, Blue for men -->
+      {@const p = getPlayer(m.playerId)}
+      {@const isFemale = p?.gender === 'F'}
+      <!-- Player Dot: Warning for Women, Info for Men -->
       <circle
         {cx}
         {cy}
         r="4.2"
-        fill={isFemale ? 'var(--color-warning)' : 'var(--color-primary)'}
+        fill={isFemale ? 'var(--color-warning)' : 'var(--color-info)'}
         stroke="var(--color-base-100)"
         stroke-width="1.2"
         class="filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"

@@ -14,17 +14,8 @@
 
 <div
   id="cardCourtPhase"
-  class="card bg-base-200/60 border border-base-300 p-4 w-full max-w-[620px] mb-3 transition-all duration-200"
+  class="w-full max-w-[620px] mb-3 transition-all duration-200"
 >
-  <div class="flex items-center justify-between flex-wrap gap-2">
-    <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-base-content/80">
-      <Layers class="w-4 h-4 text-primary" />
-      <span>Court Simulation Phase</span>
-    </div>
-    <span class="badge badge-primary badge-soft font-bold text-[11px] py-1">
-      {currentPositionMode === 'base' ? 'Pre-Contact Reading' : 'Post-Contact Defense'}
-    </span>
-  </div>
 
   <!-- Segmented Control matching Rotation Context style -->
   <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-base-300/50 border border-base-300 transition-all">

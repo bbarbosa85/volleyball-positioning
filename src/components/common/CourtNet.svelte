@@ -7,7 +7,10 @@
 </script>
 
 <!-- Center boundary line on the court floor -->
-<div class="absolute top-1/2 left-0 right-0 h-[2px] -translate-y-1/2 bg-white/60 pointer-events-none z-10"></div>
+<div
+  class="absolute top-1/2 left-0 right-0 h-[2px] -translate-y-1/2 pointer-events-none z-10 transition-colors duration-300"
+  style="background-color: var(--court-net-floor);"
+></div>
 
 <!-- Shadow cast on the court floor beneath the elevated net -->
 <div class="absolute top-1/2 left-[-8%] right-[-8%] h-[5px] -translate-y-1/2 bg-black/50 blur-[2px] pointer-events-none z-10"></div>

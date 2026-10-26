@@ -1,36 +1,16 @@
 <script lang="ts">
-  import { Share2, Sun, Moon, Settings, Box } from '@lucide/svelte';
+  import { Share2, Sun, Moon } from '@lucide/svelte';
 
   interface Props {
     isDarkMode?: boolean;
     onToggleTheme: () => void;
     onShare: () => void;
-
-    showZones?: boolean;
-    onToggleZones: () => void;
-
-    showAllArrows?: boolean;
-    onToggleArrows: () => void;
-
-    showBlockShadow?: boolean;
-    onToggleBlockShadow: () => void;
-
-    is3DView?: boolean;
-    onToggle3D: () => void;
   }
 
   let {
     isDarkMode = true,
     onToggleTheme,
-    onShare,
-    showZones = false,
-    onToggleZones,
-    showAllArrows = false,
-    onToggleArrows,
-    showBlockShadow = true,
-    onToggleBlockShadow,
-    is3DView = false,
-    onToggle3D
+    onShare
   }: Props = $props();
 </script>
 
@@ -53,7 +33,7 @@
       </h1>
     </div>
 
-    <!-- Right Actions: Contained Share CTA + Theme Toggle + daisyUI Settings Dropdown -->
+    <!-- Right Actions: Contained Share CTA + Theme Toggle -->
     <div class="flex items-center gap-2">
       <!-- Contained Share Button -->
       <button
@@ -79,77 +59,6 @@
           <Moon class="w-4 h-4 text-primary" />
         {/if}
       </button>
-
-      <!-- daisyUI Settings Cog Dropdown (details/summary standard) -->
-      <details class="dropdown dropdown-end">
-        <summary
-          class="btn btn-sm btn-ghost btn-circle list-none cursor-pointer"
-          title="Court View Overlays & Settings"
-        >
-          <Settings class="w-4 h-4 text-base-content/70" />
-        </summary>
-
-        <ul
-          class="dropdown-content menu p-2 shadow-2xl bg-base-200 border border-base-300 rounded-box w-56 z-50 text-xs mt-2"
-        >
-          <li class="menu-title text-[10px] uppercase font-bold tracking-wider opacity-60">
-            Court View Overlays
-          </li>
-
-          <!-- Zones Toggle -->
-          <li>
-            <button
-              type="button"
-              onclick={onToggleZones}
-              class="flex items-center justify-between py-1.5"
-            >
-              <span>Court Zones (1–6)</span>
-              <span class="w-2.5 h-2.5 rounded-full {showZones ? 'bg-primary shadow-xs shadow-primary' : 'bg-base-300'}"></span>
-            </button>
-          </li>
-
-          <!-- Vector Arrows Toggle -->
-          <li>
-            <button
-              type="button"
-              onclick={onToggleArrows}
-              class="flex items-center justify-between py-1.5"
-            >
-              <span>Motion Vectors</span>
-              <span class="w-2.5 h-2.5 rounded-full {showAllArrows ? 'bg-secondary shadow-xs shadow-secondary' : 'bg-base-300'}"></span>
-            </button>
-          </li>
-
-          <!-- Blocker Shadow Toggle -->
-          <li>
-            <button
-              type="button"
-              onclick={onToggleBlockShadow}
-              class="flex items-center justify-between py-1.5"
-            >
-              <span>Blocker Shadow Cone</span>
-              <span class="w-2.5 h-2.5 rounded-full {showBlockShadow ? 'bg-warning shadow-xs shadow-warning' : 'bg-base-300'}"></span>
-            </button>
-          </li>
-
-          <div class="divider my-1"></div>
-
-          <!-- 3D Perspective Toggle -->
-          <li>
-            <button
-              type="button"
-              onclick={onToggle3D}
-              class="flex items-center justify-between py-1.5 {is3DView ? 'text-primary font-semibold' : ''}"
-            >
-              <div class="flex items-center gap-1.5">
-                <Box class="w-3.5 h-3.5 text-primary" />
-                <span>3D Dynamic Tilt</span>
-              </div>
-              <span class="w-2.5 h-2.5 rounded-full {is3DView ? 'bg-primary shadow-xs shadow-primary' : 'bg-base-300'}"></span>
-            </button>
-          </li>
-        </ul>
-      </details>
     </div>
   </div>
 </header>

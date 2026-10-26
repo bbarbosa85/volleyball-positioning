@@ -1,41 +1,26 @@
 import type { DefenseSchemeConfig, PlayerMovement } from '../types/volleyball';
 import defesa6Recuado from './schemes/defesa-6-recuado-tradicional.json';
-import defesa6Avancado from './schemes/defesa-6-avancado-cobertura.json';
 
-export const builtInSchemes: DefenseSchemeConfig[] = [
+export const initialBaseSchemes: DefenseSchemeConfig[] = [
   // Rotation 1 (Men Serving)
   {
     ...(defesa6Recuado as DefenseSchemeConfig),
-    id: 'r1_base_deep',
-    name: 'Deep Base Read',
+    id: 'base_r1_standard',
+    name: 'Base Read',
     rotation: 1,
     description: 'Pre-contact reading stance with P6 defending deep baseline and solo blocker P3 holding net center.'
-  },
-  {
-    ...(defesa6Avancado as DefenseSchemeConfig),
-    id: 'r1_base_tip',
-    name: 'Short Tip Ready',
-    rotation: 1,
-    description: 'Front-row women pull off the net to protect short donut zones against deceptive tips.'
   },
   // Rotation 2 (Women Serving)
   {
     ...(defesa6Recuado as DefenseSchemeConfig),
-    id: 'r2_base_perimeter',
+    id: 'base_r2_standard',
     name: 'Double Wall Read',
     rotation: 2,
     description: 'Two-man front wall (P4 & P2) ready to close either wing; back-row defends deep perimeter.'
-  },
-  {
-    ...(defesa6Avancado as DefenseSchemeConfig),
-    id: 'r2_base_shift',
-    name: 'Rotational Shift',
-    rotation: 2,
-    description: 'Blockers and defenders shifted to the opponent strong side to close angles quickly.'
   }
 ];
 
-const LOCAL_STORAGE_KEY = 'volleyball_defense_schemes_v2';
+const LOCAL_STORAGE_KEY = 'volleyball_base_schemes_v4';
 
 export function loadAllSchemes(): DefenseSchemeConfig[] {
   try {
@@ -43,20 +28,20 @@ export function loadAllSchemes(): DefenseSchemeConfig[] {
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        const builtInIds = new Set(builtInSchemes.map(s => s.id));
-        const customSchemes = parsed
-          .filter((s: DefenseSchemeConfig) => s.isCustom && !builtInIds.has(s.id))
-          .map((s: DefenseSchemeConfig) => ({
-            ...s,
-            rotation: (s.rotation === 2 ? 2 : 1) as (1 | 2)
-          }));
-        return [...builtInSchemes, ...customSchemes];
+        return parsed.map((s: DefenseSchemeConfig) => ({
+          ...s,
+          rotation: (s.rotation === 2 ? 2 : 1) as (1 | 2)
+        }));
       }
     }
   } catch (err) {
-    console.warn('Failed to load custom schemes from localStorage', err);
+    console.warn('Failed to load schemes from localStorage', err);
   }
-  return builtInSchemes;
+  // If no saved schemes in localStorage, seed with initial starter presets
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(initialBaseSchemes));
+  } catch {}
+  return JSON.parse(JSON.stringify(initialBaseSchemes));
 }
 
 export function saveScheme(scheme: DefenseSchemeConfig): void {
@@ -74,13 +59,15 @@ export function saveScheme(scheme: DefenseSchemeConfig): void {
   }
 }
 
-export function deleteScheme(schemeId: string): void {
+export function deleteScheme(schemeId: string): DefenseSchemeConfig[] {
   try {
     const current = loadAllSchemes();
     const filtered = current.filter(s => s.id !== schemeId);
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(filtered));
+    return filtered;
   } catch (err) {
     console.warn('Failed to delete scheme from localStorage', err);
+    return [];
   }
 }
 
@@ -121,14 +108,10 @@ export function getBaseMovements(
   const scenarioSchemes = scheme.schemes[scKey];
   if (scenarioSchemes) {
     if (scenarioSchemes[rotation]) {
-      return scheme.isCustom
-        ? scenarioSchemes[rotation]
-        : rotateMovementsForRotation(scenarioSchemes[rotation], rotation);
+      return scenarioSchemes[rotation];
     }
     if (scenarioSchemes[1]) {
-      return scheme.isCustom
-        ? scenarioSchemes[1]
-        : rotateMovementsForRotation(scenarioSchemes[1], rotation);
+      return rotateMovementsForRotation(scenarioSchemes[1], rotation);
     }
   }
   return [];

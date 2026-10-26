@@ -46,9 +46,9 @@
   class="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible"
 >
   <defs>
-    <!-- Blue player arrow marker -->
+    <!-- Info player arrow marker (Men) -->
     <marker
-      id="playerMoveArrowBlue"
+      id="playerMoveArrowInfo"
       viewBox="0 0 10 10"
       refX="6"
       refY="5"
@@ -56,11 +56,11 @@
       markerHeight="4.8"
       orient="auto-start-reverse"
     >
-      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb" />
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--color-info)" />
     </marker>
-    <!-- Yellow player arrow marker -->
+    <!-- Warning player arrow marker (Women) -->
     <marker
-      id="playerMoveArrowYellow"
+      id="playerMoveArrowWarning"
       viewBox="0 0 10 10"
       refX="6"
       refY="5"
@@ -68,7 +68,7 @@
       markerHeight="4.8"
       orient="auto-start-reverse"
     >
-      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#facc15" />
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--color-warning)" />
     </marker>
     <!-- Attack gradient -->
     <linearGradient id="fullSpikeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -131,9 +131,9 @@
       {@const dist = Math.hypot(endX - startX, endY - startY)}
       {@const isPlayerSelected = selectedPlayerId === m.playerId}
       {@const p = getPlayer(m.playerId)}
-      {@const isMale = p ? p.gender === 'M' : true}
-      {@const arrowColor = isMale ? '#2563eb' : '#facc15'}
-      {@const markerId = isMale ? 'url(#playerMoveArrowBlue)' : 'url(#playerMoveArrowYellow)'}
+      {@const isFemale = p ? p.gender === 'F' : false}
+      {@const arrowColor = isFemale ? 'var(--color-warning)' : 'var(--color-info)'}
+      {@const markerId = isFemale ? 'url(#playerMoveArrowWarning)' : 'url(#playerMoveArrowInfo)'}
       {#if dist > 1.2}
         <!-- Subtle dark underlay solid line for high contrast -->
         <line
@@ -145,7 +145,7 @@
           stroke-width={isPlayerSelected ? 0.8 : 0.65}
           stroke-linecap="round"
         />
-        <!-- Solid arrow line matching gender color (blue for men, yellow for women) -->
+        <!-- Solid arrow line matching gender color (info for men, warning for women) -->
         <line
           x1="{startX}"
           y1="{startY}"
@@ -155,16 +155,15 @@
           stroke-width={isPlayerSelected ? 0.45 : 0.35}
           stroke-linecap="round"
           marker-end="{markerId}"
-          class={isPlayerSelected
-            ? (isMale ? 'drop-shadow-[0_0_8px_rgba(37,99,235,0.95)]' : 'drop-shadow-[0_0_8px_rgba(250,204,21,0.95)]')
-            : (isMale ? 'drop-shadow-[0_0_3px_rgba(37,99,235,0.7)]' : 'drop-shadow-[0_0_3px_rgba(250,204,21,0.7)]')}
+          class={isPlayerSelected ? 'drop-shadow-[0_0_6px_currentColor]' : 'drop-shadow-[0_0_2px_currentColor]'}
         />
         <!-- Destination target ghost circle matching gender color -->
         <circle
           cx="{endX}"
           cy="{endY}"
           r={isPlayerSelected ? 1.6 : 1.2}
-          fill={isMale ? 'rgba(37, 99, 235, 0.25)' : 'rgba(250, 204, 21, 0.25)'}
+          fill={arrowColor}
+          fill-opacity="0.25"
           stroke={arrowColor}
           stroke-width="0.3"
           class={isPlayerSelected ? 'animate-pulse' : ''}

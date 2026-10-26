@@ -39,16 +39,16 @@
   $effect(() => {
     if (open) {
       if (targetMode === 'base') {
-        name = initialName ? `${initialName} (Custom)` : 'Custom Base Defense';
-        label = initialLabel || 'Custom Base';
-        description = 'Custom base reading formation customized on the visual court.';
+        name = initialName ? `${initialName} (Copy)` : 'New Base Formation';
+        label = initialLabel || 'New Base';
+        description = 'Pre-contact reading stance customized on the visual court.';
         defensiveKey = 'Base positioning before the set and attack.';
       } else {
-        name = initialName ? `${initialName} (Custom)` : 'My Tactical Attack Defense';
-        label = initialLabel ? `${initialLabel}*` : 'Custom Attack';
+        name = initialName ? `${initialName} (Copy)` : 'New Defensive Formation';
+        label = initialLabel ? `${initialLabel} 2` : 'New Defense';
         attackType = (initialType as any) || 'custom';
-        description = 'Custom defensive tactical alignment customized on the visual court.';
-        defensiveKey = 'Defenders adjusted to seal the specific attack lane and tip cover.';
+        description = 'Defensive tactical alignment customized on the visual court.';
+        defensiveKey = 'Defenders adjusted to seal the attack lane and tip cover.';
       }
     }
   });
@@ -72,10 +72,10 @@
 <Dialog
   {open}
   {onClose}
-  title={targetMode === 'base' ? 'Save Base Defense Preset' : 'Save Attack Preset'}
+  title={targetMode === 'base' ? 'New Base Formation Preset' : 'New Defensive Formation Preset'}
   description={targetMode === 'base'
-    ? 'Save your current court reading formation as a custom base defense preset'
-    : 'Save current attack and defending positions as a new attack preset'}
+    ? 'Save the current court reading stance as a base formation preset'
+    : 'Save current attack and defending reaction alignment as a defensive formation preset'}
   maxWidth="max-w-md"
 >
   <form onsubmit={handleSubmit} class="flex flex-col gap-4 text-xs">

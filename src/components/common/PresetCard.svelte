@@ -1,13 +1,13 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import { User, Pencil, Trash2 } from '@lucide/svelte';
+  import { Pencil, Trash } from '@lucide/svelte';
 
   interface Props {
     title: string;
-    isCustom?: boolean;
     isSelected: boolean;
     isModified?: boolean;
     isDisabled?: boolean;
+    canDelete?: boolean;
     accent?: 'blue' | 'rose';
     thumbnailSize?: 'base' | 'attack';
     onSelect: () => void;
@@ -18,10 +18,10 @@
 
   let {
     title,
-    isCustom = false,
     isSelected,
     isModified = false,
     isDisabled = false,
+    canDelete = true,
     accent = 'blue',
     thumbnailSize = 'base',
     onSelect,
@@ -49,21 +49,13 @@
     }"
     title={title}
   >
-    <!-- Top Line: Title & Custom badge -->
+    <!-- Top Line: Title & action spacing -->
     <div class="flex items-center justify-between w-full gap-1 min-h-[22px] px-0.5">
-      <div class="flex items-center gap-1.5 min-w-0 flex-1">
-        <span class="font-bold text-xs truncate text-left {isSelected ? 'text-base-content' : 'text-base-content/80'}">
-          {title}
-        </span>
-        {#if isCustom}
-          <span class="badge badge-warning badge-soft badge-xs gap-0.5 py-0.5 px-1 shrink-0 font-bold">
-            <User class="w-2.5 h-2.5" />
-            <span>Custom</span>
-          </span>
-        {/if}
-      </div>
-      {#if isCustom && isSelected}
-        <!-- Spacer for absolute action buttons -->
+      <span class="font-bold text-xs truncate text-left {isSelected ? 'text-base-content' : 'text-base-content/80'}">
+        {title}
+      </span>
+      {#if isSelected}
+        <!-- Spacer for action buttons -->
         <div class="w-12 shrink-0"></div>
       {/if}
     </div>
@@ -76,8 +68,8 @@
     </div>
   </button>
 
-  <!-- Action buttons: ONLY when custom AND selected -->
-  {#if isCustom && isSelected}
+  <!-- Action buttons: when selected -->
+  {#if isSelected}
     <div class="absolute top-1.5 right-1.5 flex items-center gap-1 z-10 animate-fadeIn">
       {#if onRename}
         <button
@@ -86,13 +78,13 @@
             e.stopPropagation();
             onRename();
           }}
-          class="btn btn-xs btn-square {accent === 'blue' ? 'btn-primary' : 'btn-warning'} shadow-md"
+          class="btn btn-xs btn-square {accent === 'blue' ? 'btn-primary' : 'btn-secondary'} shadow-md"
           title="Edit preset"
         >
           <Pencil class="w-3 h-3" />
         </button>
       {/if}
-      {#if onDelete}
+      {#if onDelete && canDelete}
         <button
           type="button"
           onclick={(e) => {
@@ -100,9 +92,9 @@
             onDelete();
           }}
           class="btn btn-xs btn-square btn-error shadow-md"
-          title="Delete custom preset"
+          title="Delete preset"
         >
-          <Trash2 class="w-3 h-3" />
+          <Trash class="w-3 h-3" />
         </button>
       {/if}
     </div>
