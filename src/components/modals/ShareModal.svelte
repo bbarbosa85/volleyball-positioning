@@ -1,9 +1,9 @@
 <script lang="ts">
-  import Dialog from './ui/Dialog.svelte';
-  import Button from './ui/Button.svelte';
-  import CourtThumbnail from './CourtThumbnail.svelte';
-  import type { AttackScenario, DefenseSchemeConfig, Player, PlayerMovement } from '../types/volleyball';
-  import { getBaseMovements, getAttackScenarioMovements } from '../data/schemeRegistry';
+  import Dialog from '../common/Dialog.svelte';
+  import Button from '../common/Button.svelte';
+  import CourtThumbnail from '../court/CourtThumbnail.svelte';
+  import type { AttackScenario, DefenseSchemeConfig, Player, PlayerMovement } from '../../types/volleyball';
+  import { getBaseMovements, getAttackScenarioMovements } from '../../data/schemeRegistry';
   import {
     Share2,
     Shield,

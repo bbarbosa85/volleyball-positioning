@@ -34,16 +34,12 @@
 
 <div
   id="courtOverlayControls"
-  class="w-full max-w-[620px] flex items-center justify-between sm:justify-end gap-2 px-1 mb-2 z-20"
+  class="w-full max-w-[620px] flex items-center justify-center gap-2 px-1 mt-2 z-20"
 >
-  <span class="text-[11px] font-bold uppercase tracking-wider text-base-content/60 sm:hidden">
-    Court Overlays
-  </span>
-
   <div class="inline-flex items-center gap-1 p-1 rounded-xl bg-base-200/80 border border-base-300 shadow-xs backdrop-blur-xs">
     <!-- 1. Court Zones (1–6) -->
     <div
-      class="tooltip tooltip-bottom"
+      class="tooltip tooltip-top"
       data-tip={showZones ? 'Hide Court Zones (1–6)' : 'Show Court Zones (1–6)'}
     >
       <button
@@ -63,7 +59,7 @@
 
     <!-- 2. Motion Vectors -->
     <div
-      class="tooltip tooltip-bottom"
+      class="tooltip tooltip-top"
       data-tip={showAllArrows ? 'Hide Motion Vectors' : 'Show Motion Vectors'}
     >
       <button
@@ -83,7 +79,7 @@
 
     <!-- 3. Blocker Shadow Cone -->
     <div
-      class="tooltip tooltip-bottom"
+      class="tooltip tooltip-top"
       data-tip={showBlockShadow ? 'Hide Blocker Shadow Cone' : 'Show Blocker Shadow Cone'}
     >
       <button
@@ -103,7 +99,7 @@
 
     <!-- 4. Defense Coverage Range -->
     <div
-      class="tooltip tooltip-bottom"
+      class="tooltip tooltip-top"
       data-tip={showCoverageRange ? 'Hide Defense Coverage Range' : 'Show Defense Coverage Range'}
     >
       <button
@@ -125,7 +121,7 @@
 
     <!-- 5. 3D Dynamic Tilt -->
     <div
-      class="tooltip tooltip-bottom"
+      class="tooltip tooltip-top"
       data-tip={is3DView ? 'Switch to Top-Down 2D View' : 'Switch to 3D Dynamic Tilt'}
     >
       <button

@@ -6,10 +6,13 @@
 - Keep Svelte component files concise (target: **< 250–350 lines**).
 - When a file grows large or mixes multiple concerns (e.g. complex SVG calculations with DOM canvas and control cards), decompose it into small, single-responsibility components.
 
-### 2. Component Placement (`src/components/common`)
-- **All reusable or modular components MUST live inside `src/components/common/`**.
-- Keep view-level layout containers in `src/components/` (`Court.svelte`, `Controls.svelte`).
-- Keep UI primitives in `src/components/ui/` (`Button.svelte`, `Dialog.svelte`, etc.).
+### 2. Component Placement & Organization
+- **Layout Containers**: View-level layout containers live in `src/components/layout/` (`Court.svelte`, `Controls.svelte`, `TopHeader.svelte`).
+- **Domain Components**: Feature components are organized into semantic domain folders:
+  - `src/components/court/`: Court canvas, floor markings, net, zones, player/opponent tokens, and overlays.
+  - `src/components/controls/`: Rotation context, base formation card, defensive formation card, modification alert, and preset table row cards.
+  - `src/components/modals/`: User dialog modals (`SaveAdjustmentModal.svelte`, `ShareModal.svelte`, `PresetEditModal.svelte`).
+- **Common Primitives**: Reusable UI primitives and shared components live in `src/components/common/` (`Button.svelte`, `Dialog.svelte`, `MarkdownEditor.svelte`).
 
 ### 3. Svelte 5 Runes Standard
 - Use modern Svelte 5 runes (`$props()`, `$state()`, `$derived()`, `$effect()`).

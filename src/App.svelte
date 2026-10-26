@@ -13,11 +13,11 @@
   } from './data/schemeRegistry';
   import { applyCoedBlockingRules } from './data/coedRules';
 
-  import Court from './components/Court.svelte';
-  import Controls from './components/Controls.svelte';
-  import SaveAdjustmentModal from './components/SaveAdjustmentModal.svelte';
-  import ShareModal from './components/ShareModal.svelte';
-  import TopHeader from './components/common/TopHeader.svelte';
+  import Court from './components/layout/Court.svelte';
+  import Controls from './components/layout/Controls.svelte';
+  import SaveAdjustmentModal from './components/modals/SaveAdjustmentModal.svelte';
+  import ShareModal from './components/modals/ShareModal.svelte';
+  import TopHeader from './components/layout/TopHeader.svelte';
 
   // State
   let isDarkMode = $state<boolean>(true);

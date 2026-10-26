@@ -54,31 +54,20 @@ volleyball-ideas/
 │       └── ProTier.md            # Post-V1 roadmap: cloud database, user accounts & shortlinks
 ├── src/
 │   ├── components/
-│   │   ├── common/               # Reusable tactical and UI building blocks
-│   │   │   ├── CourtNet.svelte
-│   │   │   ├── CourtOverlaySvg.svelte
-│   │   │   ├── CourtPhaseToggle.svelte
-│   │   │   ├── CourtPlayerToken.svelte
-│   │   │   ├── CourtZones.svelte
-│   │   │   ├── ModificationAlert.svelte
-│   │   │   ├── PresetCard.svelte
-│   │   │   ├── PresetDescriptionCallout.svelte
-│   │   │   ├── RotationContextCard.svelte
-│   │   │   └── TopHeader.svelte
-│   │   ├── ui/                   # Button, Card, Badge, Dialog primitives
-│   │   ├── Court.svelte          # Full 18m × 9m interactive court canvas
-│   │   ├── Controls.svelte       # Rotations, Presets & Action Bars
-│   │   ├── CourtThumbnail.svelte # Miniature preset preview thumbnail
-│   │   ├── SaveAdjustmentModal.svelte # Modal to save custom base or attack presets
-│   │   └── ShareModal.svelte     # Modal to share tactical bundles via compressed URL
+│   │   ├── layout/               # View-level layout containers (Court, Controls, TopHeader)
+│   │   ├── court/                # Court canvas modules (Floor, Net, Zones, Tokens, Opponents, Target, Ball)
+│   │   ├── controls/             # Presets table & rotation context cards
+│   │   ├── modals/               # Dialog modals (ShareModal, SaveAdjustmentModal, PresetEditModal)
+│   │   └── common/               # Reusable UI primitives (Button, Dialog, MarkdownEditor)
 │   ├── data/
 │   │   ├── coedRules.ts          # COED front-row analysis & blocking rules
 │   │   ├── defaultRoster.ts      # Default COED 3M / 3F roster
-│   │   ├── scenarios.ts          # Built-in opponent attack catalog
-│   │   ├── schemeRegistry.ts     # Base defense schemes & local persistence
-│   │   └── customScenarios.ts    # Custom attack scenarios manager
+│   │   ├── scenarios.ts          # Defensive formation presets & local persistence
+│   │   └── schemeRegistry.ts     # Base defense schemes & local persistence
 │   ├── types/
 │   │   └── volleyball.ts         # TypeScript domain models
+│   ├── utils/
+│   │   └── markdown.ts           # Safe markdown-to-HTML parser
 │   ├── App.svelte                # Root coordinator component
 │   └── main.ts
 └── package.json

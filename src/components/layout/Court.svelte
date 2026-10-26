@@ -1,14 +1,15 @@
 <script lang="ts">
-  import type { Player, PlayerMovement, AttackScenario } from '../types/volleyball';
-  import { Crosshair, Move } from '@lucide/svelte';
+  import type { Player, PlayerMovement, AttackScenario } from '../../types/volleyball';
 
-  // Common reusable components
-  import CourtPhaseToggle from './common/CourtPhaseToggle.svelte';
-  import CourtOverlayControls from './common/CourtOverlayControls.svelte';
-  import CourtNet from './common/CourtNet.svelte';
-  import CourtZones from './common/CourtZones.svelte';
-  import CourtPlayerToken from './common/CourtPlayerToken.svelte';
-  import CourtOverlaySvg from './common/CourtOverlaySvg.svelte';
+  // Court modular components
+  import CourtPhaseToggle from '../court/CourtPhaseToggle.svelte';
+  import CourtOverlayControls from '../court/CourtOverlayControls.svelte';
+  import CourtFloor from '../court/CourtFloor.svelte';
+  import CourtPlayerToken from '../court/CourtPlayerToken.svelte';
+  import CourtOverlaySvg from '../court/CourtOverlaySvg.svelte';
+  import CourtOpponents from '../court/CourtOpponents.svelte';
+  import CourtLandingTarget from '../court/CourtLandingTarget.svelte';
+  import CourtBall from '../court/CourtBall.svelte';
 
   interface Props {
     roster: Player[];
@@ -219,19 +220,6 @@
     {onSelectPositionMode}
   />
 
-  <!-- Court Overlay Controls: Icons with tooltips on top of court container -->
-  <CourtOverlayControls
-    {showZones}
-    {onToggleZones}
-    {showAllArrows}
-    {onToggleArrows}
-    {showBlockShadow}
-    {onToggleBlockShadow}
-    {showCoverageRange}
-    {onToggleCoverageRange}
-    {is3DView}
-    {onToggle3D}
-  />
 
   <!-- Outer 3D Perspective Wrapper -->
   <div
@@ -262,85 +250,16 @@
         class="relative w-[90%] h-[93%] rounded-sm shadow-md overflow-visible transition-colors duration-300"
         style="background: var(--court-bg); border: 2.5px solid var(--court-border);"
       >
-        <!-- Floor wood grain texture -->
-        <div
-          class="absolute inset-0 pointer-events-none rounded-sm overflow-hidden"
-          style="opacity: 0.12; background: linear-gradient(to right, var(--court-grain) 1px, transparent 1px); background-size: 10% 100%;"
-        ></div>
+        <!-- Court Floor Markings, Net, and Zones -->
+        <CourtFloor {is3DView} {showZones} />
 
-        <!-- 1. OPPONENT HALF COURT (0% TO 50%) -->
-        <div class="absolute top-0 left-0 right-0 h-1/2 pointer-events-none">
-          <div
-            class="absolute top-[66.67%] left-0 right-0 h-[3px] transition-colors duration-300"
-            style="background-color: var(--court-line);"
-          ></div>
-        </div>
-
-        <!-- 2. CENTER LINE & ELEVATED ISOMETRIC 3D NET -->
-        <CourtNet {is3DView} />
-
-        <!-- 3. DEFENDING HALF COURT (50% TO 100%) -->
-        <div class="absolute top-1/2 bottom-0 left-0 right-0 pointer-events-none">
-          <div
-            class="absolute top-[33.33%] left-0 right-0 h-[3px] transition-colors duration-300"
-            style="background-color: var(--court-line);"
-          ></div>
-          <div
-            class="absolute top-0 bottom-0 left-1/2 w-[1px] border-l border-dashed transition-colors duration-300"
-            style="border-color: var(--court-line-dashed);"
-          ></div>
-          <CourtZones visible={showZones} />
-        </div>
-
-        <!-- Opponent Attacker Token (Draggable) -->
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div
-          onmousedown={(e) => {
-            e.stopPropagation();
-            activeDrag = { kind: 'attacker' };
-          }}
-          ontouchstart={(e) => {
-            e.stopPropagation();
-            activeDrag = { kind: 'attacker' };
-          }}
-          class="absolute -translate-x-1/2 -translate-y-1/2 z-30 flex items-center justify-center select-none group w-11 h-11 cursor-grab active:cursor-grabbing"
-          style="left: {attacker.x}%; top: {attacker.y}%;"
-          title="Drag opponent attacker to adjust attack origin"
-        >
-          <div class="relative flex items-center justify-center w-11 h-11">
-            <div class="w-11 h-11 rounded-2xl bg-error text-error-content flex items-center justify-center shadow-xl border-2 border-error-content/30 transition-transform group-hover:scale-115">
-              <span class="text-xs font-black tracking-tight uppercase drop-shadow">ATK</span>
-            </div>
-          </div>
-          <span class="absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[8px] font-bold text-base-content bg-base-300 px-1.5 py-0.5 rounded border border-base-content/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow">
-            Drag Attacker
-          </span>
-        </div>
-
-        <!-- Opponent Setter Token (Draggable) -->
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div
-          onmousedown={(e) => {
-            e.stopPropagation();
-            activeDrag = { kind: 'setter' };
-          }}
-          ontouchstart={(e) => {
-            e.stopPropagation();
-            activeDrag = { kind: 'setter' };
-          }}
-          class="absolute -translate-x-1/2 -translate-y-1/2 z-30 flex items-center justify-center select-none group w-10 h-10 cursor-grab active:cursor-grabbing"
-          style="left: {setter.x}%; top: {setter.y}%;"
-          title="Drag opponent setter"
-        >
-          <div class="relative flex items-center justify-center w-10 h-10">
-            <div class="w-10 h-10 rounded-2xl bg-secondary text-white flex items-center justify-center shadow-lg border-2 border-white/30 transition-transform group-hover:scale-115">
-              <span class="text-xs font-black tracking-tight uppercase drop-shadow-sm">SET</span>
-            </div>
-          </div>
-          <span class="absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[8px] font-bold text-base-content bg-base-300 px-1.5 py-0.5 rounded border border-base-content/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow">
-            Drag Setter
-          </span>
-        </div>
+        <!-- Opponent Attacker & Setter Tokens (Draggable) -->
+        <CourtOpponents
+          {attacker}
+          {setter}
+          onStartDragAttacker={() => { activeDrag = { kind: 'attacker' }; }}
+          onStartDragSetter={() => { activeDrag = { kind: 'setter' }; }}
+        />
 
         <!-- 4. SVG LAYER FOR ATTACK VECTORS AND BLOCK SHADOW -->
         <CourtOverlaySvg
@@ -381,48 +300,32 @@
 
         <!-- 6. DRAGGABLE ATTACK DESTINATION TARGET -->
         {#if currentPositionMode === 'spike' || progress > 0}
-          <!-- svelte-ignore a11y_no_static_element_interactions -->
-          <div
-            onmousedown={(e) => {
-              e.stopPropagation();
-              activeDrag = { kind: 'target' };
-            }}
-            ontouchstart={(e) => {
-              e.stopPropagation();
-              activeDrag = { kind: 'target' };
-            }}
-            class="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-grab active:cursor-grabbing flex items-center justify-center select-none group w-12 h-12"
-            style="left: {targetFull.x}%; top: {targetFull.y}%;"
-            title="Drag target to change attack landing spot"
-          >
-            <div class="relative flex items-center justify-center">
-              <div class="absolute -inset-2.5 rounded-full bg-rose-500/20 blur-sm animate-pulse"></div>
-              <div class="w-8 h-8 rounded-full border-2 border-rose-400 border-dashed flex items-center justify-center bg-rose-950/40 shadow-lg">
-                <Crosshair class="w-4 h-4 text-rose-300" />
-              </div>
-            </div>
-            <span class="absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[8px] font-bold text-rose-300 bg-slate-950/80 px-1.5 py-0.5 rounded border border-slate-700/60 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow">
-              Landing Target
-            </span>
-          </div>
+          <CourtLandingTarget
+            target={targetFull}
+            onStartDrag={() => { activeDrag = { kind: 'target' }; }}
+          />
         {/if}
 
         <!-- 7. PHASE-ANCHORED VOLLEYBALL (Smoothly glides from Setter in Base to Attacker in Spike) -->
-        <div
-          class="absolute -translate-x-1/2 -translate-y-1/2 z-35 pointer-events-none drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] transition-all ease-out"
-          style="left: {ballPos.x}%; top: {ballPos.y}%; transform-origin: center center;"
-        >
-          <div class="relative flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-tr from-amber-200 via-white to-blue-200 border border-slate-800 shadow-md">
-            <svg class="w-3.5 h-3.5 text-blue-900/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <circle cx="12" cy="12" r="10" />
-              <path d="m4.93 4.93 4.24 4.24" />
-              <path d="m14.83 9.17 4.24-4.24" />
-              <path d="M14.83 14.83 19.07 19.07" />
-              <path d="m9.17 14.83-4.24 4.24" />
-            </svg>
-          </div>
-        </div>
+        <CourtBall
+          x={ballPos.x}
+          y={ballPos.y}
+        />
       </div>
     </div>
   </div>
+
+  <!-- Court Overlay Controls: Bottom center of the court -->
+  <CourtOverlayControls
+    {showZones}
+    {onToggleZones}
+    {showAllArrows}
+    {onToggleArrows}
+    {showBlockShadow}
+    {onToggleBlockShadow}
+    {showCoverageRange}
+    {onToggleCoverageRange}
+    {is3DView}
+    {onToggle3D}
+  />
 </div>

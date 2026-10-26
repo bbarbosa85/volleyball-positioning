@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Dialog from './ui/Dialog.svelte';
-  import Button from './ui/Button.svelte';
-  import MarkdownEditor from './common/MarkdownEditor.svelte';
+  import Dialog from '../common/Dialog.svelte';
+  import Button from '../common/Button.svelte';
+  import MarkdownEditor from '../common/MarkdownEditor.svelte';
   import { Check } from '@lucide/svelte';
 
   interface Props {

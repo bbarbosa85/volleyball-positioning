@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Player, PlayerMovement, AttackScenario } from '../types/volleyball';
+  import type { Player, PlayerMovement, AttackScenario } from '../../types/volleyball';
 
   interface Props {
     movements?: PlayerMovement[];
