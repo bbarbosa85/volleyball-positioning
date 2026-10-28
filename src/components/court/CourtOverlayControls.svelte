@@ -7,7 +7,6 @@
     Radar,
     Box,
     Check,
-    Pencil,
     Copy,
     X,
     Sun,
@@ -32,11 +31,8 @@
 
     // Mobile-collapsed strategy & theme actions
     isEditing?: boolean;
-    isSharedMode?: boolean;
     canSave?: boolean;
-    hasActiveStrategy?: boolean;
     isDarkMode?: boolean;
-    onEdit?: () => void;
     onSave?: () => void;
     onSaveAsNew?: () => void;
     onCancel?: () => void;
@@ -55,11 +51,8 @@
     is3DView = false,
     onToggle3D,
     isEditing = false,
-    isSharedMode = false,
     canSave = false,
-    hasActiveStrategy = true,
     isDarkMode = true,
-    onEdit,
     onSave,
     onSaveAsNew,
     onCancel,
@@ -94,52 +87,41 @@
   <div
     class="dropdown-content z-50 mt-2 w-60 rounded-2xl bg-base-200 border border-base-300 shadow-2xl p-2 flex flex-col gap-1"
   >
-    <!-- Mobile-Only Strategy Actions (< lg) -->
-    {#if isEditing || (!isSharedMode && hasActiveStrategy)}
+    <!-- Mobile-Only Scenario Actions in Edit Mode (< lg) -->
+    {#if isEditing}
       <div class="lg:hidden flex flex-col gap-1 pb-1.5 mb-1 border-b border-base-300">
         <div class="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-base-content/50">
-          Strategy Actions
+          Scenario Actions
         </div>
 
-        {#if isEditing}
-          <button
-            type="button"
-            onclick={() => closeAndRun(onSave)}
-            disabled={!canSave}
-            class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer bg-primary text-primary-content disabled:opacity-40"
-          >
-            <Check class="w-4 h-4 shrink-0" />
-            <span>Save Strategy</span>
-          </button>
+        <button
+          type="button"
+          onclick={() => closeAndRun(onSave)}
+          disabled={!canSave}
+          class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer bg-primary text-primary-content disabled:opacity-40"
+        >
+          <Check class="w-4 h-4 shrink-0" />
+          <span>Save Scenario</span>
+        </button>
 
-          <button
-            type="button"
-            onclick={() => closeAndRun(onSaveAsNew)}
-            disabled={!canSave}
-            class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-base-content/85 hover:bg-base-300/70 disabled:opacity-40"
-          >
-            <Copy class="w-4 h-4 shrink-0" />
-            <span>Save as new</span>
-          </button>
+        <button
+          type="button"
+          onclick={() => closeAndRun(onSaveAsNew)}
+          disabled={!canSave}
+          class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-base-content/85 hover:bg-base-300/70 disabled:opacity-40"
+        >
+          <Copy class="w-4 h-4 shrink-0" />
+          <span>Save as new</span>
+        </button>
 
-          <button
-            type="button"
-            onclick={() => closeAndRun(onCancel)}
-            class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-error hover:bg-error/10"
-          >
-            <X class="w-4 h-4 shrink-0" />
-            <span>Cancel Editing</span>
-          </button>
-        {:else if !isSharedMode && hasActiveStrategy}
-          <button
-            type="button"
-            onclick={() => closeAndRun(onEdit)}
-            class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-base-content/85 hover:bg-base-300/70"
-          >
-            <Pencil class="w-4 h-4 text-primary shrink-0" />
-            <span>Edit Strategy</span>
-          </button>
-        {/if}
+        <button
+          type="button"
+          onclick={() => closeAndRun(onCancel)}
+          class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-error hover:bg-error/10"
+        >
+          <X class="w-4 h-4 shrink-0" />
+          <span>Cancel Editing</span>
+        </button>
       </div>
     {/if}
 

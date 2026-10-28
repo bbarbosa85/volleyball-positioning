@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Share2, Sun, Moon, Download, PlusCircle, ClipboardList, ChevronDown, Crosshair, Check, X } from '@lucide/svelte';
+  import { Share2, Sun, Moon, Download, PlusCircle, ClipboardList, ChevronDown, Crosshair, Check, X, Pencil, Copy } from '@lucide/svelte';
   import VolleyballIcon from '../common/icons/VolleyballIcon.svelte';
   import ManSignIcon from '../common/icons/ManSignIcon.svelte';
   import WomanSignIcon from '../common/icons/WomanSignIcon.svelte';
@@ -32,6 +32,7 @@
     onExitSharedMode?: () => void;
     onOpenMobileDrawer?: () => void;
     onEdit?: () => void;
+    onClone?: () => void;
     onSave?: () => void;
     onSaveAsNew?: () => void;
     onCancel?: () => void;
@@ -64,6 +65,7 @@
     onExitSharedMode,
     onOpenMobileDrawer,
     onEdit,
+    onClone,
     onSave,
     onSaveAsNew,
     onCancel
@@ -107,10 +109,10 @@
           type="button"
           onclick={onOpenImportShared}
           class="btn btn-sm btn-primary gap-1.5 shadow-sm"
-          title="Select and copy shared strategies into your own board"
+          title="Select and copy shared scenarios into your own board"
         >
           <Download class="w-3.5 h-3.5" />
-          <span>Copy to My Strategies</span>
+          <span>Copy to My Scenarios</span>
         </button>
 
         <button
@@ -120,7 +122,7 @@
           title="Leave shared link and go to your own board"
         >
           <PlusCircle class="w-3.5 h-3.5" />
-          <span>Create My Own Strategies</span>
+          <span>Create My Own Scenarios</span>
         </button>
       {:else}
         <button
@@ -193,7 +195,7 @@
               class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-bold bg-primary text-primary-content cursor-pointer"
             >
               <Download class="w-4 h-4 shrink-0" />
-              <span>Copy to My Strategies</span>
+              <span>Copy to My Scenarios</span>
             </button>
             <button
               type="button"
@@ -204,7 +206,7 @@
               class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold text-base-content/85 hover:bg-base-300/70 cursor-pointer"
             >
               <PlusCircle class="w-4 h-4 shrink-0" />
-              <span>Create My Own Strategies</span>
+              <span>Create My Own Scenarios</span>
             </button>
           </div>
         </details>
@@ -235,11 +237,8 @@
         {is3DView}
         {onToggle3D}
         {isEditing}
-        {isSharedMode}
         {canSave}
-        {hasActiveStrategy}
         {isDarkMode}
-        {onEdit}
         {onSave}
         {onSaveAsNew}
         {onCancel}
@@ -248,48 +247,70 @@
     </div>
   </div>
 
-  <!-- Row 2 (Mobile Only): Full-Width Fixed Strategy Selector Block Below Title Bar -->
+  <!-- Row 2 (Mobile Only): Full-Width Fixed Scenario Selector Block Below Title Bar -->
   {#if !isEditing}
-    <div class="lg:hidden w-full border-t border-base-200/70 bg-base-200/60">
+    <div class="lg:hidden w-full border-t border-base-200/70 bg-base-200/60 flex items-center justify-between px-3 py-2 gap-2">
       <button
         type="button"
         onclick={onOpenMobileDrawer}
-        class="w-full py-2 px-3 flex items-center justify-between gap-2.5 text-left hover:bg-base-200 transition-colors cursor-pointer"
+        class="flex-1 min-w-0 flex items-center gap-2 text-left hover:opacity-85 transition-opacity cursor-pointer"
       >
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div class="h-6 px-2 rounded-lg bg-base-300 flex items-center gap-1.5 text-primary shrink-0">
-            <ClipboardList class="w-3.5 h-3.5" />
-            <span class="text-xs font-extrabold text-base-content leading-none">
-              {strategiesCount}
+        <div class="h-6 px-2 rounded-lg bg-base-300 flex items-center gap-1.5 text-primary shrink-0">
+          <ClipboardList class="w-3.5 h-3.5" />
+          <span class="text-xs font-extrabold text-base-content leading-none">
+            {strategiesCount}
+          </span>
+        </div>
+
+        {#if hasActiveStrategy}
+          <div class="flex items-center gap-1.5 min-w-0">
+            {#if currentStrategyRotation === 2}
+              <WomanSignIcon class="w-4 h-4 text-warning shrink-0" ariaLabel="Woman Serving" />
+            {:else}
+              <ManSignIcon class="w-4 h-4 text-info shrink-0" ariaLabel="Man Serving" />
+            {/if}
+            <span class="font-bold text-sm sm:text-base text-base-content truncate">
+              {currentStrategyName || 'Untitled Scenario'}
             </span>
           </div>
-
-          {#if hasActiveStrategy}
-            <div class="flex items-center gap-1.5 min-w-0">
-              {#if currentStrategyRotation === 2}
-                <WomanSignIcon class="w-3.5 h-3.5 text-warning shrink-0" ariaLabel="Woman Serving" />
-              {:else}
-                <ManSignIcon class="w-3.5 h-3.5 text-info shrink-0" ariaLabel="Man Serving" />
-              {/if}
-              <span class="font-bold text-xs sm:text-sm text-base-content truncate">
-                {currentStrategyName || 'Untitled Strategy'}
-              </span>
-            </div>
-          {:else}
-            <span class="text-xs font-medium text-base-content/60 italic truncate">
-              No strategy selected — tap to open
-            </span>
-          {/if}
-        </div>
+        {:else}
+          <span class="text-sm font-medium text-base-content/60 italic truncate">
+            No scenario selected — tap to open
+          </span>
+        {/if}
 
         <ChevronDown class="w-4 h-4 text-base-content/60 shrink-0" />
       </button>
+
+      {#if hasActiveStrategy && !isSharedMode}
+        <div class="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onclick={onEdit}
+            class="btn btn-xs btn-ghost btn-square text-base-content/70 hover:text-primary hover:bg-base-300"
+            title="Edit scenario"
+            aria-label="Edit scenario"
+          >
+            <Pencil class="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            type="button"
+            onclick={onClone}
+            class="btn btn-xs btn-ghost btn-square text-base-content/70 hover:text-secondary hover:bg-base-300"
+            title="Clone scenario"
+            aria-label="Clone scenario"
+          >
+            <Copy class="w-3.5 h-3.5" />
+          </button>
+        </div>
+      {/if}
     </div>
   {:else}
     <div class="lg:hidden w-full border-t border-base-200/70 bg-warning/10 py-1.5 px-3 flex items-center gap-2">
       <Crosshair class="w-3.5 h-3.5 text-warning shrink-0" />
       <span class="text-xs font-bold text-base-content truncate">
-        Editing: {currentStrategyName || 'New Strategy'}
+        Editing: {currentStrategyName || 'New Scenario'}
       </span>
     </div>
   {/if}

@@ -59,7 +59,7 @@
       </span>
 
       <span class="font-bold text-sm truncate" title={strategy.name}>
-        {strategy.name || 'Untitled Strategy'}
+        {strategy.name || 'Untitled Scenario'}
       </span>
     </div>
 
@@ -82,8 +82,8 @@
               ? 'text-primary-content/80 hover:text-primary-content hover:bg-black/15'
               : 'text-base-content/70 hover:text-primary hover:bg-base-300'
           }"
-          title="Edit strategy"
-          aria-label="Edit strategy"
+          title="Edit scenario"
+          aria-label="Edit scenario"
         >
           <Pencil class="w-3.5 h-3.5" />
         </button>
@@ -99,8 +99,8 @@
               ? 'text-primary-content/80 hover:text-primary-content hover:bg-black/15'
               : 'text-base-content/70 hover:text-secondary hover:bg-base-300'
           }"
-          title="Duplicate strategy"
-          aria-label="Duplicate strategy"
+          title="Duplicate scenario"
+          aria-label="Duplicate scenario"
         >
           <Copy class="w-3.5 h-3.5" />
         </button>
@@ -116,8 +116,8 @@
               ? 'text-primary-content/80 hover:text-primary-content hover:bg-black/15'
               : 'text-base-content/70 hover:text-error hover:bg-error/20'
           }"
-          title="Delete strategy"
-          aria-label="Delete strategy"
+          title="Delete scenario"
+          aria-label="Delete scenario"
         >
           <Trash2 class="w-3.5 h-3.5" />
         </button>

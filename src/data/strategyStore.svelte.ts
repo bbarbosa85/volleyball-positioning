@@ -129,7 +129,7 @@ class StrategyStore {
     if (this.isSharedMode || !this.draft) return false;
     const trimmedName = this.draft.name.trim();
     if (!trimmedName) {
-      this.nameError = 'Strategy name is required.';
+      this.nameError = 'Scenario name is required.';
       return false;
     }
 
@@ -137,7 +137,7 @@ class StrategyStore {
       s => s.id !== this.draft!.id && s.name.trim().toLowerCase() === trimmedName.toLowerCase()
     );
     if (isDuplicate) {
-      this.nameError = 'This name is already in use by another strategy.';
+      this.nameError = 'This name is already in use by another scenario.';
       return false;
     }
 
@@ -157,7 +157,7 @@ class StrategyStore {
     if (this.isSharedMode || !this.draft) return false;
     const trimmedName = this.draft.name.trim();
     if (!trimmedName) {
-      this.nameError = 'Strategy name is required.';
+      this.nameError = 'Scenario name is required.';
       return false;
     }
 
@@ -165,7 +165,7 @@ class StrategyStore {
       s => s.name.trim().toLowerCase() === trimmedName.toLowerCase()
     );
     if (isDuplicate) {
-      this.nameError = 'This name is already in use by another strategy.';
+      this.nameError = 'This name is already in use by another scenario.';
       return false;
     }
 

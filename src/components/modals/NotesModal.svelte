@@ -23,7 +23,7 @@
 <Dialog
   {open}
   {onClose}
-  title={strategyStore.isEditing ? 'Edit Strategy Notes' : (currentStrategy.name || 'Strategy Notes')}
+  title={strategyStore.isEditing ? 'Edit Scenario Notes' : (currentStrategy.name || 'Scenario Notes')}
   maxWidth="max-w-lg"
 >
   <div class="flex flex-col gap-3.5 select-none">
@@ -78,9 +78,9 @@
         {:else}
           <p class="text-xs text-base-content/50 italic m-0">
             {#if strategyStore.isSharedMode}
-              No notes provided for this strategy.
+              No notes provided for this scenario.
             {:else}
-              No notes added for this strategy yet.
+              No notes added for this scenario yet.
             {/if}
           </p>
         {/if}

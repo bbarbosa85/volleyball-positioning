@@ -58,7 +58,7 @@
   <!-- Coverage Range Circle (Estimated Defense Reach for Non-Blockers in Defensive Formation) -->
   {#if showCoverage}
     <div
-      class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150px] h-[150px] rounded-full pointer-events-none transition-all duration-300 ease-out {
+      class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30cqw] h-[30cqw] rounded-full pointer-events-none transition-all duration-300 ease-out {
         isFemale
           ? 'bg-warning/15 border-2 border-dashed border-warning/45 shadow-[0_0_18px_rgba(234,179,8,0.18)] text-warning'
           : 'bg-info/15 border-2 border-dashed border-info/45 shadow-[0_0_18px_rgba(59,130,246,0.18)] text-info'
@@ -67,19 +67,19 @@
     >
       <!-- Concentric subtle inner guide ring -->
       <div
-        class="absolute inset-4 rounded-full border border-current opacity-20 pointer-events-none"
+        class="absolute inset-[3.5cqw] rounded-full border border-current opacity-20 pointer-events-none"
       ></div>
     </div>
   {/if}
 
   <!-- Selected Glow & Emphasis Aura -->
   {#if isSelected}
-    <div class="absolute -inset-3.5 rounded-full {auraColorClass} blur-lg animate-pulse pointer-events-none"></div>
+    <div class="absolute -inset-[3cqw] rounded-full {auraColorClass} blur-lg animate-pulse pointer-events-none"></div>
   {/if}
 
   <!-- Main Token Circle -->
   <div
-    class="relative w-11 h-11 rounded-full flex items-center justify-center font-black text-sm shadow-xl border-2 transition-transform duration-150 group-hover:scale-115 {tokenColorClass} {
+    class="relative w-[9.8cqw] h-[9.8cqw] rounded-full flex items-center justify-center font-black shadow-xl border-2 transition-transform duration-150 group-hover:scale-115 {tokenColorClass} {
       isSelected
         ? 'ring-4 ring-primary-content shadow-[0_0_22px_rgba(255,255,255,0.9)] scale-120 z-40'
         : isBlocker
@@ -88,13 +88,13 @@
     }"
   >
     <!-- Player Identity Label (P1 to P6) -->
-    <span class="tracking-tight leading-none text-sm font-black">
+    <span class="tracking-tight leading-none text-[3.1cqw] font-black">
       {playerId.toUpperCase()}
     </span>
 
     <!-- Blocker Badge -->
     {#if isBlocker}
-      <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-base-300 border border-warning text-warning flex items-center justify-center text-[8.5px] font-black shadow-md">
+      <span class="absolute -bottom-[0.8cqw] -right-[0.8cqw] w-[3.6cqw] h-[3.6cqw] rounded-full bg-base-300 border border-warning text-warning flex items-center justify-center text-[1.9cqw] font-black shadow-md">
         B
       </span>
     {/if}

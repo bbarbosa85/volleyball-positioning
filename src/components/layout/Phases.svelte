@@ -1,12 +1,14 @@
 <script lang="ts">
   import { strategyStore } from '../../data/strategyStore.svelte';
+  import StrategyEditForm from '../strategies/StrategyEditForm.svelte';
   import MarkdownEditor from '../common/MarkdownEditor.svelte';
   import ManSignIcon from '../common/icons/ManSignIcon.svelte';
   import WomanSignIcon from '../common/icons/WomanSignIcon.svelte';
   import { renderMarkdown } from '../../utils/markdown';
-  import { Info } from '@lucide/svelte';
+  import { Info, Check, Copy, X } from '@lucide/svelte';
 
   const activeStrategy = $derived(strategyStore.activeStrategy);
+  const canSave = $derived(Boolean(strategyStore.draft?.name.trim()));
 
   const descriptionHtml = $derived.by(() => {
     return activeStrategy.description ? renderMarkdown(activeStrategy.description) : '';
@@ -23,21 +25,65 @@
       <div class="flex flex-col gap-1">
         <span class="text-xs font-bold text-base-content/75">Rotation & Notes</span>
         <p class="text-[11px] text-base-content/55 leading-relaxed max-w-[230px]">
-          Select or create a strategy to view its serving rotation and tactical instructions.
+          Select or create a scenario to view its serving rotation and tactical instructions.
         </p>
       </div>
     </div>
 
   {:else if strategyStore.isEditing && strategyStore.draft}
-    <!-- EDIT MODE: 3rd Column shows the Notes input directly without a redundant section title -->
-    <MarkdownEditor
-      value={strategyStore.draft.description || ''}
-      onchange={(val) => strategyStore.updateDraft({ description: val })}
-      label="Notes"
-      placeholder="Describe defensive triggers, setter reads, and coverage priorities..."
-      rows={8}
-      id="strategy-description-editor"
-    />
+    <!-- EDIT MODE: Right column houses the full Edit Form + Notes input + Action Buttons -->
+    <div class="flex flex-col gap-4 overflow-y-auto pr-1 flex-1 pb-2">
+      <StrategyEditForm
+        draft={strategyStore.draft}
+        visiblePhase={strategyStore.visiblePhase}
+        onUpdate={(updates) => strategyStore.updateDraft(updates)}
+        onSelectPhase={(phase) => strategyStore.setVisiblePhase(phase)}
+        onResetPhase={(phase) => strategyStore.resetPhaseToDefault(phase)}
+      />
+
+      <MarkdownEditor
+        value={strategyStore.draft.description || ''}
+        onchange={(val) => strategyStore.updateDraft({ description: val })}
+        label="Notes"
+        placeholder="Describe defensive triggers, setter reads, and coverage priorities..."
+        rows={8}
+        id="strategy-description-editor"
+      />
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-base-300">
+        <button
+          type="button"
+          onclick={() => strategyStore.cancelEdit()}
+          class="btn btn-sm btn-ghost border border-base-300 bg-base-200/70 hover:bg-base-200 gap-1 text-base-content/75 hover:text-base-content"
+          title="Discard draft changes"
+        >
+          <X class="w-3.5 h-3.5" />
+          <span>Cancel</span>
+        </button>
+
+        <button
+          type="button"
+          onclick={() => strategyStore.saveDraftAsNew()}
+          disabled={!canSave}
+          class="btn btn-sm btn-neutral gap-1 shadow-xs"
+          title="Save as a new scenario"
+        >
+          <Copy class="w-3.5 h-3.5" />
+          <span>Save as new</span>
+        </button>
+
+        <button
+          type="button"
+          onclick={() => strategyStore.saveDraft()}
+          disabled={!canSave}
+          class="btn btn-sm btn-primary gap-1 shadow-sm"
+          title="Save scenario changes"
+        >
+          <Check class="w-3.5 h-3.5" />
+          <span>Save</span>
+        </button>
+      </div>
+    </div>
 
   {:else}
     <!-- READ MODE: Extra Information Panel (Serving Rotation + Notes stacked) -->
@@ -82,7 +128,7 @@
       {:else}
         <p class="text-xs text-base-content/50 italic">
           {#if strategyStore.isSharedMode}
-            No notes provided for this strategy.
+            No notes provided for this scenario.
           {:else}
             No notes added. Click <strong>Edit</strong> to add instructions for this defense.
           {/if}

@@ -47,15 +47,15 @@
 <Dialog
   {open}
   {onClose}
-  title="Copy Strategies to My Board"
-  description="Select which shared strategies you want to import into your own board so you can edit and customize them."
+  title="Copy Scenarios to My Board"
+  description="Select which shared scenarios you want to import into your own board so you can edit and customize them."
   maxWidth="max-w-lg"
 >
   <div class="flex flex-col gap-3.5 select-none">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-1.5 text-xs font-bold text-base-content/90">
         <Layers class="w-3.5 h-3.5 text-primary" />
-        <span>Shared Strategies</span>
+        <span>Shared Scenarios</span>
       </div>
 
       <div class="flex items-center gap-2">

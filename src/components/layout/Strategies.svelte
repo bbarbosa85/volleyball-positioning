@@ -1,30 +1,23 @@
 <script lang="ts">
   import { strategyStore } from '../../data/strategyStore.svelte';
   import StrategyRow from '../strategies/StrategyRow.svelte';
-  import StrategyEditForm from '../strategies/StrategyEditForm.svelte';
   import Dialog from '../common/Dialog.svelte';
   import Button from '../common/Button.svelte';
   import {
     Layers,
     Plus,
     Trash2,
-    Crosshair,
     PanelLeftClose,
-    PanelLeftOpen,
-    ChevronLeft
+    ChevronUp
   } from '@lucide/svelte';
   import type { Strategy } from '../../types/volleyball';
 
   interface Props {
-    isCollapsed?: boolean;
-    onToggleCollapse?: () => void;
     onCloseDrawer?: () => void;
     onAfterSelect?: () => void;
   }
 
   let {
-    isCollapsed = false,
-    onToggleCollapse,
     onCloseDrawer,
     onAfterSelect
   }: Props = $props();
@@ -54,150 +47,84 @@
   }
 </script>
 
-{#if strategyStore.isEditing}
-  <!-- EDIT MODE: Left column becomes the Edit Form (not collapsible) -->
-  <div class="flex flex-col h-full w-full gap-3.5 select-none">
-    <div class="hidden lg:flex items-center justify-between gap-2 px-1">
-      <div class="flex items-center gap-2">
-        <Crosshair class="w-5 h-5 text-warning" />
-        <h2 class="text-base font-extrabold tracking-tight text-base-content m-0">
-          Edit Strategy
-        </h2>
-      </div>
+<!-- SCENARIOS DRAWER CONTENT -->
+<div class="flex flex-col h-full w-full gap-3 select-none">
+  <!-- Header Bar -->
+  <div class="flex items-center justify-between gap-2 px-1">
+    <div class="flex items-center gap-2">
+      <Layers class="w-5 h-5 text-primary" />
+      <h2 class="text-base font-extrabold tracking-tight text-base-content m-0">
+        Scenarios
+      </h2>
+      <span class="badge badge-sm badge-neutral text-xs font-semibold">
+        {strategyStore.strategies.length}
+      </span>
     </div>
 
-    <div class="flex flex-col gap-3 lg:gap-4 overflow-y-auto pr-1 flex-1 pb-1 lg:pb-2">
-      {#if strategyStore.draft}
-        <StrategyEditForm
-          draft={strategyStore.draft}
-          visiblePhase={strategyStore.visiblePhase}
-          onUpdate={(updates) => strategyStore.updateDraft(updates)}
-          onSelectPhase={(phase) => strategyStore.setVisiblePhase(phase)}
-          onResetPhase={(phase) => strategyStore.resetPhaseToDefault(phase)}
-        />
+    <div class="flex items-center gap-1.5">
+      {#if !strategyStore.isSharedMode}
+        <button
+          type="button"
+          onclick={handleNewStrategy}
+          class="btn btn-primary btn-sm gap-1.5 shadow-sm"
+          title="Create new scenario"
+        >
+          <Plus class="w-4 h-4" />
+          <span>New</span>
+        </button>
+      {/if}
+
+      {#if onCloseDrawer}
+        <button
+          type="button"
+          onclick={onCloseDrawer}
+          class="btn btn-sm btn-ghost btn-square text-base-content/70 hover:text-base-content hover:bg-base-200"
+          title="Close scenarios drawer"
+          aria-label="Close scenarios drawer"
+        >
+          <ChevronUp class="w-5 h-5 lg:hidden" />
+          <PanelLeftClose class="w-4 h-4 hidden lg:block" />
+        </button>
       {/if}
     </div>
   </div>
 
-{:else if isCollapsed}
-  <!-- READ MODE (COLLAPSED ON DESKTOP): Compact Vertical Rail -->
-  <div class="flex flex-col items-center h-full w-full gap-3 py-1 select-none">
-    <button
-      type="button"
-      onclick={onToggleCollapse}
-      class="btn btn-sm btn-ghost btn-square border border-base-300 bg-base-200/70 hover:bg-base-200 text-base-content/80 hover:text-primary"
-      title="Expand Strategies"
-      aria-label="Expand Strategies"
-    >
-      <PanelLeftOpen class="w-4 h-4" />
-    </button>
-
-    <span class="badge badge-sm badge-neutral text-xs font-semibold">
-      {strategyStore.strategies.length}
-    </span>
-
-    <button
-      type="button"
-      onclick={onToggleCollapse}
-      class="mt-2 text-xs font-extrabold tracking-widest uppercase text-base-content/50 hover:text-base-content cursor-pointer [writing-mode:vertical-rl] rotate-180"
-      title="Expand Strategies"
-    >
-      Strategies
-    </button>
-  </div>
-
-{:else}
-  <!-- READ MODE (EXPANDED): Strategies List -->
-  <div class="flex flex-col h-full w-full gap-3 select-none">
-    <!-- Header Bar -->
-    <div class="flex items-center justify-between gap-2 px-1">
-      <div class="flex items-center gap-2">
-        {#if onToggleCollapse}
-          <button
-            type="button"
-            onclick={onToggleCollapse}
-            class="btn btn-xs btn-ghost btn-square text-base-content/60 hover:text-base-content hover:bg-base-200"
-            title="Collapse Strategies column"
-            aria-label="Collapse Strategies column"
-          >
-            <PanelLeftClose class="w-4 h-4" />
-          </button>
-        {:else}
-          <Layers class="w-5 h-5 text-primary" />
-        {/if}
-
-        <h2 class="text-base font-extrabold tracking-tight text-base-content m-0">
-          Strategies
-        </h2>
-        <span class="badge badge-sm badge-neutral text-xs font-semibold">
-          {strategyStore.strategies.length}
-        </span>
+  <!-- Scenario List or Empty State -->
+  {#if strategyStore.strategies.length === 0}
+    <div class="card bg-base-200/40 border border-dashed border-base-300 p-6 flex flex-col items-center justify-center text-center gap-2.5 my-1">
+      <div class="w-10 h-10 rounded-full bg-base-300/60 flex items-center justify-center text-base-content/50">
+        <Layers class="w-5 h-5" />
       </div>
-
-      <div class="flex items-center gap-1.5">
-        {#if !strategyStore.isSharedMode}
-          <button
-            type="button"
-            onclick={handleNewStrategy}
-            class="btn btn-primary btn-sm gap-1.5 shadow-sm"
-            title="Create new strategy"
-          >
-            <Plus class="w-4 h-4" />
-            <span>New</span>
-          </button>
-        {/if}
-
-        {#if onCloseDrawer}
-          <button
-            type="button"
-            onclick={onCloseDrawer}
-            class="btn btn-sm btn-ghost btn-square text-base-content/70 hover:text-base-content hover:bg-base-200"
-            title="Close strategies menu"
-            aria-label="Close strategies menu"
-          >
-            <ChevronLeft class="w-5 h-5" />
-          </button>
-        {/if}
+      <div class="flex flex-col gap-1">
+        <span class="text-xs font-bold text-base-content/80">No scenarios yet</span>
+        <p class="text-[11px] text-base-content/60 leading-relaxed max-w-[210px]">
+          Click <strong>+ New</strong> to create your first defensive formation scenario.
+        </p>
       </div>
     </div>
-
-    <!-- Strategy List or Empty State -->
-    {#if strategyStore.strategies.length === 0}
-      <div class="card bg-base-200/40 border border-dashed border-base-300 p-6 flex flex-col items-center justify-center text-center gap-2.5 my-1">
-        <div class="w-10 h-10 rounded-full bg-base-300/60 flex items-center justify-center text-base-content/50">
-          <Layers class="w-5 h-5" />
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-xs font-bold text-base-content/80">No strategies yet</span>
-          <p class="text-[11px] text-base-content/60 leading-relaxed max-w-[210px]">
-            Click <strong>+ New</strong> to create your first defensive formation strategy.
-          </p>
-        </div>
-      </div>
-    {:else}
-      <div class="flex flex-col gap-2 overflow-y-auto pr-1 flex-1">
-        {#each strategyStore.strategies as strategy (strategy.id)}
-          <StrategyRow
-            {strategy}
-            isActive={strategy.id === strategyStore.activeStrategyId}
-            readonly={strategyStore.isSharedMode}
-            onSelect={() => handleSelectStrategy(strategy.id)}
-            onEdit={() => handleEditStrategy(strategy.id)}
-            onDuplicate={() => strategyStore.duplicateStrategy(strategy.id)}
-            onDelete={() => {
-              strategyToDelete = strategy;
-            }}
-          />
-        {/each}
-      </div>
-    {/if}
-  </div>
-{/if}
+  {:else}
+    <div class="flex flex-col gap-2 overflow-y-auto pr-1 flex-1">
+      {#each strategyStore.strategies as strategy (strategy.id)}
+        <StrategyRow
+          {strategy}
+          isActive={strategy.id === strategyStore.activeStrategyId}
+          readonly={strategyStore.isSharedMode}
+          onSelect={() => handleSelectStrategy(strategy.id)}
+          onEdit={() => handleEditStrategy(strategy.id)}
+          onDuplicate={() => strategyStore.duplicateStrategy(strategy.id)}
+          onDelete={() => {
+            strategyToDelete = strategy;
+          }}
+        />
+      {/each}
+    </div>
+  {/if}
+</div>
 
 <!-- Delete Confirmation Modal -->
 <Dialog
   open={strategyToDelete !== null}
-  title="Delete Strategy"
+  title="Delete Scenario"
   maxWidth="max-w-md"
   onClose={() => {
     strategyToDelete = null;

@@ -24,25 +24,25 @@
     e.stopPropagation();
     onStartDrag();
   }}
-  class="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-grab active:cursor-grabbing flex items-center justify-center select-none touch-none group w-12 h-12"
+  class="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-grab active:cursor-grabbing flex items-center justify-center select-none touch-none group w-[10.5cqw] h-[10.5cqw]"
   style="left: {target.x}%; top: {target.y}%;"
   title="Drag target to test attack coverage"
 >
   <div class="relative flex items-center justify-center">
     <div
-      class="absolute -inset-2.5 rounded-full blur-sm animate-pulse transition-colors duration-200 {
+      class="absolute -inset-[2cqw] rounded-full blur-sm animate-pulse transition-colors duration-200 {
         isCovered ? 'bg-emerald-500/30' : 'bg-rose-500/30'
       }"
     ></div>
     <div
-      class="w-8 h-8 rounded-full border-2 border-dashed flex items-center justify-center shadow-lg transition-colors duration-200 {
+      class="w-[7.2cqw] h-[7.2cqw] rounded-full border-2 border-dashed flex items-center justify-center shadow-lg transition-colors duration-200 {
         isCovered
           ? 'border-emerald-400 bg-emerald-950/60'
           : 'border-rose-400 bg-rose-950/60'
       }"
     >
       <Crosshair
-        class="w-4 h-4 transition-colors duration-200 {
+        class="w-[3.6cqw] h-[3.6cqw] transition-colors duration-200 {
           isCovered ? 'text-emerald-300' : 'text-rose-300'
         }"
       />

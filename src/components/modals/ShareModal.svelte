@@ -86,7 +86,7 @@
   {open}
   {onClose}
   title="Share Tactics Bundle"
-  description="Select strategies to bundle into a compressed link with zero server or account setup."
+  description="Select scenarios to bundle into a compressed link with zero server or account setup."
   maxWidth="max-w-2xl"
 >
   <div class="flex flex-col gap-4 select-none">
@@ -106,12 +106,12 @@
       />
     </div>
 
-    <!-- 2. Strategy Selection List -->
+    <!-- 2. Scenario Selection List -->
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-1.5 text-xs font-bold text-base-content/90">
           <Layers class="w-3.5 h-3.5 text-primary" />
-          <span>Strategies</span>
+          <span>Scenarios</span>
         </div>
 
         <div class="flex items-center gap-2">

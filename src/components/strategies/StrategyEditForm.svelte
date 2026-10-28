@@ -33,10 +33,10 @@
 </script>
 
 <div class="flex flex-col gap-4 w-full select-none">
-  <!-- 1. Strategy Name Input -->
+  <!-- 1. Scenario Name Input -->
   <div class="flex flex-col gap-1 w-full">
     <label for="strategy-name-input" class="text-xs font-bold text-base-content/90 flex items-center justify-between">
-      <span>Strategy Name <span class="text-error">*</span></span>
+      <span>Scenario Name <span class="text-error">*</span></span>
       <span class="text-[10px] text-base-content/60 font-normal">Required</span>
     </label>
     <input

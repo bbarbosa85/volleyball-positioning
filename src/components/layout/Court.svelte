@@ -224,12 +224,12 @@
 
 <div class="relative w-full flex flex-col items-center select-none">
   <!-- Outer 3D Perspective Wrapper -->
-  <div class="relative w-full max-w-[620px] flex justify-center transition-transform duration-700 ease-out" style="perspective: 1200px;">
+  <div class="relative w-full max-w-[620px] lg:max-w-none lg:w-auto flex justify-center transition-transform duration-700 ease-out" style="perspective: 1200px;">
     <!-- Court Frame Container (Transparent by default; lights up with amber outline when dirty) -->
     <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
     <div
       onclick={() => onSelectPlayer(null)}
-      class="relative w-full aspect-[1/1.62] rounded-2xl bg-transparent border-2 px-4 py-0 flex flex-col items-center justify-center transition-all duration-300 {isDirty
+      class="relative w-full lg:w-auto lg:h-[calc(100vh-148px)] lg:min-h-[700px] aspect-[1/1.62] rounded-2xl bg-transparent border-2 px-4 py-0 flex flex-col items-center justify-center transition-all duration-300 {isDirty
         ? 'border-amber-500/80 shadow-[0_0_25px_rgba(245,158,11,0.25)]'
         : 'border-transparent'} {is3DView ? 'rotate-x-[26deg] scale-[0.98]' : ''}"
       style="transform-style: preserve-3d;">
@@ -242,7 +242,7 @@
       <div
         bind:this={courtBoundaryBox}
         class="relative w-[90%] h-[95%] rounded-sm shadow-md overflow-visible transition-colors duration-300"
-        style="background: var(--court-bg); border: 2.5px solid var(--court-border);">
+        style="background: var(--court-bg); border: 2.5px solid var(--court-border); container-type: inline-size;">
         <!-- Court Floor Markings, Net, and Zones -->
         <CourtFloor {is3DView} {showZones} />
 
