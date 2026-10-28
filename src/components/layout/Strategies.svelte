@@ -10,19 +10,22 @@
     Trash2,
     Crosshair,
     PanelLeftClose,
-    PanelLeftOpen
+    PanelLeftOpen,
+    ChevronLeft
   } from '@lucide/svelte';
   import type { Strategy } from '../../types/volleyball';
 
   interface Props {
     isCollapsed?: boolean;
     onToggleCollapse?: () => void;
+    onCloseDrawer?: () => void;
     onAfterSelect?: () => void;
   }
 
   let {
     isCollapsed = false,
     onToggleCollapse,
+    onCloseDrawer,
     onAfterSelect
   }: Props = $props();
 
@@ -54,7 +57,7 @@
 {#if strategyStore.isEditing}
   <!-- EDIT MODE: Left column becomes the Edit Form (not collapsible) -->
   <div class="flex flex-col h-full w-full gap-3.5 select-none">
-    <div class="flex items-center justify-between gap-2 px-1">
+    <div class="hidden lg:flex items-center justify-between gap-2 px-1">
       <div class="flex items-center gap-2">
         <Crosshair class="w-5 h-5 text-warning" />
         <h2 class="text-base font-extrabold tracking-tight text-base-content m-0">
@@ -63,7 +66,7 @@
       </div>
     </div>
 
-    <div class="flex flex-col gap-4 overflow-y-auto pr-1 flex-1 pb-2">
+    <div class="flex flex-col gap-3 lg:gap-4 overflow-y-auto pr-1 flex-1 pb-1 lg:pb-2">
       {#if strategyStore.draft}
         <StrategyEditForm
           draft={strategyStore.draft}
@@ -131,17 +134,31 @@
         </span>
       </div>
 
-      {#if !strategyStore.isSharedMode}
-        <button
-          type="button"
-          onclick={handleNewStrategy}
-          class="btn btn-primary btn-sm gap-1.5 shadow-sm"
-          title="Create new strategy"
-        >
-          <Plus class="w-4 h-4" />
-          <span>New</span>
-        </button>
-      {/if}
+      <div class="flex items-center gap-1.5">
+        {#if !strategyStore.isSharedMode}
+          <button
+            type="button"
+            onclick={handleNewStrategy}
+            class="btn btn-primary btn-sm gap-1.5 shadow-sm"
+            title="Create new strategy"
+          >
+            <Plus class="w-4 h-4" />
+            <span>New</span>
+          </button>
+        {/if}
+
+        {#if onCloseDrawer}
+          <button
+            type="button"
+            onclick={onCloseDrawer}
+            class="btn btn-sm btn-ghost btn-square text-base-content/70 hover:text-base-content hover:bg-base-200"
+            title="Close strategies menu"
+            aria-label="Close strategies menu"
+          >
+            <ChevronLeft class="w-5 h-5" />
+          </button>
+        {/if}
+      </div>
     </div>
 
     <!-- Strategy List or Empty State -->

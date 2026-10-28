@@ -4,6 +4,7 @@
   interface Props {
     attacker: { x: number; y: number };
     targetFull: { x: number; y: number };
+    isTargetCovered?: boolean;
     blockers: Array<{ currentX: number }>;
     movements: PlayerMovement[];
     roster: Player[];
@@ -18,6 +19,7 @@
   let {
     attacker,
     targetFull,
+    isTargetCovered = false,
     blockers,
     movements,
     roster,
@@ -70,11 +72,6 @@
     >
       <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--color-warning)" />
     </marker>
-    <!-- Attack gradient -->
-    <linearGradient id="fullSpikeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.9" />
-      <stop offset="100%" stop-color="#fbbf24" stop-opacity="0.25" />
-    </linearGradient>
     <!-- Shadow gradient behind block -->
     <linearGradient id="blockShadowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.32" />
@@ -104,17 +101,18 @@
     />
   {/if}
 
-  <!-- Spike Attack Trajectory Vector across the net -->
+  <!-- Spike Attack Trajectory Vector across the net (Matches target coverage color: green when covered, red when uncovered) -->
   {#if currentPositionMode === 'spike' || progress > 0}
     <line
       x1="{attacker.x}"
       y1="{attacker.y}"
       x2="{targetFull.x}"
       y2="{targetFull.y}"
-      stroke="url(#fullSpikeGrad)"
+      stroke={isTargetCovered ? '#34d399' : '#fb7185'}
+      stroke-opacity="0.85"
       stroke-width="0.8"
       stroke-dasharray="1.5,1"
-      class="animate-pulse"
+      class="animate-pulse transition-colors duration-200"
     />
   {/if}
 

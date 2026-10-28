@@ -1,16 +1,40 @@
 <script lang="ts">
-  import { Share2, Sun, Moon, Download, PlusCircle, MoreVertical } from '@lucide/svelte';
+  import { Share2, Sun, Moon, Download, PlusCircle, ClipboardList, ChevronDown, Crosshair, Check, X } from '@lucide/svelte';
   import VolleyballIcon from '../common/icons/VolleyballIcon.svelte';
+  import ManSignIcon from '../common/icons/ManSignIcon.svelte';
+  import WomanSignIcon from '../common/icons/WomanSignIcon.svelte';
+  import CourtOverlayControls from '../court/CourtOverlayControls.svelte';
 
   interface Props {
     isDarkMode?: boolean;
     canShare?: boolean;
     isSharedMode?: boolean;
     sharedTitle?: string | null;
+    isEditing?: boolean;
+    canSave?: boolean;
+    strategiesCount?: number;
+    hasActiveStrategy?: boolean;
+    currentStrategyName?: string;
+    currentStrategyRotation?: 1 | 2;
+    showZones?: boolean;
+    onToggleZones?: () => void;
+    showAllArrows?: boolean;
+    onToggleArrows?: () => void;
+    showBlockShadow?: boolean;
+    onToggleBlockShadow?: () => void;
+    showCoverageRange?: boolean;
+    onToggleCoverageRange?: () => void;
+    is3DView?: boolean;
+    onToggle3D?: () => void;
     onToggleTheme: () => void;
     onShare: () => void;
     onOpenImportShared?: () => void;
     onExitSharedMode?: () => void;
+    onOpenMobileDrawer?: () => void;
+    onEdit?: () => void;
+    onSave?: () => void;
+    onSaveAsNew?: () => void;
+    onCancel?: () => void;
   }
 
   let {
@@ -18,10 +42,31 @@
     canShare = true,
     isSharedMode = false,
     sharedTitle = null,
+    isEditing = false,
+    canSave = false,
+    strategiesCount = 0,
+    hasActiveStrategy = false,
+    currentStrategyName = '',
+    currentStrategyRotation = 1,
+    showZones = false,
+    onToggleZones,
+    showAllArrows = false,
+    onToggleArrows,
+    showBlockShadow = true,
+    onToggleBlockShadow,
+    showCoverageRange = false,
+    onToggleCoverageRange,
+    is3DView = false,
+    onToggle3D,
     onToggleTheme,
     onShare,
     onOpenImportShared,
-    onExitSharedMode
+    onExitSharedMode,
+    onOpenMobileDrawer,
+    onEdit,
+    onSave,
+    onSaveAsNew,
+    onCancel
   }: Props = $props();
 
   let sharedDropdownEl = $state<HTMLDetailsElement | null>(null);
@@ -35,9 +80,10 @@
 
 <svelte:window onclick={handleWindowClick} />
 
-<header class="w-full bg-base-100/80 backdrop-blur-md border-b border-base-200/60 sticky top-0 z-40 px-3 sm:px-4 lg:px-8 py-2 sm:py-2.5">
-  <div class="max-w-[1720px] mx-auto flex items-center justify-between gap-2 flex-nowrap">
-    <!-- Brand & Title -->
+<header class="w-full bg-base-100/90 backdrop-blur-md border-b border-base-200/60 sticky top-0 z-40 select-none">
+  <!-- Row 1: App Title + Actions -->
+  <div class="max-w-[1720px] mx-auto px-3 sm:px-4 lg:px-8 py-2 sm:py-2.5 flex items-center justify-between gap-2 flex-nowrap">
+    <!-- Brand & Title (Visible on both Mobile and Desktop) -->
     <div class="flex items-center gap-2 min-w-0">
       <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary flex items-center justify-center text-primary-content shadow-md shadow-primary/30 shrink-0">
         <VolleyballIcon class="w-4 h-4" />
@@ -54,38 +100,85 @@
       </div>
     </div>
 
-    <!-- Right Actions -->
-    <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+    <!-- DESKTOP RIGHT ACTIONS (lg+) -->
+    <div class="hidden lg:flex items-center gap-2 shrink-0">
       {#if isSharedMode}
-        <!-- Desktop Shared Actions -->
-        <div class="hidden sm:flex items-center gap-2">
-          <button
-            type="button"
-            onclick={onOpenImportShared}
-            class="btn btn-sm btn-primary gap-1.5 shadow-sm"
-            title="Select and copy shared strategies into your own board"
-          >
-            <Download class="w-3.5 h-3.5" />
-            <span>Copy to My Strategies</span>
-          </button>
+        <button
+          type="button"
+          onclick={onOpenImportShared}
+          class="btn btn-sm btn-primary gap-1.5 shadow-sm"
+          title="Select and copy shared strategies into your own board"
+        >
+          <Download class="w-3.5 h-3.5" />
+          <span>Copy to My Strategies</span>
+        </button>
 
-          <button
-            type="button"
-            onclick={onExitSharedMode}
-            class="btn btn-sm btn-ghost border border-base-300 gap-1.5"
-            title="Leave shared link and go to your own board"
-          >
-            <PlusCircle class="w-3.5 h-3.5" />
-            <span>Create My Own Strategies</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onclick={onExitSharedMode}
+          class="btn btn-sm btn-ghost border border-base-300 gap-1.5"
+          title="Leave shared link and go to your own board"
+        >
+          <PlusCircle class="w-3.5 h-3.5" />
+          <span>Create My Own Strategies</span>
+        </button>
+      {:else}
+        <button
+          type="button"
+          onclick={onShare}
+          disabled={!canShare}
+          class="btn btn-sm btn-primary gap-1.5 shadow-md"
+          title="Share tactical bundle via compressed link"
+        >
+          <Share2 class="w-3.5 h-3.5" />
+          <span>Share</span>
+        </button>
+      {/if}
 
-        <!-- Mobile Shared Actions Dropdown -->
-        <details bind:this={sharedDropdownEl} class="dropdown dropdown-end sm:hidden">
-          <summary class="btn btn-xs btn-primary gap-1 list-none [&::-webkit-details-marker]:hidden">
-            <Download class="w-3.5 h-3.5" />
+      <button
+        type="button"
+        onclick={onToggleTheme}
+        class="btn btn-sm btn-ghost btn-circle"
+        title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+      >
+        {#if isDarkMode}
+          <Sun class="w-4 h-4 text-warning" />
+        {:else}
+          <Moon class="w-4 h-4 text-primary" />
+        {/if}
+      </button>
+    </div>
+
+    <!-- MOBILE RIGHT ACTIONS: 1. Share/Shared Dropdown/Button + 2. Settings Icon Dropdown (< lg) -->
+    <div class="flex lg:hidden items-center gap-1.5 shrink-0">
+      {#if isEditing}
+        <button
+          type="button"
+          onclick={onCancel}
+          class="btn btn-xs btn-ghost border border-base-300 bg-base-200/70 gap-1 text-base-content/75"
+          title="Discard draft changes"
+        >
+          <X class="w-3.5 h-3.5" />
+          <span>Cancel</span>
+        </button>
+
+        <button
+          type="button"
+          onclick={onSave}
+          disabled={!canSave}
+          class="btn btn-xs btn-primary gap-1 shadow-xs"
+          title="Save strategy changes"
+        >
+          <Check class="w-3.5 h-3.5" />
+          <span>Save</span>
+        </button>
+      {:else if isSharedMode}
+        <!-- 1. Shared Dropdown Menu (Button with Icon and Text) -->
+        <details bind:this={sharedDropdownEl} class="dropdown dropdown-end">
+          <summary class="btn btn-sm btn-primary gap-1.5 px-2.5 list-none [&::-webkit-details-marker]:hidden">
+            <Share2 class="w-3.5 h-3.5" />
             <span>Shared</span>
-            <MoreVertical class="w-3.5 h-3.5" />
+            <ChevronDown class="w-3.5 h-3.5 opacity-80" />
           </summary>
 
           <div
@@ -116,12 +209,12 @@
           </div>
         </details>
       {:else}
-        <!-- Contained Share Button -->
+        <!-- 1. Share Button (with Icon and Text) -->
         <button
           type="button"
           onclick={onShare}
           disabled={!canShare}
-          class="btn btn-xs sm:btn-sm btn-primary gap-1.5 shadow-md"
+          class="btn btn-sm btn-primary gap-1.5 px-2.5 shadow-sm"
           title="Share tactical bundle via compressed link"
         >
           <Share2 class="w-3.5 h-3.5" />
@@ -129,19 +222,75 @@
         </button>
       {/if}
 
-      <!-- Theme Toggle Button -->
-      <button
-        type="button"
-        onclick={onToggleTheme}
-        class="btn btn-xs sm:btn-sm btn-ghost btn-circle"
-        title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-      >
-        {#if isDarkMode}
-          <Sun class="w-4 h-4 text-warning" />
-        {:else}
-          <Moon class="w-4 h-4 text-primary" />
-        {/if}
-      </button>
+      <!-- 2. Settings Dropdown Menu (Just Icon) -->
+      <CourtOverlayControls
+        {showZones}
+        {onToggleZones}
+        {showAllArrows}
+        {onToggleArrows}
+        {showBlockShadow}
+        {onToggleBlockShadow}
+        {showCoverageRange}
+        {onToggleCoverageRange}
+        {is3DView}
+        {onToggle3D}
+        {isEditing}
+        {isSharedMode}
+        {canSave}
+        {hasActiveStrategy}
+        {isDarkMode}
+        {onEdit}
+        {onSave}
+        {onSaveAsNew}
+        {onCancel}
+        {onToggleTheme}
+      />
     </div>
   </div>
+
+  <!-- Row 2 (Mobile Only): Full-Width Fixed Strategy Selector Block Below Title Bar -->
+  {#if !isEditing}
+    <div class="lg:hidden w-full border-t border-base-200/70 bg-base-200/60">
+      <button
+        type="button"
+        onclick={onOpenMobileDrawer}
+        class="w-full py-2 px-3 flex items-center justify-between gap-2.5 text-left hover:bg-base-200 transition-colors cursor-pointer"
+      >
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="h-6 px-2 rounded-lg bg-base-300 flex items-center gap-1.5 text-primary shrink-0">
+            <ClipboardList class="w-3.5 h-3.5" />
+            <span class="text-xs font-extrabold text-base-content leading-none">
+              {strategiesCount}
+            </span>
+          </div>
+
+          {#if hasActiveStrategy}
+            <div class="flex items-center gap-1.5 min-w-0">
+              {#if currentStrategyRotation === 2}
+                <WomanSignIcon class="w-3.5 h-3.5 text-warning shrink-0" ariaLabel="Woman Serving" />
+              {:else}
+                <ManSignIcon class="w-3.5 h-3.5 text-info shrink-0" ariaLabel="Man Serving" />
+              {/if}
+              <span class="font-bold text-xs sm:text-sm text-base-content truncate">
+                {currentStrategyName || 'Untitled Strategy'}
+              </span>
+            </div>
+          {:else}
+            <span class="text-xs font-medium text-base-content/60 italic truncate">
+              No strategy selected — tap to open
+            </span>
+          {/if}
+        </div>
+
+        <ChevronDown class="w-4 h-4 text-base-content/60 shrink-0" />
+      </button>
+    </div>
+  {:else}
+    <div class="lg:hidden w-full border-t border-base-200/70 bg-warning/10 py-1.5 px-3 flex items-center gap-2">
+      <Crosshair class="w-3.5 h-3.5 text-warning shrink-0" />
+      <span class="text-xs font-bold text-base-content truncate">
+        Editing: {currentStrategyName || 'New Strategy'}
+      </span>
+    </div>
+  {/if}
 </header>

@@ -38,9 +38,9 @@
     selectedPlayerId,
     onSelectPlayer,
     showBlockShadow = true,
-    showZones = true,
+    showZones = false,
     showAllArrows = false,
-    showCoverageRange = true,
+    showCoverageRange = false,
     is3DView = false,
     currentPositionMode = "base",
     isDirty = false,
@@ -261,6 +261,7 @@
         <CourtOverlaySvg
           {attacker}
           {targetFull}
+          {isTargetCovered}
           {blockers}
           {movements}
           {roster}

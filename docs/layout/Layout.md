@@ -93,5 +93,12 @@ Spans 100% of the width above Columns 2 and 3 with a bottom border line (`border
 
 ## 6. Mobile Responsiveness (`< lg`)
 
-- In **Read Mode**, a collapsible strategy trigger bar sits directly above the court showing the current strategy name (with its `Eye` icon and rotation badge). Tapping it opens a **left slide-over drawer** containing the Strategies list.
-- Below the trigger bar sit the Shared Header, the Court, and the Strategy Details (Rotation + Notes).
+To maximize vertical space for the court on mobile viewports (`< lg`), the layout collapses into two compact bars:
+1. **Single Unified Top Bar (`TopHeader.svelte`)**:
+   - **Left**: Displays the **Strategy Selector Trigger** (`[📋 N] ♂/♀ Strategy Name ▾`) in Read Mode (opening the left slide-over strategies drawer), or `"Editing Strategy"` in Edit Mode.
+   - **Right**: Displays a single unified **Settings & Actions (`⚙`)** dropdown (`CourtOverlayControls.svelte`) containing strategy/board actions (`Edit Strategy`, `Share Strategies`, Shared Mode `Copy to My Strategies` / `Create My Own`, or Edit Mode `Save` / `Save as new` / `Cancel`), the 5 court overlay toggles, and the Light/Dark theme switch.
+2. **Fixed Bottom Control Bar (`MobileBottomControls.svelte`)**:
+   - Floats at the bottom of the screen (`fixed bottom-3 inset-x-3 z-40 lg:hidden`) with a compact text-only `[ Base | Defensive ]` segmented toggle and the `[ ▶ Play ]` / `[ ↺ Reset ]` transition animation button.
+3. **Streamlined Content**:
+   - The redundant `Serving Rotation` card is hidden on mobile (since the `♂`/`♀` icon is already displayed inline in the top strategy selector).
+   - In Edit Mode on mobile, the duplicate `Formations` switcher inside `StrategyEditForm.svelte` is hidden so the court remains immediately visible below the Strategy Name and Serving Rotation inputs.

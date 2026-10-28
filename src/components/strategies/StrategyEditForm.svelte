@@ -96,8 +96,8 @@
     </div>
   </div>
 
-  <!-- 3. Formations Inline Toggle [Base | Defensive] -->
-  <div class="flex flex-col gap-1.5 w-full">
+  <!-- 3. Formations Inline Toggle [Base | Defensive] (Desktop only; mobile uses the Fixed Bottom Bar) -->
+  <div class="hidden lg:flex flex-col gap-1.5 w-full">
     <div class="flex items-center justify-between">
       <span class="text-xs font-bold text-base-content/90">Formations</span>
       <button

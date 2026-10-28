@@ -36,9 +36,5 @@
     class="absolute top-[33.33%] left-0 right-0 h-[3px] transition-colors duration-300"
     style="background-color: var(--court-line);"
   ></div>
-  <div
-    class="absolute top-0 bottom-0 left-1/2 w-[1px] border-l border-dashed transition-colors duration-300"
-    style="border-color: var(--court-line-dashed);"
-  ></div>
   <CourtZones visible={showZones} />
 </div>

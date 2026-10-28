@@ -3,7 +3,7 @@
   themes: false;
 }
 @plugin "./theme-bridge.js" {
-  light: bumblebee;
+  light: light;
   dark: business;
 }
 

@@ -9,7 +9,9 @@
     Check,
     Pencil,
     Copy,
-    X
+    X,
+    Sun,
+    Moon
   } from '@lucide/svelte';
 
   interface Props {
@@ -28,14 +30,17 @@
     is3DView?: boolean;
     onToggle3D?: () => void;
 
-    // Mobile-collapsed header actions
+    // Mobile-collapsed strategy & theme actions
     isEditing?: boolean;
     isSharedMode?: boolean;
     canSave?: boolean;
+    hasActiveStrategy?: boolean;
+    isDarkMode?: boolean;
     onEdit?: () => void;
     onSave?: () => void;
     onSaveAsNew?: () => void;
     onCancel?: () => void;
+    onToggleTheme?: () => void;
   }
 
   let {
@@ -45,17 +50,20 @@
     onToggleArrows,
     showBlockShadow = true,
     onToggleBlockShadow,
-    showCoverageRange = true,
+    showCoverageRange = false,
     onToggleCoverageRange,
     is3DView = false,
     onToggle3D,
     isEditing = false,
     isSharedMode = false,
     canSave = false,
+    hasActiveStrategy = true,
+    isDarkMode = true,
     onEdit,
     onSave,
     onSaveAsNew,
-    onCancel
+    onCancel,
+    onToggleTheme
   }: Props = $props();
 
   let dropdownEl = $state<HTMLDetailsElement | null>(null);
@@ -74,7 +82,7 @@
 
 <svelte:window onclick={handleWindowClick} />
 
-<details bind:this={dropdownEl} id="courtOverlayControls" class="dropdown dropdown-end select-none">
+<details bind:this={dropdownEl} class="dropdown dropdown-end select-none">
   <summary
     class="btn btn-sm btn-ghost btn-square border border-base-300 bg-base-200/70 hover:bg-base-200 text-base-content/80 hover:text-base-content list-none [&::-webkit-details-marker]:hidden"
     title="Court Display Settings & Actions"
@@ -84,11 +92,11 @@
   </summary>
 
   <div
-    class="dropdown-content z-30 mt-2 w-60 rounded-2xl bg-base-200 border border-base-300 shadow-2xl p-2 flex flex-col gap-1"
+    class="dropdown-content z-50 mt-2 w-60 rounded-2xl bg-base-200 border border-base-300 shadow-2xl p-2 flex flex-col gap-1"
   >
-    <!-- Mobile-Only Collapsed Strategy Actions (< sm) -->
-    {#if isEditing || !isSharedMode}
-      <div class="sm:hidden flex flex-col gap-1 pb-1.5 mb-1 border-b border-base-300">
+    <!-- Mobile-Only Strategy Actions (< lg) -->
+    {#if isEditing || (!isSharedMode && hasActiveStrategy)}
+      <div class="lg:hidden flex flex-col gap-1 pb-1.5 mb-1 border-b border-base-300">
         <div class="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-base-content/50">
           Strategy Actions
         </div>
@@ -101,7 +109,7 @@
             class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer bg-primary text-primary-content disabled:opacity-40"
           >
             <Check class="w-4 h-4 shrink-0" />
-            <span>Save</span>
+            <span>Save Strategy</span>
           </button>
 
           <button
@@ -120,9 +128,9 @@
             class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-error hover:bg-error/10"
           >
             <X class="w-4 h-4 shrink-0" />
-            <span>Cancel</span>
+            <span>Cancel Editing</span>
           </button>
-        {:else if !isSharedMode}
+        {:else if !isSharedMode && hasActiveStrategy}
           <button
             type="button"
             onclick={() => closeAndRun(onEdit)}
@@ -235,5 +243,26 @@
         <Check class="w-3.5 h-3.5 stroke-[2.5]" />
       {/if}
     </button>
+
+    <!-- Mobile-Only Theme Toggle (< lg) -->
+    {#if onToggleTheme}
+      <div class="lg:hidden flex flex-col gap-1 pt-1 mt-0.5 border-t border-base-300">
+        <button
+          type="button"
+          onclick={onToggleTheme}
+          class="flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold text-base-content/75 hover:bg-base-300/70 transition-colors cursor-pointer"
+        >
+          <div class="flex items-center gap-2">
+            {#if isDarkMode}
+              <Sun class="w-4 h-4 text-warning shrink-0" />
+              <span>Switch to Light Mode</span>
+            {:else}
+              <Moon class="w-4 h-4 text-primary shrink-0" />
+              <span>Switch to Dark Mode</span>
+            {/if}
+          </div>
+        </button>
+      </div>
+    {/if}
   </div>
 </details>

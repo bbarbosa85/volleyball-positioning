@@ -11,7 +11,7 @@ import themes from 'daisyui/theme/object.js';
  * @param {ThemeBridgeOptions} [options]
  */
 export default function themeBridge(options = {}) {
-  const lightTheme = options.light || 'bumblebee';
+  const lightTheme = options.light || 'light';
   const darkTheme = options.dark || 'business';
 
   /**
