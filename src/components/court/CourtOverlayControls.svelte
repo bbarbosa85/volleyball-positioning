@@ -1,5 +1,16 @@
 <script lang="ts">
-  import { Settings2, Grid3x3, MoveUpRight, Shield, Radar, Box, Check } from '@lucide/svelte';
+  import {
+    Settings2,
+    Grid3x3,
+    MoveUpRight,
+    Shield,
+    Radar,
+    Box,
+    Check,
+    Pencil,
+    Copy,
+    X
+  } from '@lucide/svelte';
 
   interface Props {
     showZones?: boolean;
@@ -16,6 +27,15 @@
 
     is3DView?: boolean;
     onToggle3D?: () => void;
+
+    // Mobile-collapsed header actions
+    isEditing?: boolean;
+    isSharedMode?: boolean;
+    canSave?: boolean;
+    onEdit?: () => void;
+    onSave?: () => void;
+    onSaveAsNew?: () => void;
+    onCancel?: () => void;
   }
 
   let {
@@ -28,26 +48,93 @@
     showCoverageRange = true,
     onToggleCoverageRange,
     is3DView = false,
-    onToggle3D
+    onToggle3D,
+    isEditing = false,
+    isSharedMode = false,
+    canSave = false,
+    onEdit,
+    onSave,
+    onSaveAsNew,
+    onCancel
   }: Props = $props();
+
+  let dropdownEl = $state<HTMLDetailsElement | null>(null);
+
+  function handleWindowClick(e: MouseEvent) {
+    if (dropdownEl?.open && e.target instanceof Node && !dropdownEl.contains(e.target)) {
+      dropdownEl.open = false;
+    }
+  }
+
+  function closeAndRun(fn?: () => void) {
+    if (dropdownEl) dropdownEl.open = false;
+    fn?.();
+  }
 </script>
 
-<div id="courtOverlayControls" class="dropdown dropdown-end select-none">
-  <button
-    type="button"
-    tabindex="0"
-    class="btn btn-sm btn-ghost btn-square border border-base-300 bg-base-200/70 hover:bg-base-200 text-base-content/80 hover:text-base-content"
-    title="Court Display Settings"
-    aria-label="Court Display Settings"
+<svelte:window onclick={handleWindowClick} />
+
+<details bind:this={dropdownEl} id="courtOverlayControls" class="dropdown dropdown-end select-none">
+  <summary
+    class="btn btn-sm btn-ghost btn-square border border-base-300 bg-base-200/70 hover:bg-base-200 text-base-content/80 hover:text-base-content list-none [&::-webkit-details-marker]:hidden"
+    title="Court Display Settings & Actions"
+    aria-label="Court Display Settings & Actions"
   >
     <Settings2 class="w-4 h-4" />
-  </button>
+  </summary>
 
-  <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div
-    tabindex="0"
     class="dropdown-content z-30 mt-2 w-60 rounded-2xl bg-base-200 border border-base-300 shadow-2xl p-2 flex flex-col gap-1"
   >
+    <!-- Mobile-Only Collapsed Strategy Actions (< sm) -->
+    {#if isEditing || !isSharedMode}
+      <div class="sm:hidden flex flex-col gap-1 pb-1.5 mb-1 border-b border-base-300">
+        <div class="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-base-content/50">
+          Strategy Actions
+        </div>
+
+        {#if isEditing}
+          <button
+            type="button"
+            onclick={() => closeAndRun(onSave)}
+            disabled={!canSave}
+            class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer bg-primary text-primary-content disabled:opacity-40"
+          >
+            <Check class="w-4 h-4 shrink-0" />
+            <span>Save</span>
+          </button>
+
+          <button
+            type="button"
+            onclick={() => closeAndRun(onSaveAsNew)}
+            disabled={!canSave}
+            class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-base-content/85 hover:bg-base-300/70 disabled:opacity-40"
+          >
+            <Copy class="w-4 h-4 shrink-0" />
+            <span>Save as new</span>
+          </button>
+
+          <button
+            type="button"
+            onclick={() => closeAndRun(onCancel)}
+            class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-error hover:bg-error/10"
+          >
+            <X class="w-4 h-4 shrink-0" />
+            <span>Cancel</span>
+          </button>
+        {:else if !isSharedMode}
+          <button
+            type="button"
+            onclick={() => closeAndRun(onEdit)}
+            class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-base-content/85 hover:bg-base-300/70"
+          >
+            <Pencil class="w-4 h-4 text-primary shrink-0" />
+            <span>Edit Strategy</span>
+          </button>
+        {/if}
+      </div>
+    {/if}
+
     <div class="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-base-content/50">
       Court Overlays
     </div>
@@ -149,4 +236,4 @@
       {/if}
     </button>
   </div>
-</div>
+</details>

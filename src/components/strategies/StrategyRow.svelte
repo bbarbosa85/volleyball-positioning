@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { Strategy } from '../../types/volleyball';
   import { Pencil, Copy, Trash2 } from '@lucide/svelte';
+  import ManSignIcon from '../common/icons/ManSignIcon.svelte';
+  import WomanSignIcon from '../common/icons/WomanSignIcon.svelte';
 
   interface Props {
     strategy: Strategy;
@@ -50,35 +52,9 @@
         title={strategy.rotation === 2 ? 'Woman Serving' : 'Man Serving'}
       >
         {#if strategy.rotation === 2}
-          <svg
-            class="w-3.5 h-3.5 text-warning shrink-0"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-label="Woman Serving"
-          >
-            <circle cx="12" cy="9" r="6" />
-            <path d="M12 15v7" />
-            <path d="M9 19h6" />
-          </svg>
+          <WomanSignIcon class="w-3.5 h-3.5 text-warning shrink-0" ariaLabel="Woman Serving" />
         {:else}
-          <svg
-            class="w-3.5 h-3.5 text-info shrink-0"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-label="Man Serving"
-          >
-            <circle cx="10" cy="14" r="6" />
-            <path d="M14.5 9.5 20 4" />
-            <path d="M15 4h5v5" />
-          </svg>
+          <ManSignIcon class="w-3.5 h-3.5 text-info shrink-0" ariaLabel="Man Serving" />
         {/if}
       </span>
 

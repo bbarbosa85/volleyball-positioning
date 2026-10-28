@@ -1,6 +1,8 @@
 <script lang="ts">
   import Dialog from '../common/Dialog.svelte';
   import Button from '../common/Button.svelte';
+  import ManSignIcon from '../common/icons/ManSignIcon.svelte';
+  import WomanSignIcon from '../common/icons/WomanSignIcon.svelte';
   import { strategyStore } from '../../data/strategyStore.svelte';
   import { Download, Check, Layers } from '@lucide/svelte';
 
@@ -89,11 +91,17 @@
             </span>
             <div class="flex items-center gap-2">
               <span
-                class="badge badge-sm font-bold text-[10px] px-2 py-0.5 {
-                  strategy.rotation === 2 ? 'badge-secondary' : 'badge-info'
+                class="badge badge-sm rounded-full bg-transparent text-base-content font-bold text-[10px] px-2.5 py-0.5 gap-1 border {
+                  strategy.rotation === 2 ? 'border-warning' : 'border-info'
                 }"
               >
-                {strategy.rotation === 2 ? 'Woman Serving' : 'Man Serving'}
+                {#if strategy.rotation === 2}
+                  <WomanSignIcon class="w-3.5 h-3.5 text-warning shrink-0" />
+                  <span>Woman Serving</span>
+                {:else}
+                  <ManSignIcon class="w-3.5 h-3.5 text-info shrink-0" />
+                  <span>Man Serving</span>
+                {/if}
               </span>
             </div>
           </div>

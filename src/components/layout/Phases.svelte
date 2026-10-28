@@ -1,6 +1,8 @@
 <script lang="ts">
   import { strategyStore } from '../../data/strategyStore.svelte';
   import MarkdownEditor from '../common/MarkdownEditor.svelte';
+  import ManSignIcon from '../common/icons/ManSignIcon.svelte';
+  import WomanSignIcon from '../common/icons/WomanSignIcon.svelte';
   import { renderMarkdown } from '../../utils/markdown';
   import { Info } from '@lucide/svelte';
 
@@ -47,23 +49,15 @@
         </span>
 
         <span
-          class="badge badge-sm font-bold text-[10px] px-2 py-0.5 gap-1 shadow-2xs {
-            activeStrategy.rotation === 2 ? 'badge-secondary' : 'badge-info'
+          class="badge badge-sm rounded-full bg-transparent text-base-content font-bold text-[10px] px-2.5 py-0.5 gap-1 border {
+            activeStrategy.rotation === 2 ? 'border-warning' : 'border-info'
           }"
         >
           {#if activeStrategy.rotation === 2}
-            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="12" cy="9" r="6" />
-              <path d="M12 15v7" />
-              <path d="M9 19h6" />
-            </svg>
+            <WomanSignIcon class="w-3.5 h-3.5 text-warning shrink-0" />
             <span>Woman Serving</span>
           {:else}
-            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="10" cy="14" r="6" />
-              <path d="M14.5 9.5 20 4" />
-              <path d="M15 4h5v5" />
-            </svg>
+            <ManSignIcon class="w-3.5 h-3.5 text-info shrink-0" />
             <span>Man Serving</span>
           {/if}
         </span>

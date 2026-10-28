@@ -52,7 +52,7 @@
   }}
   class="absolute z-30 -translate-x-1/2 -translate-y-1/2 group cursor-grab active:cursor-grabbing {
     isDragging ? 'transition-none' : 'transition-all duration-500 ease-out'
-  } select-none"
+  } select-none touch-none"
   style="left: {currentX}%; top: {currentY}%;"
 >
   <!-- Coverage Range Circle (Estimated Defense Reach for Non-Blockers in Defensive Formation) -->

@@ -25,7 +25,7 @@
     e.stopPropagation();
     onStartDragAttacker();
   }}
-  class="absolute -translate-x-1/2 -translate-y-1/2 z-30 flex items-center justify-center select-none group w-11 h-11 cursor-grab active:cursor-grabbing"
+  class="absolute -translate-x-1/2 -translate-y-1/2 z-30 flex items-center justify-center select-none touch-none group w-11 h-11 cursor-grab active:cursor-grabbing"
   style="left: {attacker.x}%; top: {attacker.y}%;"
   title="Drag opponent attacker to adjust attack origin"
 >
@@ -50,7 +50,7 @@
     e.stopPropagation();
     onStartDragSetter();
   }}
-  class="absolute -translate-x-1/2 -translate-y-1/2 z-30 flex items-center justify-center select-none group w-10 h-10 cursor-grab active:cursor-grabbing"
+  class="absolute -translate-x-1/2 -translate-y-1/2 z-30 flex items-center justify-center select-none touch-none group w-10 h-10 cursor-grab active:cursor-grabbing"
   style="left: {setter.x}%; top: {setter.y}%;"
   title="Drag opponent setter"
 >

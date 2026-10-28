@@ -20,9 +20,18 @@ The unit of sharing is the **Strategy** (name, notes, rotation, setter, attacker
 Sharing requires **zero backend infrastructure**. Selected strategies are serialized into a `SharePayloadV2` JSON structure and encoded into the URL hash (`#share=...`).
 
 ```ts
+interface SharedCourtConfig {
+  showZones?: boolean;
+  showAllArrows?: boolean;
+  showBlockShadow?: boolean;
+  showCoverageRange?: boolean;
+  is3DView?: boolean;
+}
+
 interface SharePayloadV2 {
   v: 2;
   title?: string;
+  courtConfig?: SharedCourtConfig;
   strategies: Omit<Strategy, 'id'>[];
 }
 ```
@@ -38,7 +47,8 @@ interface SharePayloadV2 {
 2. **Share Modal (`ShareModal.svelte`)**:
    - **Playbook Title** (optional): Shown in the header badge when recipients open the link.
    - **Strategy Picker**: Lists all strategies with checkboxes (`Select All`, `[X Selected]`) and side-by-side Base & Defensive SVG thumbnails.
-3. **Generate & Copy**: Encodes the selected strategies into `#share=...` and copies the URL to the clipboard.
+   - **Court Display Settings**: Lets the coach choose which court overlays (`Blocker Shadow`, `Defense Coverage`, `Court Zones (1–6)`, `Motion Vectors`, `3D Tilt`) are initially enabled when recipients open the shared link. By default, **only `Blocker Shadow` is enabled** (`showBlockShadow: true`, all other overlays `false`).
+3. **Generate & Copy**: Encodes the selected strategies and court display settings into `#share=...` and copies the URL to the clipboard.
 
 ---
 

@@ -24,7 +24,7 @@
     e.stopPropagation();
     onStartDrag();
   }}
-  class="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-grab active:cursor-grabbing flex items-center justify-center select-none group w-12 h-12"
+  class="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-grab active:cursor-grabbing flex items-center justify-center select-none touch-none group w-12 h-12"
   style="left: {target.x}%; top: {target.y}%;"
   title="Drag target to test attack coverage"
 >

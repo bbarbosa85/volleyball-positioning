@@ -22,12 +22,18 @@ export default function themeBridge(options = {}) {
     const allThemes = themes;
     if (allThemes[darkTheme]) {
       addBase({
-        ':root:not([data-theme="light"]), [data-theme="dark"]': allThemes[darkTheme],
+        ':root:not([data-theme="light"]), [data-theme="dark"]': {
+          ...allThemes[darkTheme],
+          '--radius-selector': '4px',
+        },
       });
     }
     if (allThemes[lightTheme]) {
       addBase({
-        ':root[data-theme="light"], [data-theme="light"]': allThemes[lightTheme],
+        ':root[data-theme="light"], [data-theme="light"]': {
+          ...allThemes[lightTheme],
+          '--radius-selector': '4px',
+        },
       });
     }
   };

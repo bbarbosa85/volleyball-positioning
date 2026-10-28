@@ -1,9 +1,26 @@
 import type { Strategy } from '../types/volleyball';
 import { createDefaultStrategy } from './defaultLayout';
 
+export interface SharedCourtConfig {
+  showZones?: boolean;
+  showAllArrows?: boolean;
+  showBlockShadow?: boolean;
+  showCoverageRange?: boolean;
+  is3DView?: boolean;
+}
+
+export const DEFAULT_SHARED_COURT_CONFIG: Required<SharedCourtConfig> = {
+  showZones: false,
+  showAllArrows: false,
+  showBlockShadow: true,
+  showCoverageRange: false,
+  is3DView: false
+};
+
 export interface SharePayloadV2 {
   v: 2;
   title?: string;
+  courtConfig?: SharedCourtConfig;
   strategies: Omit<Strategy, 'id'>[];
 }
 
@@ -44,7 +61,11 @@ export function decodeSharePayload(encoded: string): SharePayloadV2 | null {
 /**
  * Builds full share URL using URL hash (#share=...)
  */
-export function buildShareUrl(strategies: Strategy[], title?: string): string {
+export function buildShareUrl(
+  strategies: Strategy[],
+  title?: string,
+  courtConfig?: SharedCourtConfig
+): string {
   const stripped: Omit<Strategy, 'id'>[] = strategies.map(s => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id: _id, ...rest } = s;
@@ -54,6 +75,7 @@ export function buildShareUrl(strategies: Strategy[], title?: string): string {
   const payload: SharePayloadV2 = {
     v: 2,
     title: title?.trim() || undefined,
+    courtConfig: courtConfig ? { ...courtConfig } : { ...DEFAULT_SHARED_COURT_CONFIG },
     strategies: stripped
   };
 
@@ -66,7 +88,11 @@ export function buildShareUrl(strategies: Strategy[], title?: string): string {
  * Parses current window URL for shared strategies:
  * Either hash #share=... or legacy searchParams (rot, base, attack)
  */
-export function parseSharedUrl(): { strategies: Strategy[]; title?: string } | null {
+export function parseSharedUrl(): {
+  strategies: Strategy[];
+  title?: string;
+  courtConfig: Required<SharedCourtConfig>;
+} | null {
   // 1. Check hash #share=...
   if (window.location.hash.startsWith('#share=')) {
     const encoded = window.location.hash.replace('#share=', '');
@@ -76,7 +102,11 @@ export function parseSharedUrl(): { strategies: Strategy[]; title?: string } | n
         ...JSON.parse(JSON.stringify(s)),
         id: `shared_${idx + 1}_${Date.now()}`
       }));
-      return { strategies, title: payload.title };
+      const courtConfig: Required<SharedCourtConfig> = {
+        ...DEFAULT_SHARED_COURT_CONFIG,
+        ...payload.courtConfig
+      };
+      return { strategies, title: payload.title, courtConfig };
     }
   }
 
@@ -86,7 +116,11 @@ export function parseSharedUrl(): { strategies: Strategy[]; title?: string } | n
   if (rotParam || params.get('base') || params.get('attack')) {
     const rot = (rotParam === '2' ? 2 : 1) as (1 | 2);
     const strat = createDefaultStrategy(`legacy_${Date.now()}`, 'Shared Tactic', rot);
-    return { strategies: [strat], title: 'Legacy Shared Link' };
+    return {
+      strategies: [strat],
+      title: 'Legacy Shared Link',
+      courtConfig: { ...DEFAULT_SHARED_COURT_CONFIG }
+    };
   }
 
   return null;

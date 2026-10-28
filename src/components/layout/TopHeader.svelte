@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Share2, Sun, Moon, Download, PlusCircle } from '@lucide/svelte';
+  import { Share2, Sun, Moon, Download, PlusCircle, MoreVertical } from '@lucide/svelte';
+  import VolleyballIcon from '../common/icons/VolleyballIcon.svelte';
 
   interface Props {
     isDarkMode?: boolean;
@@ -22,28 +23,31 @@
     onOpenImportShared,
     onExitSharedMode
   }: Props = $props();
+
+  let sharedDropdownEl = $state<HTMLDetailsElement | null>(null);
+
+  function handleWindowClick(e: MouseEvent) {
+    if (sharedDropdownEl?.open && e.target instanceof Node && !sharedDropdownEl.contains(e.target)) {
+      sharedDropdownEl.open = false;
+    }
+  }
 </script>
 
-<header class="w-full bg-base-100/80 backdrop-blur-md border-b border-base-200/60 sticky top-0 z-40 px-4 lg:px-8 py-2.5">
-  <div class="max-w-[1720px] mx-auto flex items-center justify-between gap-3 flex-wrap">
+<svelte:window onclick={handleWindowClick} />
+
+<header class="w-full bg-base-100/80 backdrop-blur-md border-b border-base-200/60 sticky top-0 z-40 px-3 sm:px-4 lg:px-8 py-2 sm:py-2.5">
+  <div class="max-w-[1720px] mx-auto flex items-center justify-between gap-2 flex-nowrap">
     <!-- Brand & Title -->
-    <div class="flex items-center gap-2.5">
-      <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-content shadow-md shadow-primary/30 shrink-0">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="m4.93 4.93 4.24 4.24"/>
-          <path d="m14.83 9.17 4.24-4.24"/>
-          <path d="M14.83 14.83 19.07 19.07"/>
-          <path d="m9.17 14.83-4.24 4.24"/>
-          <circle cx="12" cy="12" r="4"/>
-        </svg>
+    <div class="flex items-center gap-2 min-w-0">
+      <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary flex items-center justify-center text-primary-content shadow-md shadow-primary/30 shrink-0">
+        <VolleyballIcon class="w-4 h-4" />
       </div>
-      <div class="flex items-center gap-2 flex-wrap">
-        <h1 class="text-base font-extrabold tracking-tight text-base-content m-0">
+      <div class="flex items-center gap-2 min-w-0">
+        <h1 class="text-sm sm:text-base font-extrabold tracking-tight text-base-content m-0 truncate">
           VolleyDefense <span class="text-primary font-medium">Tactics</span>
         </h1>
         {#if isSharedMode}
-          <span class="badge badge-warning badge-sm font-bold text-[11px] gap-1">
+          <span class="hidden md:inline-flex badge badge-warning badge-sm font-bold text-[11px] gap-1 shrink-0">
             {sharedTitle ? `Shared: ${sharedTitle}` : 'Shared Playbook (Read-Only)'}
           </span>
         {/if}
@@ -51,35 +55,73 @@
     </div>
 
     <!-- Right Actions -->
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
       {#if isSharedMode}
-        <button
-          type="button"
-          onclick={onOpenImportShared}
-          class="btn btn-sm btn-primary gap-1.5 shadow-sm"
-          title="Select and copy shared strategies into your own board"
-        >
-          <Download class="w-3.5 h-3.5" />
-          <span>Copy to My Strategies</span>
-        </button>
+        <!-- Desktop Shared Actions -->
+        <div class="hidden sm:flex items-center gap-2">
+          <button
+            type="button"
+            onclick={onOpenImportShared}
+            class="btn btn-sm btn-primary gap-1.5 shadow-sm"
+            title="Select and copy shared strategies into your own board"
+          >
+            <Download class="w-3.5 h-3.5" />
+            <span>Copy to My Strategies</span>
+          </button>
 
-        <button
-          type="button"
-          onclick={onExitSharedMode}
-          class="btn btn-sm btn-ghost border border-base-300 gap-1.5"
-          title="Leave shared link and go to your own board"
-        >
-          <PlusCircle class="w-3.5 h-3.5" />
-          <span class="hidden sm:inline">Create My Own Strategies</span>
-          <span class="sm:hidden">My Board</span>
-        </button>
+          <button
+            type="button"
+            onclick={onExitSharedMode}
+            class="btn btn-sm btn-ghost border border-base-300 gap-1.5"
+            title="Leave shared link and go to your own board"
+          >
+            <PlusCircle class="w-3.5 h-3.5" />
+            <span>Create My Own Strategies</span>
+          </button>
+        </div>
+
+        <!-- Mobile Shared Actions Dropdown -->
+        <details bind:this={sharedDropdownEl} class="dropdown dropdown-end sm:hidden">
+          <summary class="btn btn-xs btn-primary gap-1 list-none [&::-webkit-details-marker]:hidden">
+            <Download class="w-3.5 h-3.5" />
+            <span>Shared</span>
+            <MoreVertical class="w-3.5 h-3.5" />
+          </summary>
+
+          <div
+            class="dropdown-content z-50 mt-2 w-56 rounded-2xl bg-base-200 border border-base-300 shadow-2xl p-2 flex flex-col gap-1"
+          >
+            <button
+              type="button"
+              onclick={() => {
+                if (sharedDropdownEl) sharedDropdownEl.open = false;
+                onOpenImportShared?.();
+              }}
+              class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-bold bg-primary text-primary-content cursor-pointer"
+            >
+              <Download class="w-4 h-4 shrink-0" />
+              <span>Copy to My Strategies</span>
+            </button>
+            <button
+              type="button"
+              onclick={() => {
+                if (sharedDropdownEl) sharedDropdownEl.open = false;
+                onExitSharedMode?.();
+              }}
+              class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold text-base-content/85 hover:bg-base-300/70 cursor-pointer"
+            >
+              <PlusCircle class="w-4 h-4 shrink-0" />
+              <span>Create My Own Strategies</span>
+            </button>
+          </div>
+        </details>
       {:else}
         <!-- Contained Share Button -->
         <button
           type="button"
           onclick={onShare}
           disabled={!canShare}
-          class="btn btn-sm btn-primary gap-1.5 shadow-md"
+          class="btn btn-xs sm:btn-sm btn-primary gap-1.5 shadow-md"
           title="Share tactical bundle via compressed link"
         >
           <Share2 class="w-3.5 h-3.5" />
@@ -91,7 +133,7 @@
       <button
         type="button"
         onclick={onToggleTheme}
-        class="btn btn-sm btn-ghost btn-circle"
+        class="btn btn-xs sm:btn-sm btn-ghost btn-circle"
         title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
       >
         {#if isDarkMode}

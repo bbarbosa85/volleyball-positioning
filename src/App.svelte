@@ -10,8 +10,10 @@
   import CourtOverlayControls from './components/court/CourtOverlayControls.svelte';
   import ShareModal from './components/modals/ShareModal.svelte';
   import ImportSharedModal from './components/modals/ImportSharedModal.svelte';
+  import ManSignIcon from './components/common/icons/ManSignIcon.svelte';
+  import WomanSignIcon from './components/common/icons/WomanSignIcon.svelte';
   import type { AttackScenario, Zone } from './types/volleyball';
-  import { Menu, Plus, X, ChevronRight, Layers, Pencil, Play, RotateCcw, Check, Copy } from '@lucide/svelte';
+  import { ClipboardList, Plus, X, ChevronRight, Layers, Pencil, Play, RotateCcw, Check, Copy } from '@lucide/svelte';
 
   // Local UI / view states
   let isDarkMode = $state<boolean>(true);
@@ -49,6 +51,11 @@
     const shared = parseSharedUrl();
     if (shared && shared.strategies.length > 0) {
       strategyStore.enterSharedMode(shared.strategies, shared.title);
+      showZones = shared.courtConfig.showZones;
+      showAllArrows = shared.courtConfig.showAllArrows;
+      showBlockShadow = shared.courtConfig.showBlockShadow;
+      showCoverageRange = shared.courtConfig.showCoverageRange;
+      is3DView = shared.courtConfig.is3DView;
     }
   });
 
@@ -169,7 +176,7 @@
   />
 
   <!-- Main Workspace -->
-  <main class="flex-1 max-w-[1720px] w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+  <main class="flex-1 max-w-[1720px] w-full mx-auto px-3 sm:px-6 lg:px-8 py-1.5 sm:py-3 lg:py-4 grid grid-cols-1 lg:grid-cols-12 gap-2.5 sm:gap-3.5 lg:gap-5 items-start">
     
     <!-- MOBILE STRATEGIES BAR (Visible above court on < lg in Read Mode) -->
     {#if !strategyStore.isEditing}
@@ -177,41 +184,31 @@
         <button
           type="button"
           onclick={() => { isMobileDrawerOpen = true; }}
-          class="w-full p-3 rounded-xl border border-base-300 bg-base-200/70 hover:bg-base-200 flex items-center justify-between gap-3 text-left transition-colors cursor-pointer"
+          class="w-full py-2 px-2.5 rounded-xl border border-base-300 bg-base-200/70 hover:bg-base-200 flex items-center justify-between gap-2.5 text-left transition-colors cursor-pointer"
         >
           <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-8 h-8 rounded-lg bg-base-300 flex items-center justify-center text-primary shrink-0">
-              <Menu class="w-4 h-4" />
-            </div>
-            <div class="flex flex-col min-w-0">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/60">
-                Strategies ({strategyStore.strategies.length})
+            <div class="h-7 px-2 rounded-lg bg-base-300 flex items-center gap-1.5 text-primary shrink-0">
+              <ClipboardList class="w-4 h-4" />
+              <span class="text-xs font-extrabold text-base-content leading-none">
+                {strategyStore.strategies.length}
               </span>
-              {#if strategyStore.hasActiveOrDraft}
-                <div class="flex items-center gap-1.5 min-w-0">
-                  {#if strategyStore.currentStrategy.rotation === 2}
-                    <svg class="w-3.5 h-3.5 text-warning shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-label="Woman Serving">
-                      <circle cx="12" cy="9" r="6" />
-                      <path d="M12 15v7" />
-                      <path d="M9 19h6" />
-                    </svg>
-                  {:else}
-                    <svg class="w-3.5 h-3.5 text-info shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-label="Man Serving">
-                      <circle cx="10" cy="14" r="6" />
-                      <path d="M14.5 9.5 20 4" />
-                      <path d="M15 4h5v5" />
-                    </svg>
-                  {/if}
-                  <span class="font-bold text-sm text-base-content truncate">
-                    {strategyStore.currentStrategy.name || 'New Draft Strategy'}
-                  </span>
-                </div>
-              {:else}
-                <span class="text-xs font-medium text-base-content/50 italic">
-                  No strategy selected — tap to open
-                </span>
-              {/if}
             </div>
+            {#if strategyStore.hasActiveOrDraft}
+              <div class="flex items-center gap-1.5 min-w-0">
+                {#if strategyStore.currentStrategy.rotation === 2}
+                  <WomanSignIcon class="w-3.5 h-3.5 text-warning shrink-0" ariaLabel="Woman Serving" />
+                {:else}
+                  <ManSignIcon class="w-3.5 h-3.5 text-info shrink-0" ariaLabel="Man Serving" />
+                {/if}
+                <span class="font-bold text-sm text-base-content truncate">
+                  {strategyStore.currentStrategy.name || 'New Draft Strategy'}
+                </span>
+              </div>
+            {:else}
+              <span class="text-xs font-medium text-base-content/50 italic truncate">
+                No strategy selected — tap to open
+              </span>
+            {/if}
           </div>
 
           <div class="flex items-center gap-2 shrink-0">
@@ -233,20 +230,22 @@
     <div class="{rightWorkspaceSpan} flex flex-col gap-3 w-full">
       {#if strategyStore.hasActiveOrDraft}
         <!-- Shared Header for Columns 2 & 3 (Both Read Mode and Edit Mode) -->
-        <div class="w-full flex items-center justify-between gap-3 pb-3 border-b border-base-300 z-20 select-none flex-wrap">
-          <div class="flex items-center gap-2.5 flex-1 min-w-[260px]">
-            <div class="w-full max-w-[300px]">
+        <div class="w-full flex items-center justify-between gap-2 sm:gap-3 pb-2.5 sm:pb-3 border-b border-base-300 z-20 select-none flex-nowrap">
+          <div class="flex items-center gap-1.5 sm:gap-2.5 flex-1 min-w-0">
+            <div class="w-full max-w-[235px] sm:max-w-[300px]">
               <PhaseTogglerCard
                 visiblePhase={strategyStore.visiblePhase}
                 onSelect={(phase) => strategyStore.setVisiblePhase(phase)}
               />
             </div>
+          </div>
 
+          <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {#if strategyStore.visiblePhase === 'base'}
               <button
                 type="button"
                 onclick={handlePlayTransition}
-                class="btn btn-sm btn-primary gap-1.5 shadow-xs shrink-0"
+                class="btn btn-sm btn-primary gap-1 sm:gap-1.5 px-2.5 sm:px-3 shadow-xs shrink-0"
                 title="Play Base to Defensive formation transition"
               >
                 <Play class="w-3.5 h-3.5 fill-current" />
@@ -257,16 +256,14 @@
                 type="button"
                 onclick={handleResetTransition}
                 disabled={isPlayingTransition}
-                class="btn btn-sm btn-ghost border border-base-300 bg-base-200/70 hover:bg-base-200 gap-1.5 text-base-content/85 shrink-0"
+                class="btn btn-sm btn-ghost border border-base-300 bg-base-200/70 hover:bg-base-200 gap-1 sm:gap-1.5 px-2.5 sm:px-3 text-base-content/85 shrink-0"
                 title="Reset animation back to Base formation"
               >
                 <RotateCcw class="w-3.5 h-3.5" />
                 <span>Reset</span>
               </button>
             {/if}
-          </div>
 
-          <div class="flex items-center gap-2 shrink-0">
             <CourtOverlayControls
               {showZones}
               onToggleZones={() => { showZones = !showZones; }}
@@ -278,13 +275,20 @@
               onToggleCoverageRange={() => { showCoverageRange = !showCoverageRange; }}
               {is3DView}
               onToggle3D={() => { is3DView = !is3DView; }}
+              isEditing={strategyStore.isEditing}
+              isSharedMode={strategyStore.isSharedMode}
+              {canSave}
+              onEdit={() => strategyStore.startEdit()}
+              onSave={() => strategyStore.saveDraft()}
+              onSaveAsNew={() => strategyStore.saveDraftAsNew()}
+              onCancel={() => strategyStore.cancelEdit()}
             />
 
             {#if strategyStore.isEditing}
               <button
                 type="button"
                 onclick={() => strategyStore.cancelEdit()}
-                class="btn btn-sm btn-ghost border border-base-300 bg-base-200/70 hover:bg-base-200 gap-1 text-base-content/75 hover:text-base-content"
+                class="hidden sm:inline-flex btn btn-sm btn-ghost border border-base-300 bg-base-200/70 hover:bg-base-200 gap-1 text-base-content/75 hover:text-base-content"
                 title="Discard draft changes"
               >
                 <X class="w-3.5 h-3.5" />
@@ -295,7 +299,7 @@
                 type="button"
                 onclick={() => strategyStore.saveDraftAsNew()}
                 disabled={!canSave}
-                class="btn btn-sm btn-neutral gap-1 shadow-xs"
+                class="hidden sm:inline-flex btn btn-sm btn-neutral gap-1 shadow-xs"
                 title="Save as a new strategy"
               >
                 <Copy class="w-3.5 h-3.5" />
@@ -306,7 +310,7 @@
                 type="button"
                 onclick={() => strategyStore.saveDraft()}
                 disabled={!canSave}
-                class="btn btn-sm btn-primary gap-1 shadow-sm"
+                class="hidden sm:inline-flex btn btn-sm btn-primary gap-1 shadow-sm"
                 title="Save strategy changes"
               >
                 <Check class="w-3.5 h-3.5" />
@@ -316,7 +320,7 @@
               <button
                 type="button"
                 onclick={() => strategyStore.startEdit()}
-                class="btn btn-sm btn-ghost border border-base-300 bg-base-200/70 hover:bg-base-200 gap-1.5 text-base-content/80 hover:text-primary"
+                class="hidden sm:inline-flex btn btn-sm btn-ghost border border-base-300 bg-base-200/70 hover:bg-base-200 gap-1.5 text-base-content/80 hover:text-primary"
                 title="Edit active strategy"
               >
                 <Pencil class="w-3.5 h-3.5" />
