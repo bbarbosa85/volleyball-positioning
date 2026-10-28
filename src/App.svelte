@@ -295,7 +295,7 @@
         </div>
 
         <!-- Center: Formation Selector [ Base | Defensive ] -->
-        <div class="w-full max-w-[300px] justify-self-center">
+        <div class="w-full max-w-[240px] justify-self-center">
           {#if strategyStore.hasActiveOrDraft}
             <PhaseTogglerCard visiblePhase={strategyStore.visiblePhase} onSelect={(phase) => strategyStore.setVisiblePhase(phase)} />
           {/if}

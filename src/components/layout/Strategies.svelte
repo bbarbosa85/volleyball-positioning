@@ -108,6 +108,7 @@
         <StrategyRow
           {strategy}
           isActive={strategy.id === strategyStore.activeStrategyId}
+          disabled={strategyStore.isEditing}
           readonly={strategyStore.isSharedMode}
           onSelect={() => handleSelectStrategy(strategy.id)}
           onEdit={() => handleEditStrategy(strategy.id)}

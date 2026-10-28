@@ -118,13 +118,21 @@ export const INITIAL_SEEDS: Strategy[] = [
 const STRATEGIES_STORAGE_KEY = 'volleydefense.strategies.v1';
 const ACTIVE_STRATEGY_STORAGE_KEY = 'volleydefense.activeStrategy.v1';
 
+export function sortStrategiesAlphabetically(strategies: Strategy[]): Strategy[] {
+  return [...strategies].sort((a, b) => {
+    const cmp = (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base', numeric: true });
+    if (cmp !== 0) return cmp;
+    return a.id.localeCompare(b.id);
+  });
+}
+
 export function loadAllStrategies(): Strategy[] {
   try {
     const raw = localStorage.getItem(STRATEGIES_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        return parsed;
+        return sortStrategiesAlphabetically(parsed);
       }
     }
   } catch (err) {
@@ -135,7 +143,8 @@ export function loadAllStrategies(): Strategy[] {
 
 export function saveAllStrategies(strategies: Strategy[]): void {
   try {
-    localStorage.setItem(STRATEGIES_STORAGE_KEY, JSON.stringify(strategies));
+    const sorted = sortStrategiesAlphabetically(strategies);
+    localStorage.setItem(STRATEGIES_STORAGE_KEY, JSON.stringify(sorted));
   } catch (err) {
     console.warn('Failed to save strategies to localStorage', err);
   }
@@ -149,14 +158,16 @@ export function saveStrategy(strategy: Strategy): Strategy[] {
   } else {
     current.push(strategy);
   }
-  saveAllStrategies(current);
-  return current;
+  const sorted = sortStrategiesAlphabetically(current);
+  saveAllStrategies(sorted);
+  return sorted;
 }
 
 export function deleteStrategy(id: string): Strategy[] {
   const current = loadAllStrategies().filter(s => s.id !== id);
-  saveAllStrategies(current);
-  return current;
+  const sorted = sortStrategiesAlphabetically(current);
+  saveAllStrategies(sorted);
+  return sorted;
 }
 
 export function duplicateStrategy(id: string): { strategies: Strategy[]; cloned: Strategy | null } {
@@ -166,10 +177,10 @@ export function duplicateStrategy(id: string): { strategies: Strategy[]; cloned:
     return { strategies: current, cloned: null };
   }
   const cloned = cloneStrategy(source);
-  const sourceIndex = current.findIndex(s => s.id === id);
-  current.splice(sourceIndex + 1, 0, cloned);
-  saveAllStrategies(current);
-  return { strategies: current, cloned };
+  current.push(cloned);
+  const sorted = sortStrategiesAlphabetically(current);
+  saveAllStrategies(sorted);
+  return { strategies: sorted, cloned };
 }
 
 export function getActiveStrategyId(): string {

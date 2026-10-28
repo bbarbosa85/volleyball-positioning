@@ -6,7 +6,8 @@ import {
   duplicateStrategy as duplicateStrategyFromRegistry,
   getActiveStrategyId,
   setActiveStrategyId,
-  saveAllStrategies
+  saveAllStrategies,
+  sortStrategiesAlphabetically
 } from './strategyRegistry';
 import { createDefaultStrategy, DEFAULT_DEFENDERS } from './defaultLayout';
 import { strategyToMovements, strategyToScenario, getRosterForRotation } from './strategyAdapter';
@@ -262,11 +263,12 @@ class StrategyStore {
   // Shared Link Isolation & Import Actions
   enterSharedMode(sharedStrategies: Strategy[], title?: string) {
     if (!sharedStrategies || sharedStrategies.length === 0) return;
+    const sorted = sortStrategiesAlphabetically(sharedStrategies);
     this.isSharedMode = true;
     this.sharedTitle = title || null;
     this.draft = null;
-    this.strategies = sharedStrategies;
-    this.activeStrategyId = sharedStrategies[0].id;
+    this.strategies = sorted;
+    this.activeStrategyId = sorted[0].id;
   }
 
   copySelectedSharedToMyBoard(selectedIds: string[]) {
@@ -277,7 +279,7 @@ class StrategyStore {
     }));
 
     const localStrategies = loadAllStrategies();
-    const merged = [...localStrategies, ...withFreshIds];
+    const merged = sortStrategiesAlphabetically([...localStrategies, ...withFreshIds]);
     saveAllStrategies(merged);
 
     this.isSharedMode = false;
@@ -293,7 +295,7 @@ class StrategyStore {
   }
 
   exitSharedModeToMyBoard() {
-    const localStrategies = loadAllStrategies();
+    const localStrategies = sortStrategiesAlphabetically(loadAllStrategies());
     const savedActiveId = getActiveStrategyId();
     const exists = localStrategies.some(s => s.id === savedActiveId);
 
