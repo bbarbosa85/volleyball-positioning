@@ -5,6 +5,7 @@
     visiblePhase: 'base' | 'defense';
     isPlayingTransition?: boolean;
     hasNotes?: boolean;
+    isEditing?: boolean;
     onSelectPhase: (phase: 'base' | 'defense') => void;
     onPlayTransition: () => void;
     onResetTransition: () => void;
@@ -15,6 +16,7 @@
     visiblePhase,
     isPlayingTransition = false,
     hasNotes = false,
+    isEditing = false,
     onSelectPhase,
     onPlayTransition,
     onResetTransition,
@@ -22,8 +24,13 @@
   }: Props = $props();
 </script>
 
-<div class="fixed bottom-3 inset-x-3 z-40 lg:hidden flex justify-center pointer-events-none select-none">
-  <div class="w-full max-w-md bg-base-200/95 backdrop-blur-md border border-base-300 shadow-2xl rounded-2xl p-1.5 flex items-center gap-1.5 pointer-events-auto">
+<!-- STATIC DOCKED BOTTOM CONTROL BAR ON MOBILE (Fixed at bottom, non-floating in read mode) -->
+<footer
+  class="w-full bg-base-100/95 backdrop-blur-md border-t border-base-200/80 px-3 py-2 z-30 select-none pb-[max(0.5rem,env(safe-area-inset-bottom))] shrink-0 lg:hidden {
+    isEditing ? 'fixed bottom-0 inset-x-0 shadow-lg' : ''
+  }"
+>
+  <div class="w-full max-w-md mx-auto flex items-center gap-1.5">
     <!-- Segmented Formation Toggle (Base | Defensive) -->
     <div class="grid grid-cols-2 p-1 rounded-xl bg-base-300/90 flex-1">
       <button
@@ -80,8 +87,8 @@
       type="button"
       onclick={onOpenNotes}
       class="relative btn btn-sm btn-ghost border border-base-300 bg-base-300/70 hover:bg-base-300 gap-1 px-2.5 h-9 min-h-0 rounded-xl text-base-content/85 shrink-0"
-      title="Open strategy notes & rotation details"
-      aria-label="Open strategy notes"
+      title="Open scenario notes & rotation details"
+      aria-label="Open scenario notes"
     >
       <FileText class="w-3.5 h-3.5 text-primary" />
       <span>Notes</span>
@@ -90,5 +97,5 @@
       {/if}
     </button>
   </div>
-</div>
+</footer>
 

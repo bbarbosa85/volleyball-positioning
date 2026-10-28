@@ -81,9 +81,16 @@ Spans 100% of the width above Columns 2 and 3 with a bottom border line (`border
 
 ## 5. Interactive Target Coverage & Defender Reach (`Court.svelte`)
 
-- **Increased Defender Coverage Radius**: Non-blocking defenders in Defensive mode display a `150px × 150px` (`w-[150px] h-[150px]`, ~`15%` court width radius) transparent coverage circle.
+- **Court Proportion Invariant (Aspect Ratio Locking)**:
+  - The court frame is strictly locked to **aspect ratio 1:1.62** across all screen sizes, viewports, and orientations.
+  - Sizing utilizes dual-axis constraints (`width: min(100cqw, calc(100cqh / 1.62))` and `height: calc(width * 1.62)`). Neither width nor height is ever clamped independently, preventing any stretching or squishing.
+  - On desktop (`≥ lg`), the court adjusts dynamically with the viewport height (`height: max(700px, calc(100vh - 148px))`) while keeping its `1:1.62` aspect ratio.
+  - On mobile in Read Mode, the court dynamically fills the available vertical space between the top header and docked bottom bar without requiring page scroll, remaining strictly locked to `1:1.62`.
+- **Proportional Token Sizing (`cqw`)**:
+  - All court tokens (player tokens, attacker, setter, ball, attack landing target, blocker badges, and defense coverage circles) are sized proportionally in container query width (`cqw`) units relative to the court boundary container, preserving their physical scale relative to the court markings.
+- **Increased Defender Coverage Radius**: Non-blocking defenders in Defensive mode display a proportional coverage circle (`w-[30cqw] h-[30cqw]`, ~`15%` court width radius).
 - **Free Target Dragging in All Modes**:
-  - The strategy's `target` defines the initial attack landing position.
+  - The scenario's `target` defines the initial attack landing position.
   - Users in both **Read Mode** (normal or shared) and **Edit Mode** can drag the target freely across the defending court.
   - **Green vs. Red Coverage Feedback (`CourtLandingTarget.svelte`)**:
     - **Green (`emerald`)**: Target is within at least one non-blocking defender's radius of action (`Covered`).
@@ -94,11 +101,10 @@ Spans 100% of the width above Columns 2 and 3 with a bottom border line (`border
 ## 6. Mobile Responsiveness (`< lg`)
 
 To maximize vertical space for the court on mobile viewports (`< lg`), the layout collapses into two compact bars:
-1. **Single Unified Top Bar (`TopHeader.svelte`)**:
-   - **Left**: Displays the **Strategy Selector Trigger** (`[📋 N] ♂/♀ Strategy Name ▾`) in Read Mode (opening the left slide-over strategies drawer), or `"Editing Strategy"` in Edit Mode.
-   - **Right**: Displays a single unified **Settings & Actions (`⚙`)** dropdown (`CourtOverlayControls.svelte`) containing strategy/board actions (`Edit Strategy`, `Share Strategies`, Shared Mode `Copy to My Strategies` / `Create My Own`, or Edit Mode `Save` / `Save as new` / `Cancel`), the 5 court overlay toggles, and the Light/Dark theme switch.
-2. **Fixed Bottom Control Bar (`MobileBottomControls.svelte`)**:
-   - Floats at the bottom of the screen (`fixed bottom-3 inset-x-3 z-40 lg:hidden`) with a compact text-only `[ Base | Defensive ]` segmented toggle and the `[ ▶ Play ]` / `[ ↺ Reset ]` transition animation button.
-3. **Streamlined Content**:
-   - The redundant `Serving Rotation` card is hidden on mobile (since the `♂`/`♀` icon is already displayed inline in the top strategy selector).
-   - In Edit Mode on mobile, the duplicate `Formations` switcher inside `StrategyEditForm.svelte` is hidden so the court remains immediately visible below the Strategy Name and Serving Rotation inputs.
+1. **Top Header (`TopHeader.svelte`)**:
+   - **Row 1**: Displays brand title, Share/Shared button, and Settings (`⚙`) dropdown.
+   - **Row 2**: Full-width fixed Scenario Selector bar (`[📋 N] ♂/♀ Scenario Name ▾` + Edit & Clone actions). Tapping opens the Scenarios drawer.
+2. **Docked Bottom Control Bar (`MobileBottomControls.svelte`)**:
+   - Fixed and docked statically at the bottom of the viewport (`w-full border-t border-base-200/80 bg-base-100/95 pb-[max(0.5rem,env(safe-area-inset-bottom))]`) with `[ Base | Defensive ]` toggle, equal-sized `Play` / `Reset` button, and `Notes` modal trigger.
+   - **Zero-Scroll Normal Mode**: In Read Mode, the screen fits entirely in `100dvh` without page scrolling. The court expands to use all available space between the header and docked footer while preserving its exact `1:1.62` aspect ratio.
+   - **Scrollable Edit Mode**: When Edit Mode is activated, the container switches to `min-h-screen overflow-y-auto` to allow smooth scrolling between the edit form and the court.

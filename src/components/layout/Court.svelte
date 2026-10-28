@@ -222,17 +222,19 @@
 
 <svelte:window onmousemove={handleMouseMove} onmouseup={handleEndDrag} ontouchend={handleEndDrag} ontouchcancel={handleEndDrag} />
 
-<div class="relative w-full flex flex-col items-center select-none">
+<div
+  class="court-outer-container relative w-full h-full min-h-0 flex flex-col items-center justify-center select-none {isEditing ? 'is-mobile-editing' : ''}">
   <!-- Outer 3D Perspective Wrapper -->
-  <div class="relative w-full max-w-[620px] lg:max-w-none lg:w-auto flex justify-center transition-transform duration-700 ease-out" style="perspective: 1200px;">
-    <!-- Court Frame Container (Transparent by default; lights up with amber outline when dirty) -->
+  <div
+    class="relative flex items-center justify-center transition-transform duration-700 ease-out h-full w-full"
+    style="perspective: 1200px;">
+    <!-- Court Frame Container (Strictly locked to 1:1.62 aspect ratio, dynamically filling available space) -->
     <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
     <div
       onclick={() => onSelectPlayer(null)}
-      class="relative w-full lg:w-auto lg:h-[calc(100vh-148px)] lg:min-h-[700px] aspect-[1/1.62] rounded-2xl bg-transparent border-2 px-4 py-0 flex flex-col items-center justify-center transition-all duration-300 {isDirty
+      class="court-frame relative rounded-2xl bg-transparent border-2 px-4 py-0 flex flex-col items-center justify-center transition-all duration-300 {isEditing ? 'is-editing' : ''} {isDirty
         ? 'border-amber-500/80 shadow-[0_0_25px_rgba(245,158,11,0.25)]'
-        : 'border-transparent'} {is3DView ? 'rotate-x-[26deg] scale-[0.98]' : ''}"
-      style="transform-style: preserve-3d;">
+        : 'border-transparent'} {is3DView ? 'rotate-x-[26deg] scale-[0.98]' : ''}">
       <!-- Background subtle flooring grid -->
       <div
         class="absolute inset-0 opacity-15 pointer-events-none rounded-2xl bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px]">
@@ -309,3 +311,33 @@
     </div>
   </div>
 </div>
+
+<style>
+  /* COURT PROPORTION INVARIANT:
+     The court frame is strictly locked to aspect ratio 1:1.62 across all devices,
+     viewports, and screen orientations. Proportional dual-axis scaling fills the
+     available space without any distortion or independent dimension clamping. */
+  .court-outer-container {
+    container-type: size;
+  }
+
+  .court-frame {
+    aspect-ratio: 1 / 1.62;
+    transform-style: preserve-3d;
+    width: min(100cqw, calc(100cqh / 1.62));
+    height: calc(min(100cqw, calc(100cqh / 1.62)) * 1.62);
+  }
+
+  /* On mobile edit mode only, container-type is normal to allow page scrolling */
+  @media (max-width: 1023px) {
+    .court-outer-container.is-mobile-editing {
+      container-type: normal;
+      height: auto;
+    }
+
+    .court-frame.is-editing {
+      width: min(100%, calc(60dvh / 1.62));
+      height: calc(min(100%, calc(60dvh / 1.62)) * 1.62);
+    }
+  }
+</style>

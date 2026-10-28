@@ -151,7 +151,10 @@
   const showRightColumn = $derived(isRightColumnOpen || strategyStore.isEditing);
 </script>
 
-<div class="min-h-screen bg-base-100 text-base-content flex flex-col selection:bg-primary selection:text-primary-content relative">
+<div
+  class="bg-base-100 text-base-content flex flex-col selection:bg-primary selection:text-primary-content relative {!strategyStore.isEditing
+    ? 'h-dvh max-h-dvh overflow-hidden'
+    : 'min-h-screen overflow-y-auto lg:h-dvh lg:max-h-dvh lg:overflow-hidden'}">
   <!-- Top Navigation Header (Desktop Brand + Share/Theme; Mobile Strategy Selector + Unified Menu) -->
   <TopHeader
     {isDarkMode}
@@ -205,10 +208,12 @@
 
   <!-- Main Workspace -->
   <main
-    class="flex-1 max-w-[1720px] w-full mx-auto px-3 sm:px-6 lg:px-8 pt-2 pb-20 lg:py-4 flex flex-col gap-3">
+    class="flex-1 min-h-0 max-w-[1720px] w-full mx-auto {!strategyStore.isEditing
+      ? 'px-2 py-1 overflow-hidden justify-center'
+      : 'px-3 pt-2 pb-24 lg:pb-3 lg:overflow-hidden justify-start lg:justify-center'} lg:px-8 lg:py-3 flex flex-col items-center gap-1 lg:gap-2">
     <!-- MOBILE EDIT MODE ONLY: Inline Edit Form above the court (Desktop renders Edit Form in the right column) -->
     {#if strategyStore.isEditing && strategyStore.draft}
-      <section class="flex lg:hidden flex-col w-full gap-3.5 select-none">
+      <section class="flex lg:hidden flex-col w-full gap-3.5 select-none shrink-0 self-start">
         <StrategyEditForm
           draft={strategyStore.draft}
           visiblePhase={strategyStore.visiblePhase}
@@ -219,9 +224,9 @@
     {/if}
 
     <!-- WORKSPACE: Desktop Header Bar + Court & Right Panel -->
-    <div class="flex flex-col gap-3 w-full">
+    <div class="flex flex-col gap-1 lg:gap-3 w-full h-full min-h-0">
       <!-- Desktop Workspace Header Bar: Left (Drawer Toggle + Scenario Name) | Center (Formation Selector) | Right (Actions) -->
-      <div class="hidden lg:grid lg:grid-cols-3 w-full items-center gap-4 pb-3 border-b border-base-300 z-20 select-none">
+      <div class="hidden lg:grid lg:grid-cols-3 w-full items-center gap-4 pb-3 border-b border-base-300 z-20 select-none shrink-0">
         <!-- Left: Scenarios Drawer Toggle + Active Scenario Name + Edit/Clone Actions -->
         <div class="flex items-center gap-2 min-w-0 justify-self-start max-w-full">
           <button
@@ -362,9 +367,9 @@
       </div>
 
       <!-- Columns 2 & 3 Body Flex (Desktop right column slides in and out) -->
-      <div class="relative flex items-start w-full overflow-hidden">
+      <div class="relative flex items-center justify-center w-full h-full min-h-0 overflow-hidden">
         <!-- COLUMN 2: COURT -->
-        <section class="flex-1 min-w-0 flex flex-col items-center gap-2 w-full transition-all duration-300 ease-out">
+        <section class="flex-1 min-w-0 flex flex-col items-center justify-center gap-2 w-full h-full min-h-0 transition-all duration-300 ease-out">
           {#if strategyStore.hasActiveOrDraft}
             <Court
               roster={strategyStore.roster}
@@ -416,12 +421,13 @@
         <!-- COLUMN 3: SCENARIO EXTRA INFO (Read Mode) OR EDIT FORM + NOTES (Edit Mode) — Desktop slide-in/out panel (always visible in edit mode); mobile opens via NotesModal -->
         <aside
           inert={!showRightColumn}
-          class="hidden lg:flex flex-col shrink-0 overflow-hidden transition-all duration-300 ease-out {showRightColumn
-            ? 'w-80 xl:w-96 ml-5 opacity-100 translate-x-0 border-l border-base-300 pl-5'
-            : 'w-0 ml-0 opacity-0 translate-x-8 pointer-events-none'}"
-        >
-          <div class="w-75 xl:w-91 flex flex-col gap-3">
-            <div class="flex items-center justify-between gap-2">
+          class="hidden lg:flex flex-col shrink-0 overflow-hidden transition-all duration-300 ease-out self-start h-full {showRightColumn
+            ? strategyStore.isEditing
+              ? 'w-[35%] min-w-[420px] max-w-[620px] ml-5 opacity-100 translate-x-0 border-l border-base-300 pl-5'
+              : 'w-80 xl:w-96 ml-5 opacity-100 translate-x-0 border-l border-base-300 pl-5'
+            : 'w-0 ml-0 opacity-0 translate-x-8 pointer-events-none'}">
+          <div class="w-full flex flex-col gap-3 h-full min-h-0">
+            <div class="flex items-center justify-between gap-2 shrink-0">
               <div class="flex items-center gap-2">
                 {#if strategyStore.isEditing}
                   <Crosshair class="w-4 h-4 text-warning" />
@@ -439,8 +445,7 @@
                   }}
                   class="btn btn-xs btn-ghost btn-square text-base-content/60 hover:text-base-content"
                   title="Close info & notes panel"
-                  aria-label="Close info & notes panel"
-                >
+                  aria-label="Close info & notes panel">
                   <PanelRightClose class="w-4 h-4" />
                 </button>
               {/if}
@@ -459,6 +464,7 @@
       visiblePhase={strategyStore.visiblePhase}
       {isPlayingTransition}
       hasNotes={Boolean(strategyStore.currentStrategy.description?.trim())}
+      isEditing={strategyStore.isEditing}
       onSelectPhase={(phase) => strategyStore.setVisiblePhase(phase)}
       onPlayTransition={handlePlayTransition}
       onResetTransition={handleResetTransition}

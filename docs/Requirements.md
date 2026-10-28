@@ -37,7 +37,7 @@
 |---|---|---|---|
 | **REQ-06** | **Opponent Team Modeling & Clean Court Viewport** | Court features Opponent Attacker, Setter, Ball, and Draggable Attack Target. In Base, the ball is stationed with Setter. In Defensive, the ball glides to Attacker, the attack landing target is displayed (green if covered, red if uncovered), and the blocker shadow cone is shown. | [Layout.md Section 5](./layout/Layout.md#5-interactive-target-coverage--defender-reach-courtsvelte) |
 | **REQ-07** | **Settings Dropdown Menu (Court Overlays)** | A compact **Settings (`⚙`)** dropdown menu in the shared header of Columns 2 & 3 provides toggles for *Court Zones (1–6)*, *Motion Vectors*, *Blocker Shadow Cone*, *Defense Coverage*, and *3D Dynamic Tilt*. | [Layout.md Section 3](./layout/Layout.md#3-shared-header-for-columns-2--3) |
-| **REQ-08** | **Full 18m × 9m Court Simulation (Attack + Defense)** | Renders both sides of the regulation volleyball court fully (9m × 9m opponent attacking court and 9m × 9m defending court). | [Layout.md Section 1](./layout/Layout.md#1-overview--structural-layout) |
+| **REQ-08** | **Full 18m × 9m Court Simulation & Proportion Invariant** | Renders both sides of the regulation volleyball court fully (9m × 9m opponent attacking court and 9m × 9m defending court). The court frame is strictly locked to its 1:1.62 aspect ratio across all devices, viewports, and modes (dual-axis scaling, no distortion). | [Layout.md Section 5](./layout/Layout.md#5-interactive-target-coverage--defender-reach-courtsvelte) |
 
 ---
 

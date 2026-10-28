@@ -31,7 +31,12 @@
   - The Svelte application uses generic semantic themes: `'dark'` (`data-theme="dark"`) and `'light'` (`data-theme="light"`).
   - Specific daisyUI theme mappings are configured centrally in `src/app.css` using the `@plugin "./theme-bridge.js"` block (e.g. `dark: business`, `light: bumblebee`). No specific daisyUI theme names should be hardcoded inside Svelte components.
 
-### 5. Verification Standard
+### 5. Court Proportion Invariant
+- **Aspect Ratio Locking**: The court (and its outer frame container) must **always preserve its exact 1:1.62 aspect ratio** across all devices, viewports, screen orientations, and modes (mobile read mode, mobile edit mode, desktop normal, and desktop wide).
+- **Proportional Dual-Axis Scaling**: Sizing must scale proportionally using dual-axis constraints (`width: min(100cqw, calc(100cqh / 1.62))` and `height: calc(width * 1.62)`). Neither width nor height may ever be clamped independently in a way that distorts or stretches the court's proportions.
+- **Token & Overlay Scaling**: All tokens (players, opponent attacker/setter, volleyball, target, coverage circle) are sized proportionally in `cqw` units relative to the court boundary container, preserving their physical proportions to the court at every screen resolution.
+
+### 6. Verification Standard
 - Always ensure `pnpm run scan` passes with **0 errors and 0 warnings** before finishing any task:
   ```bash
   pnpm run scan

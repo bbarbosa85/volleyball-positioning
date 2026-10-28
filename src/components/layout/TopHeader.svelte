@@ -82,7 +82,7 @@
 
 <svelte:window onclick={handleWindowClick} />
 
-<header class="w-full bg-base-100/90 backdrop-blur-md border-b border-base-200/60 sticky top-0 z-40 select-none">
+<header class="w-full bg-base-100/90 backdrop-blur-md border-b border-base-200/60 sticky top-0 z-40 select-none shrink-0">
   <!-- Row 1: App Title + Actions -->
   <div class="max-w-[1720px] mx-auto px-3 sm:px-4 lg:px-8 py-2 sm:py-2.5 flex items-center justify-between gap-2 flex-nowrap">
     <!-- Brand & Title (Visible on both Mobile and Desktop) -->
