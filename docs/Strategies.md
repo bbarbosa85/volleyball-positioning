@@ -9,28 +9,31 @@
 
 ## 1. Overview
 
-A **Strategy** is the only unit of the application. It is **self-contained**: it carries its own name, description, rotation, **base positioning**, and **defensive positioning**.
+A **Strategy** is the self-contained unit of the application: it carries its own name, tactical notes (markdown description), serving rotation, **opponent attack scenario** (`setter`, `attacker`, `target`), **base positioning**, and **defensive positioning**.
 
 ```
-Strategy = Name + Description + Rotation + Base positioning + Defensive positioning
+Strategy = Name + Notes + Rotation + Opponent Scenario (Setter, Attacker, Target) + Base Positioning + Defensive Positioning
 ```
 
-- Coaches **browse, create, edit, delete, and share strategies**.
+- Coaches **browse, create, edit, duplicate, delete, and share strategies**.
 - There is **no separate formation/preset library**. Base and defensive positions live *inside* the strategy and are edited as part of it.
 - Sharing accepts **strategies only**, bundled in a compressed link.
+- New boards start **empty** (`0` strategies) with clean placeholders in the workspace until a strategy is created or imported.
 
-### 1.1 Vocabulary
+### 1.1 Vocabulary & Terminology
 
 | Term | Meaning |
 |---|---|
 | **Strategy** | Named, self-contained tactical unit: rotation, opponent scenario (setter, attacker, target), base positioning, and defensive positioning. |
-| **Base positioning** | Start coordinates of the 6 defenders (reading phase). |
-| **Defensive positioning** | End coordinates of the 6 defenders + tactical actions (reaction phase). |
-| **Opponent attack scenario** | Opponent setter, attacker contact point, and attack landing target on defending court, defined directly on the strategy. |
-| **Default positioning** | Built-in template copied when a strategy is created or reset. |
-| **Active strategy** | The strategy selected in column 1. Always exactly one. |
-| **Visible phase** | The phase (Base or Defensive) currently rendered on the court. |
+| **Base positioning** | Start coordinates of the 6 defenders (pre-contact reading phase). |
+| **Defensive positioning** | End coordinates of the 6 defenders + tactical actions (post-contact reaction phase). |
+| **Opponent attack scenario** | Opponent setter, attacker contact point, and initial attack landing target on defending court, defined directly on the strategy. |
+| **Default positioning** | Built-in template copied when a strategy is created or when a formation phase is reset. |
+| **Active strategy** | The strategy selected in Column 1 (marked with an `Eye` icon and primary outline). |
+| **Visible phase** | The phase (`Base` or `Defensive`) currently rendered on the court. |
 | **Draft** | A working copy of a strategy while it is being edited. |
+
+> **Terminology Standard**: Always use **Man / Men** and **Woman / Women** in user-facing text (never "male" or "female").
 
 ---
 
@@ -50,12 +53,12 @@ interface DefenseLayout {
 
 interface Strategy {
   id: string;
-  name: string;            // required, 1-60 chars
-  description?: string;    // markdown
+  name: string;            // required, 1-60 chars, must be unique across strategies
+  description?: string;    // markdown notes
   rotation: 1 | 2;         // 1 = Man Serving, 2 = Woman Serving
   setter: CourtPosition;   // opponent setter position (ball starts here in Base)
   attacker: CourtPosition; // opponent attacker position / contact point (ball glides here in Defense)
-  target: CourtPosition;   // attack landing target on defending court
+  target: CourtPosition;   // initial attack landing target on defending court
   base: BaseLayout;
   defense: DefenseLayout;
 }
@@ -63,181 +66,83 @@ interface Strategy {
 
 ### 2.1 Positions are keyed by court zone
 
-Defenders are keyed by **court zone (1-6)**, not by player id. Who stands in each zone is derived from the strategy's **rotation** lineup (see [CoedRules.md](./CoedRules.md)). Consequences:
+Defenders are keyed by **court zone (1–6)**, not by player id. Who stands in each zone is derived from the strategy's **rotation** lineup (see [CoedRules.md](./CoedRules.md)). Consequences:
 
 - A strategy never references other entities; it is a plain value and trivially copyable and shareable.
-- Changing the rotation in edit mode **keeps the positions by zone** and relabels the tokens for the new lineup (gender colors and front-row blocker eligibility update automatically).
+- Changing the rotation in edit mode **keeps the positions by zone** and relabels the tokens for the new lineup (colors and front-row blocker eligibility update automatically).
 
-### 2.2 Opponent scenario directly on the Strategy
+### 2.2 Opponent scenario & interactive attack target
 
 Opponent setter, attacker, and landing target coordinates belong directly to the **Strategy**:
 - In the **Base** phase: the ball is stationed with the setter; defenders hold reading positions.
 - In the **Defensive** phase: the ball glides to the attacker, the spiker trajectory arrow points to `target`, the target reticle is displayed, and blocker shadow cones are projected from the blockers against the attack line.
-- In **Edit mode**: defenders, setter, attacker, and target reticle are all draggable on the canvas and update the draft directly.
+- **Interactive Target Coverage Testing (Read Mode & Edit Mode)**:
+  - The `target` coordinate saved on the strategy defines the **initial** landing spot.
+  - In **Read Mode** (both normal and shared links), users can freely drag the target around the defending court to test coverage against different attack angles without mutating the saved strategy.
+  - In **Edit Mode**, dragging the target updates the strategy's saved initial `target` coordinate.
+  - **Dynamic Coverage Indicator**: The target reticle renders **green** (`emerald`) whenever it falls within any non-blocking defender's radius of action (`150px` diameter / `15%` court width radius) and **red** (`rose`) when uncovered.
 
 ### 2.3 Default positioning
 
 A single built-in template, **zone-keyed and rotation-agnostic**, defines:
-
-- 6 defender positions (a standard balanced 6-up/base spread).
+- 6 defender positions (a balanced 6-up/base spread).
 - Opponent setter, attacker, and target positions.
 
-When a new strategy is created, default values are seeded into both `base` and `defense`, as well as `setter`, `attacker`, and `target`. **Reset to default** (per phase) restores default defender positions for that phase.
-
-### 2.4 All strategies are user-manageable (`isCustom` not needed)
-
-- There is no distinction between "built-in" and "custom" strategies; all strategies are first-class items stored in client storage.
-- The app provides clean initial default strategies on first launch so the collection is never empty.
-- Every strategy can be edited, renamed, saved, deleted, or forked via **Save as new**.
+When a new strategy is created, default values are seeded into both `base` and `defense`, as well as `setter`, `attacker`, and `target`. **Reset Base / Reset Defensive** in edit mode restores default defender positions for the active phase.
 
 ---
 
-## 3. Layout (3 Columns)
+## 3. Workspace Layout (Read Mode vs. Edit Mode)
 
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ TOP HEADER                                    [Share] [Theme] [Settings] │
-├───────────────┬──────────────────────────────────┬───────────────────────┤
-│ COL 1         │ COL 2                            │ COL 3                 │
-│ STRATEGIES    │ COURT                            │ PHASES                │
-│ [+ New]       │ [Court Controls: Zones, 3D, ...] │ ┌───────────────────┐ │
-│ ● Strat A     │ ──────────────────────────────── │ │ Base Formation    │ │
-│ ○ Strat B     │                                  │ │  (svg thumbnail)  │ │
-│ ○ Strat C     │        COURT CANVAS              │ │ [Active]          │ │
-│               │                                  │ ├───────────────────┤ │
-│               │                                  │ │ Defensive Format. │ │
-│               │                                  │ │  (svg thumbnail)  │ │
-│               │                                  │ └───────────────────┘ │
-└───────────────┴──────────────────────────────────┴───────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ TOP HEADER                              [Copy to My Strategies / Share] [Theme Toggle] │
+├─────────────────────────┬──────────────────────────────────────────────────────────────┤
+│ COL 1 (Collapsible)     │ SHARED HEADER FOR COLS 2 & 3                                 │
+│ [«] STRATEGIES  [+ New] │ [ [svg] Base | [svg] Defensive ] [▶ Play]     [⚙] [✎ Edit]   │
+│                         ├─────────────────────────────────────────┬────────────────────┤
+│ ┌─ border-primary ────┐ │ COL 2: COURT BODY                       │ COL 3: DETAILS     │
+│ │ 👁 Outside Cross    │ │                                         │ ┌─ Rotation ─────┐ │
+│ │ [♂ Man Serving]     │ │            18m × 9m COURT               │ │ ♂ Man Serving  │ │
+│ └─────────────────────┘ │     (Target draggable: Green / Red)     │ └────────────────┘ │
+│                         │                                         │ ┌─ Notes ────────┐ │
+│ (In Edit Mode, Col 1    │                                         │ │ Markdown notes │ │
+│  becomes Edit Form)     │                                         │ └────────────────┘ │
+└─────────────────────────┴─────────────────────────────────────────┴────────────────────┘
 ```
 
-| Column | Content |
-|---|---|
-| **1 - Strategies** | List of strategies, **+ New** button, per-row **Edit** and **Delete**. Selected row = active strategy. |
-| **2 - Court** | **Top**: Court controls (Zones, Motion Vectors, Blocker Shadow, Coverage Range, 3D Perspective). **Bottom**: Court canvas. |
-| **3 - Phases** | **View mode**: Indicates the **active phase** rendered on court via two thumbnail cards (Base / Defensive); clicking a card switches the active phase. Active strategy name and markdown description below. **Edit mode**: Phase cards with per-phase edit tools, strategy edit form, and sticky footer. |
-
-On viewports below 1024px the columns stack: strategies (collapsible) -> court -> phases.
-
----
-
-## 4. Modes
-
-### 4.1 View mode (default)
-
-- One strategy is active. The court renders its base and defensive positioning.
-- **Column 2 (Court)**:
-  - **Top**: Quick court controls (`CourtOverlayControls`) for toggling visual overlays: Court Zones (1–6), Motion Vector Arrows, Blocker Shadow Cone, Coverage Range, and 3D Perspective.
-  - **Bottom**: The full 18m × 9m court canvas in read-only mode.
-- **Column 3 (Phases)**:
-  - Displays two large cards stacked vertically:
-    1. **Base Formation** with its SVG thumbnail
-    2. **Defensive Formation** with its SVG thumbnail
-  - **Indicates the active phase**: The card matching the active phase on the court gets the prominent active treatment (blue/green outline, active tag).
-  - Clicking either card switches the active phase on the court with smooth transition animation.
-  - The strategy's name and rendered markdown description are shown beneath the phase cards.
-- Court is **read-only**: no dragging, no save alerts.
-- Actions available: select another strategy, **Edit**, **Delete**, **Share**.
-
-### 4.2 Edit mode
-
-Entered via **Edit** on any strategy, or **+ New**.
-
-- A **draft** copy of the strategy is created. Nothing is persisted until **Save**.
-- The court becomes interactive: defenders, opponent attacker/setter, and attack target are draggable ([REQ-03](./Requirements.md#req-03)). Dragging modifies the phase currently visible or the shared attack scenario.
-- **Column 3** keeps the Base / Defensive toggler and adds an **edit form**:
-  - **Name** (required) and **Description** (markdown).
-  - **Rotation** switcher (*Man Serving* / *Woman Serving*). Changing it keeps positions by zone and relabels tokens ([Section 2.1](#21-positions-are-keyed-by-court-zone)).
-  - **Per-phase tools** on each phase card: **Reset to default** (restores the default positioning for that phase).
-- **Focused edit lock**: other strategies in column 1 are disabled while a draft exists. Share is disabled.
-- Footer actions:
-
-| Action | Behavior |
-|---|---|
-| **Save** | Persists the draft over the active strategy. Disabled until a name is present. |
-| **Save as new** | Forks the draft into a new strategy. Always available when a name is present. |
-| **Cancel** | Discards the draft and returns to view mode. |
-
-### 4.3 Dirty tracking
-
-A draft is **dirty** when name, description, rotation, or any coordinate differs from the saved strategy. While dirty:
-
-- The court container and the modified phase card show the amber `.is-dirty` outline ([REQ-03B](./Requirements.md#req-03b)).
-- Cancelling prompts for confirmation.
-- Base and defensive modifications are tracked **independently** ([REQ-02](./Requirements.md#req-02)); switching phases never clears either.
+| Area | Read Mode | Edit Mode |
+|---|---|---|
+| **Column 1 (Left)** | Collapsible Strategies list (`+ New`, `Edit`, `Duplicate`, `Delete`). Active strategy shows an `Eye` icon (`👁`) and high-contrast rotation badge. On mobile (`< lg`), opens as a left slide-out drawer from a trigger bar above the court. | Transforms into the non-collapsible **Edit Strategy Form**: Strategy Name (with duplicate-name validation), Serving Rotation segmented toggle (`♂ Man Serving` / `♀ Woman Serving`), and Formations segmented toggle (`Base` / `Defensive` with SVG thumbnails and phase `Reset`). |
+| **Cols 2 & 3 Header** | Full-width header with bottom border: segmented Formation Toggle (`Base` / `Defensive` with SVG thumbnails) + **`Play` / `Reset`** transition button (`2.2s` animation) on the left; **Settings** dropdown (`⚙` court overlay toggles) + **`Edit`** button on the right. | Same header, with **`Cancel`**, **`Save as new`**, and **`Save`** replacing the `Edit` button on the right. |
+| **Column 2 (Middle)** | 18m × 9m court canvas. Attack target is freely draggable to test defender coverage (green = covered, red = uncovered). | Full interactive canvas: defenders, opponent setter, opponent attacker, and attack target are all draggable. |
+| **Column 3 (Right)** | Displays **Serving Rotation** card and rendered markdown **Notes** card stacked vertically. | Displays the markdown **Notes** editor (`MarkdownEditor`). |
 
 ---
 
-## 5. Lifecycle
+## 4. Lifecycle & Validation
 
-```
-            ┌─────────────┐   Edit / + New   ┌─────────────┐
-            │  View mode  │ ───────────────▶ │  Edit mode  │
-            │ (read-only) │ ◀─────────────── │   (draft)   │
-            └─────────────┘  Save / Cancel   └─────────────┘
-                   │                                │
-                   │ Share strategies               │ Save as new
-                   ▼                                ▼
-             #share=...  link                  new strategy
-```
+### 4.1 Initial Empty Board
+- On first launch (when `localStorage` is empty), the board starts with **0 strategies** (`[]`).
+- When no strategy is active or being drafted, Column 1 shows an empty-list prompt and Columns 2 & 3 display empty-state placeholders with a **Create First Strategy** CTA.
 
-### 5.1 Creation (**+ New**)
+### 4.2 Creation, Saving & Duplicate Name Validation
+- Clicking **`+ New`** creates a draft from the default positioning and enters Edit Mode.
+- Both **`Save`** and **`Save as new`** validate that the strategy name is non-empty and **not already in use by another strategy** (case-insensitive). If a duplicate name is detected, an inline error is shown under the Strategy Name input.
 
-1. A draft is created from the **default positioning** (both phases), with the rotation of the active strategy and an empty name.
-2. App enters edit mode; the name field is focused.
-3. **Save** is disabled until a name is provided.
-
-### 5.2 Deletion
-
-- Confirmation dialog required before deleting a strategy.
-- If the deleted strategy was active, the first remaining strategy becomes active. If all strategies were deleted, a new default strategy is recreated so at least one strategy always exists.
-
-### 5.3 Duplication (Clone)
-
-- Any strategy in Column 1 can be duplicated via the **Copy / Duplicate** action (`Copy` icon).
-- Instantly creates a clone with name `"{Strategy Name} (Copy)"` and fresh id, immediately selecting the clone.
+### 4.3 Duplication & Deletion
+- **Duplicate (`Copy`)**: Clones any strategy as `"{Name} (Copy)"` with a fresh ID and selects it.
+- **Delete (`Trash2`)**: Prompts for confirmation before deleting. Deleting the last strategy leaves the board empty (`[]`).
 
 ---
 
-## 6. Persistence & Clean Start
-
-| Item | Storage |
-|---|---|
-| Strategies | `localStorage` key `volleydefense.strategies.v1` (array of `Strategy`, initialized with default seeds on first run) |
-| Active strategy id | `localStorage` key `volleydefense.activeStrategy.v1` |
-
-All storage is client-side ([REQ-17](./Requirements.md#req-17)).
-
-### 6.1 Clean Start
-
-- The app starts clean: on first load (or when storage is empty), the application seeds built-in default strategies.
-- No legacy preset migration is performed.
-
----
-
-## 7. Sharing (summary)
-
-Full details in [SharedLinks.md](./SharedLinks.md).
-
-- Share lists **strategies only** (no arbitrary cap).
-- Because strategies are self-contained, the payload is simply the selected strategies.
-- Recipients open **Guest Mode** (read-only) and may switch among the shared strategies and the Base / Defensive phase cards.
-- **Save to My Tactics** imports the strategies with fresh ids.
-
----
-
-## 8. Component Map
-
-Planned placement, following [AGENTS.md](../AGENTS.md):
+## 5. Component Map
 
 | Folder | Components |
 |---|---|
-| `src/components/layout/` | `Strategies.svelte` (col 1), `Court.svelte` (col 2), `Phases.svelte` (col 3), `TopHeader.svelte` |
-| `src/components/strategies/` | `StrategyRow`, `StrategyEditForm`, `StrategyEditFooter` |
-| `src/components/controls/` | `PhaseTogglerCard`, `ModificationAlert`, `RotationContextCard` |
-| `src/components/modals/` | `ShareModal`, delete confirmation |
-| `src/data/` | `strategyRegistry.ts` (load/save/delete/seed/migrate), `defaultLayout.ts`, `shareCodec.ts` |
-| `src/types/` | `Strategy`, `BaseLayout`, `DefenseLayout` in `volleyball.ts` |
-| State | `strategyStore.svelte.ts` (Svelte 5 runes), extracted from `App.svelte` |
-
-Retired by this model: `BaseFormationCard`, `DefensiveFormationCard`, `PresetTableRow`, `PresetEditModal`, `SaveAdjustmentModal`, and the separate scheme/scenario registries.
+| `src/components/layout/` | `Strategies.svelte` (Col 1 list & edit form container), `Court.svelte` (Col 2 canvas), `Phases.svelte` (Col 3 details & notes editor), `TopHeader.svelte` |
+| `src/components/strategies/` | `StrategyRow.svelte`, `StrategyEditForm.svelte` |
+| `src/components/controls/` | `PhaseTogglerCard.svelte` (segmented Base / Defensive toggle with SVG thumbnails) |
+| `src/components/court/` | `CourtOverlayControls.svelte` (Settings dropdown), `CourtFloor.svelte`, `CourtNet.svelte`, `CourtZones.svelte`, `CourtPlayerToken.svelte`, `CourtOpponents.svelte`, `CourtLandingTarget.svelte`, `CourtBall.svelte`, `CourtOverlaySvg.svelte`, `CourtThumbnail.svelte` |
+| `src/components/modals/` | `ShareModal.svelte`, `ImportSharedModal.svelte` |
+| `src/data/` | `strategyStore.svelte.ts`, `strategyRegistry.ts`, `defaultLayout.ts`, `strategyAdapter.ts`, `shareCodec.ts`, `coedRules.ts`, `defaultRoster.ts` |

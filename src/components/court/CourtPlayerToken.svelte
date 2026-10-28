@@ -58,7 +58,7 @@
   <!-- Coverage Range Circle (Estimated Defense Reach for Non-Blockers in Defensive Formation) -->
   {#if showCoverage}
     <div
-      class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full pointer-events-none transition-all duration-300 ease-out {
+      class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150px] h-[150px] rounded-full pointer-events-none transition-all duration-300 ease-out {
         isFemale
           ? 'bg-warning/15 border-2 border-dashed border-warning/45 shadow-[0_0_18px_rgba(234,179,8,0.18)] text-warning'
           : 'bg-info/15 border-2 border-dashed border-info/45 shadow-[0_0_18px_rgba(59,130,246,0.18)] text-info'
@@ -67,7 +67,7 @@
     >
       <!-- Concentric subtle inner guide ring -->
       <div
-        class="absolute inset-3 rounded-full border border-current opacity-20 pointer-events-none"
+        class="absolute inset-4 rounded-full border border-current opacity-20 pointer-events-none"
       ></div>
     </div>
   {/if}

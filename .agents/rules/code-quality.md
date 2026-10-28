@@ -8,21 +8,25 @@ These instructions define the mandatory architectural standards for Svelte compo
 - **Pure Presentation vs. Orchestration**: Keep view controllers (such as `App.svelte` or `Court.svelte`) focused on coordinating reactive state, event delegation, and high-level layout. Delegate intricate visual chunks (net meshes, SVG overlays, card templates, banner warnings) to dedicated child components.
 
 ## 2. Directory Hierarchy & Placement Rules
-- **`src/components/common/` (Mandatory for Reusable Components)**:
-  - All shared, reusable, or modular UI and tactical components MUST live inside `src/components/common/`.
-  - Examples:
-    - `PresetCard.svelte`: Generic preset thumbnail card with badge, rename/delete actions, and active/dirty ring styling.
-    - `ModificationAlert.svelte`: Scoped unsaved changes quick-alert bar with *Save*, *Save as New*, and *Reset* actions.
-    - `PresetDescriptionCallout.svelte`: Contextual tactical explanation callout with `Info` icon.
-    - `RotationContextCard.svelte`: Segmented rotation switcher with capture-phase freeze lock and shake alert.
-    - `CourtPhaseToggle.svelte`: Dual-phase switcher (Base Formation vs. Defensive Formation).
-    - `TopHeader.svelte`: 1-liner navigation header with brand, contained Share CTA, theme toggle, and settings cog.
-    - `CourtNet.svelte`: Isometric 3D elevated net structure.
-    - `CourtZones.svelte`: Defending court zones 1–6 transparent grid.
-    - `CourtOverlaySvg.svelte`: SVG coordinate projection, blocker shadow polygon, attack vectors, and transition arrows.
-    - `CourtPlayerToken.svelte`: Draggable player token with gender styling and blocker status.
-- **`src/components/ui/`**: Low-level generic primitives only (e.g. `Button`, `Dialog`, `Badge`, `Card`).
-- **`src/components/`**: Standalone top-level feature orchestrators (`Controls.svelte`, `Court.svelte`, `CourtThumbnail.svelte`) and full-screen modals (`ShareModal.svelte`, `SaveAdjustmentModal.svelte`, `JsonManagerModal.svelte`, `ExportGifModal.svelte`).
+- **`src/components/layout/`**: View-level 3-column layout containers:
+  - `Strategies.svelte`: Column 1 strategies list, search, duplicate/edit/delete actions, and new strategy creation.
+  - `Court.svelte`: Column 2 court canvas and top overlay controls (`CourtOverlayControls.svelte`).
+  - `Phases.svelte`: Column 3 phase cards (`PhaseTogglerCard.svelte`), read-only notes, and inline edit mode form/footer.
+  - `TopHeader.svelte`: 1-liner navigation header with brand, contained Share CTA, theme toggle, and settings cog.
+- **`src/components/court/`**: Court canvas modules, SVG geometry, tokens, and overlays:
+  - `CourtFloor.svelte`, `CourtNet.svelte`, `CourtZones.svelte`, `CourtPlayerToken.svelte`, `CourtOpponents.svelte`, `CourtLandingTarget.svelte`, `CourtBall.svelte`, `CourtThumbnail.svelte`.
+  - `CourtOverlaySvg.svelte`: SVG coordinate projection, blocker shadow polygon, attack vectors, and transition arrows.
+  - `CourtOverlayControls.svelte`: Centered top-bar overlay toggles for Column 2.
+- **`src/components/strategies/`**: Strategy management components:
+  - `StrategyRow.svelte`: Strategy list item with Eye icon on active item, high-contrast rotation badge, and edit/duplicate/delete actions.
+  - `StrategyEditForm.svelte`: Edit form for title, notes, serving rotation, and inline formation toggle.
+- **`src/components/controls/`**: Phase control toggle:
+  - `PhaseTogglerCard.svelte`: Side-by-side inline toggle (`| [icon] Base | [icon] Defensive |`) with blue border on the active formation.
+- **`src/components/modals/`**: User dialog modals:
+  - `ShareModal.svelte`: Modal supporting multi-strategy selection with side-by-side thumbnails and URL copying.
+  - `ImportSharedModal.svelte`: Modal allowing selective copy of shared strategies into the user's local board.
+- **`src/components/common/`**: Reusable generic UI primitives:
+  - `Button.svelte`, `Dialog.svelte`, `MarkdownEditor.svelte`.
 
 ## 3. Svelte 5 Idiomatic Patterns & Best Practices
 - **Runes Only**: Always use Svelte 5 runes (`$props()`, `$state()`, `$derived()`, `$effect()`). Avoid legacy Svelte 3/4 syntax (`export let`, `$: reactive`).
@@ -35,8 +39,7 @@ These instructions define the mandatory architectural standards for Svelte compo
 - **Skill Reference**: Always refer to the skill at `.agents/skills/daisyui/SKILL.md` for UI changes and component discoveries.
 - **Semantic Components**: Use daisyUI semantic classes (`btn`, `badge`, `card`, `alert`, `modal`, `input`, `join`, `dropdown`, etc.) and semantic color tokens (`primary`, `secondary`, `neutral`, `base-100`, `base-200`, `base-300`, `warning`, `error`, `info`, `success`).
 - **Themes**:
-  - Dark Theme: `'business'` (`data-theme="business"`).
-  - Light Theme: `'nord'` (`data-theme="nord"`).
+  - The Svelte application uses generic semantic themes: `'dark'` (`data-theme="dark"`) and `'light'` (`data-theme="light"`), mapped in `src/app.css` via `@plugin "./theme-bridge.js"`. No specific daisyUI theme names should be hardcoded inside Svelte components.
 
 ## 5. Quality Gate & Continuous Verification
 - Any modification MUST pass:

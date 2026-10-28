@@ -7,12 +7,12 @@
 - When a file grows large or mixes multiple concerns (e.g. complex SVG calculations with DOM canvas and control cards), decompose it into small, single-responsibility components.
 
 ### 2. Component Placement & Organization
-- **Layout Containers**: View-level layout containers live in `src/components/layout/` (the three workspace columns: strategies list, `Court.svelte`, formations panel; plus `TopHeader.svelte`).
+- **Layout Containers**: View-level layout containers live in `src/components/layout/` (the three workspace columns: `Strategies.svelte`, `Court.svelte`, `Phases.svelte`; plus `TopHeader.svelte`).
 - **Domain Components**: Feature components are organized into semantic domain folders:
-  - `src/components/court/`: Court canvas, floor markings, net, zones, player/opponent tokens, and overlays.
-  - `src/components/strategies/`: Strategy rows and the strategy edit header/footer.
-  - `src/components/controls/`: Rotation context, phase toggler card, base formation card, defensive formation card, modification alert, and preset table row cards.
-  - `src/components/modals/`: User dialog modals (`StrategyModal.svelte`, `ShareModal.svelte`, and formation dialogs).
+  - `src/components/court/`: Court canvas, floor markings, net, zones, player/opponent tokens, and overlays (`CourtOverlayControls.svelte`, `CourtOverlaySvg.svelte`).
+  - `src/components/strategies/`: Strategy rows (`StrategyRow.svelte`) and edit form (`StrategyEditForm.svelte`).
+  - `src/components/controls/`: Inline phase toggle (`PhaseTogglerCard.svelte`).
+  - `src/components/modals/`: User dialog modals (`ShareModal.svelte`, `ImportSharedModal.svelte`).
 - **State**: Application state lives in a Svelte 5 runes store (`*.svelte.ts`), not in `App.svelte`.
 - **Specs**: The domain model (strategy = rotation + 1 base + 1 defensive formation) is defined in `docs/Strategies.md`.
 - **Common Primitives**: Reusable UI primitives and shared components live in `src/components/common/` (`Button.svelte`, `Dialog.svelte`, `MarkdownEditor.svelte`).

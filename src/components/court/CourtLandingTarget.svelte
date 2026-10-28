@@ -3,11 +3,13 @@
 
   interface Props {
     target: { x: number; y: number };
+    isCovered?: boolean;
     onStartDrag: () => void;
   }
 
   let {
     target,
+    isCovered = false,
     onStartDrag
   }: Props = $props();
 </script>
@@ -24,15 +26,33 @@
   }}
   class="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-grab active:cursor-grabbing flex items-center justify-center select-none group w-12 h-12"
   style="left: {target.x}%; top: {target.y}%;"
-  title="Drag target to change attack landing spot"
+  title="Drag target to test attack coverage"
 >
   <div class="relative flex items-center justify-center">
-    <div class="absolute -inset-2.5 rounded-full bg-rose-500/20 blur-sm animate-pulse"></div>
-    <div class="w-8 h-8 rounded-full border-2 border-rose-400 border-dashed flex items-center justify-center bg-rose-950/40 shadow-lg">
-      <Crosshair class="w-4 h-4 text-rose-300" />
+    <div
+      class="absolute -inset-2.5 rounded-full blur-sm animate-pulse transition-colors duration-200 {
+        isCovered ? 'bg-emerald-500/30' : 'bg-rose-500/30'
+      }"
+    ></div>
+    <div
+      class="w-8 h-8 rounded-full border-2 border-dashed flex items-center justify-center shadow-lg transition-colors duration-200 {
+        isCovered
+          ? 'border-emerald-400 bg-emerald-950/60'
+          : 'border-rose-400 bg-rose-950/60'
+      }"
+    >
+      <Crosshair
+        class="w-4 h-4 transition-colors duration-200 {
+          isCovered ? 'text-emerald-300' : 'text-rose-300'
+        }"
+      />
     </div>
   </div>
-  <span class="absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[8px] font-bold text-rose-300 bg-slate-950/80 px-1.5 py-0.5 rounded border border-slate-700/60 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow">
-    Landing Target
+  <span
+    class="absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[8px] font-bold bg-slate-950/85 px-1.5 py-0.5 rounded border border-slate-700/60 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow {
+      isCovered ? 'text-emerald-300' : 'text-rose-300'
+    }"
+  >
+    {isCovered ? 'Covered' : 'Uncovered'}
   </span>
 </div>

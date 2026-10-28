@@ -1,11 +1,11 @@
 import type { Strategy } from '../types/volleyball';
-import { createDefaultStrategy, cloneStrategy, DEFAULT_SETTER } from './defaultLayout';
+import { cloneStrategy, DEFAULT_SETTER } from './defaultLayout';
 
 export const INITIAL_SEEDS: Strategy[] = [
   {
     id: 'strat_r1_outside_cross',
     name: 'Man Serving - Outside Cross',
-    description: 'Standard 6-deep perimeter defense against an opponent outside hitter attacking cross-court. Zone 3 solo male blocker seals the primary angle, while front-row women peel off to cover tips.',
+    description: 'Standard 6-deep perimeter defense against an opponent outside hitter attacking cross-court. Zone 3 solo man blocker seals the primary angle, while front-row women peel off to cover tips.',
     rotation: 1,
     setter: { ...DEFAULT_SETTER },
     attacker: { x: 82, y: 86 },
@@ -79,7 +79,7 @@ export const INITIAL_SEEDS: Strategy[] = [
   {
     id: 'strat_r2_outside_cross',
     name: 'Woman Serving - Wing Block Cross',
-    description: 'Two men in the front row (Zones 4 & 2). Zone 2 male blocker jumps on the wing, while Zone 3 woman peels off into the donut to absorb roll shots.',
+    description: 'Two men in the front row (Zones 4 & 2). Zone 2 man blocker jumps on the wing, while Zone 3 woman peels off into the donut to absorb roll shots.',
     rotation: 2,
     setter: { ...DEFAULT_SETTER },
     attacker: { x: 82, y: 86 },
@@ -123,19 +123,14 @@ export function loadAllStrategies(): Strategy[] {
     const raw = localStorage.getItem(STRATEGIES_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed;
       }
     }
   } catch (err) {
     console.warn('Failed to load strategies from localStorage', err);
   }
-
-  // Seed default strategies if empty
-  try {
-    localStorage.setItem(STRATEGIES_STORAGE_KEY, JSON.stringify(INITIAL_SEEDS));
-  } catch {}
-  return JSON.parse(JSON.stringify(INITIAL_SEEDS));
+  return [];
 }
 
 export function saveAllStrategies(strategies: Strategy[]): void {
@@ -159,11 +154,7 @@ export function saveStrategy(strategy: Strategy): Strategy[] {
 }
 
 export function deleteStrategy(id: string): Strategy[] {
-  let current = loadAllStrategies();
-  current = current.filter(s => s.id !== id);
-  if (current.length === 0) {
-    current = [createDefaultStrategy()];
-  }
+  const current = loadAllStrategies().filter(s => s.id !== id);
   saveAllStrategies(current);
   return current;
 }
@@ -186,7 +177,7 @@ export function getActiveStrategyId(): string {
     const saved = localStorage.getItem(ACTIVE_STRATEGY_STORAGE_KEY);
     if (saved) return saved;
   } catch {}
-  return INITIAL_SEEDS[0].id;
+  return '';
 }
 
 export function setActiveStrategyId(id: string): void {

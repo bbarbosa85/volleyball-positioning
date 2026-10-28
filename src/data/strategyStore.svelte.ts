@@ -16,6 +16,12 @@ class StrategyStore {
   activeStrategyId = $state<string>('');
   visiblePhase = $state<'base' | 'defense'>('base');
   draft = $state<Strategy | null>(null);
+  nameError = $state<string | null>(null);
+  liveTargetOverride = $state<CourtPosition | null>(null);
+
+  // Shared read-only link mode
+  isSharedMode = $state<boolean>(false);
+  sharedTitle = $state<string | null>(null);
 
   constructor() {
     this.strategies = loadAllStrategies();
@@ -24,7 +30,10 @@ class StrategyStore {
     this.activeStrategyId = exists ? savedActiveId : (this.strategies[0]?.id || '');
   }
 
-  // Active strategy in view mode
+  // Whether there is an active strategy or a draft being authored
+  hasActiveOrDraft = $derived(this.strategies.length > 0 || this.draft !== null);
+
+  // Active strategy in view mode (falls back to a default object for safe derived bindings when empty)
   activeStrategy = $derived.by(() => {
     return this.strategies.find(s => s.id === this.activeStrategyId) || this.strategies[0] || createDefaultStrategy();
   });
@@ -41,7 +50,6 @@ class StrategyStore {
     if (!this.draft) return false;
     const original = this.strategies.find(s => s.id === this.draft!.id);
     if (!original) {
-      // New strategy draft: dirty if name provided or positions changed
       return (
         this.draft.name.trim() !== '' ||
         (this.draft.description || '').trim() !== ''
@@ -56,7 +64,15 @@ class StrategyStore {
   });
 
   scenario = $derived.by(() => {
-    return strategyToScenario(this.currentStrategy);
+    const base = strategyToScenario(this.currentStrategy);
+    if (!this.draft && this.liveTargetOverride) {
+      return {
+        ...base,
+        targetX: this.liveTargetOverride.x,
+        targetY: this.liveTargetOverride.y
+      };
+    }
+    return base;
   });
 
   roster = $derived.by(() => {
@@ -69,7 +85,10 @@ class StrategyStore {
     const exists = this.strategies.find(s => s.id === id);
     if (exists) {
       this.activeStrategyId = id;
-      setActiveStrategyId(id);
+      this.liveTargetOverride = null;
+      if (!this.isSharedMode) {
+        setActiveStrategyId(id);
+      }
     }
   }
 
@@ -78,28 +97,55 @@ class StrategyStore {
   }
 
   startNewStrategy() {
+    if (this.isSharedMode) return;
+    const initialRotation = this.strategies.length > 0 ? this.activeStrategy.rotation : 1;
     const newDraft = createDefaultStrategy(
       `strat_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       '',
-      this.activeStrategy.rotation
+      initialRotation
     );
+    this.nameError = null;
+    this.liveTargetOverride = null;
     this.draft = newDraft;
   }
 
   startEdit(id?: string) {
+    if (this.isSharedMode) return;
     const targetId = id || this.activeStrategyId;
-    const target = this.strategies.find(s => s.id === targetId) || this.activeStrategy;
-    // Deep clone into draft
+    const target = this.strategies.find(s => s.id === targetId);
+    if (!target) return;
+    this.nameError = null;
+    this.liveTargetOverride = null;
     this.draft = JSON.parse(JSON.stringify(target));
   }
 
   cancelEdit() {
+    this.nameError = null;
+    this.liveTargetOverride = null;
     this.draft = null;
   }
 
   saveDraft(): boolean {
-    if (!this.draft || !this.draft.name.trim()) return false;
-    const saved = JSON.parse(JSON.stringify(this.draft));
+    if (this.isSharedMode || !this.draft) return false;
+    const trimmedName = this.draft.name.trim();
+    if (!trimmedName) {
+      this.nameError = 'Strategy name is required.';
+      return false;
+    }
+
+    const isDuplicate = this.strategies.some(
+      s => s.id !== this.draft!.id && s.name.trim().toLowerCase() === trimmedName.toLowerCase()
+    );
+    if (isDuplicate) {
+      this.nameError = 'This name is already in use by another strategy.';
+      return false;
+    }
+
+    this.nameError = null;
+    const saved: Strategy = {
+      ...JSON.parse(JSON.stringify(this.draft)),
+      name: trimmedName
+    };
     this.strategies = saveStrategy(saved);
     this.activeStrategyId = saved.id;
     setActiveStrategyId(saved.id);
@@ -108,11 +154,27 @@ class StrategyStore {
   }
 
   saveDraftAsNew(): boolean {
-    if (!this.draft || !this.draft.name.trim()) return false;
+    if (this.isSharedMode || !this.draft) return false;
+    const trimmedName = this.draft.name.trim();
+    if (!trimmedName) {
+      this.nameError = 'Strategy name is required.';
+      return false;
+    }
+
+    const isDuplicate = this.strategies.some(
+      s => s.name.trim().toLowerCase() === trimmedName.toLowerCase()
+    );
+    if (isDuplicate) {
+      this.nameError = 'This name is already in use by another strategy.';
+      return false;
+    }
+
+    this.nameError = null;
     const newId = `strat_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const cloned: Strategy = {
       ...JSON.parse(JSON.stringify(this.draft)),
-      id: newId
+      id: newId,
+      name: trimmedName
     };
     this.strategies = saveStrategy(cloned);
     this.activeStrategyId = newId;
@@ -122,6 +184,7 @@ class StrategyStore {
   }
 
   deleteStrategy(id: string) {
+    if (this.isSharedMode) return;
     if (this.isEditing && this.draft?.id === id) {
       this.cancelEdit();
     }
@@ -134,7 +197,7 @@ class StrategyStore {
   }
 
   duplicateStrategy(id: string) {
-    if (this.isEditing) return;
+    if (this.isSharedMode || this.isEditing) return;
     const res = duplicateStrategyFromRegistry(id);
     this.strategies = res.strategies;
     if (res.cloned) {
@@ -154,6 +217,9 @@ class StrategyStore {
 
   updateDraft(updates: Partial<Strategy>) {
     if (!this.draft) return;
+    if (updates.name !== undefined) {
+      this.nameError = null;
+    }
     Object.assign(this.draft, updates);
   }
 
@@ -174,7 +240,17 @@ class StrategyStore {
     targetX?: number;
     targetY?: number;
   }) {
-    if (!this.draft) return;
+    if (!this.draft) {
+      // In read mode (normal or shared), allow live target dragging
+      if (updates.targetX !== undefined || updates.targetY !== undefined) {
+        const currentTarget = this.liveTargetOverride || this.activeStrategy.target;
+        this.liveTargetOverride = {
+          x: updates.targetX ?? currentTarget.x,
+          y: updates.targetY ?? currentTarget.y
+        };
+      }
+      return;
+    }
     if (updates.setterX !== undefined) this.draft.setter.x = updates.setterX;
     if (updates.setterY !== undefined) this.draft.setter.y = updates.setterY;
     if (updates.attackerX !== undefined) this.draft.attacker.x = updates.attackerX;
@@ -183,18 +259,51 @@ class StrategyStore {
     if (updates.targetY !== undefined) this.draft.target.y = updates.targetY;
   }
 
-  importSharedStrategies(imported: Strategy[]) {
-    if (!imported || imported.length === 0) return;
-    const withFreshIds = imported.map(s => ({
+  // Shared Link Isolation & Import Actions
+  enterSharedMode(sharedStrategies: Strategy[], title?: string) {
+    if (!sharedStrategies || sharedStrategies.length === 0) return;
+    this.isSharedMode = true;
+    this.sharedTitle = title || null;
+    this.draft = null;
+    this.strategies = sharedStrategies;
+    this.activeStrategyId = sharedStrategies[0].id;
+  }
+
+  copySelectedSharedToMyBoard(selectedIds: string[]) {
+    const selected = this.strategies.filter(s => selectedIds.includes(s.id));
+    const withFreshIds: Strategy[] = selected.map(s => ({
       ...JSON.parse(JSON.stringify(s)),
       id: `strat_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
     }));
-    this.strategies = [...this.strategies, ...withFreshIds];
-    saveAllStrategies(this.strategies);
-    if (withFreshIds[0]) {
-      this.activeStrategyId = withFreshIds[0].id;
-      setActiveStrategyId(withFreshIds[0].id);
-    }
+
+    const localStrategies = loadAllStrategies();
+    const merged = [...localStrategies, ...withFreshIds];
+    saveAllStrategies(merged);
+
+    this.isSharedMode = false;
+    this.sharedTitle = null;
+    this.draft = null;
+    this.strategies = merged;
+
+    const nextActiveId = withFreshIds[0]?.id || merged[0]?.id || '';
+    this.activeStrategyId = nextActiveId;
+    setActiveStrategyId(nextActiveId);
+
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+
+  exitSharedModeToMyBoard() {
+    const localStrategies = loadAllStrategies();
+    const savedActiveId = getActiveStrategyId();
+    const exists = localStrategies.some(s => s.id === savedActiveId);
+
+    this.isSharedMode = false;
+    this.sharedTitle = null;
+    this.draft = null;
+    this.strategies = localStrategies;
+    this.activeStrategyId = exists ? savedActiveId : (localStrategies[0]?.id || '');
+
+    window.history.replaceState(null, '', window.location.pathname);
   }
 }
 

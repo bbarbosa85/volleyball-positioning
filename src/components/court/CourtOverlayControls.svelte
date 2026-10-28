@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Grid3x3, MoveUpRight, Shield, Radar, Box } from '@lucide/svelte';
+  import { Settings2, Grid3x3, MoveUpRight, Shield, Radar, Box, Check } from '@lucide/svelte';
 
   interface Props {
     showZones?: boolean;
@@ -32,111 +32,121 @@
   }: Props = $props();
 </script>
 
-<div
-  id="courtOverlayControls"
-  class="w-full max-w-[620px] flex items-center justify-center gap-2 px-1 mt-2 z-20"
->
-  <div class="inline-flex items-center gap-1 p-1 rounded-xl bg-base-200/80 border border-base-300 shadow-xs backdrop-blur-xs">
-    <!-- 1. Court Zones (1–6) -->
-    <div
-      class="tooltip tooltip-top"
-      data-tip={showZones ? 'Hide Court Zones (1–6)' : 'Show Court Zones (1–6)'}
-    >
-      <button
-        type="button"
-        onclick={onToggleZones}
-        class="btn btn-sm btn-square rounded-lg transition-all {
-          showZones
-            ? 'btn-primary text-primary-content shadow-xs'
-            : 'btn-ghost text-base-content/60 hover:text-base-content hover:bg-base-300'
-        }"
-        aria-label="Toggle Court Zones"
-        aria-pressed={showZones}
-      >
-        <Grid3x3 class="w-4 h-4" />
-      </button>
+<div id="courtOverlayControls" class="dropdown dropdown-end select-none">
+  <button
+    type="button"
+    tabindex="0"
+    class="btn btn-sm btn-ghost btn-square border border-base-300 bg-base-200/70 hover:bg-base-200 text-base-content/80 hover:text-base-content"
+    title="Court Display Settings"
+    aria-label="Court Display Settings"
+  >
+    <Settings2 class="w-4 h-4" />
+  </button>
+
+  <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+  <div
+    tabindex="0"
+    class="dropdown-content z-30 mt-2 w-60 rounded-2xl bg-base-200 border border-base-300 shadow-2xl p-2 flex flex-col gap-1"
+  >
+    <div class="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-base-content/50">
+      Court Overlays
     </div>
+
+    <!-- 1. Court Zones (1–6) -->
+    <button
+      type="button"
+      onclick={onToggleZones}
+      class="flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer {
+        showZones
+          ? 'bg-primary/15 text-primary'
+          : 'text-base-content/75 hover:bg-base-300/70'
+      }"
+    >
+      <div class="flex items-center gap-2">
+        <Grid3x3 class="w-4 h-4 shrink-0" />
+        <span>Court Zones (1–6)</span>
+      </div>
+      {#if showZones}
+        <Check class="w-3.5 h-3.5 stroke-[2.5]" />
+      {/if}
+    </button>
 
     <!-- 2. Motion Vectors -->
-    <div
-      class="tooltip tooltip-top"
-      data-tip={showAllArrows ? 'Hide Motion Vectors' : 'Show Motion Vectors'}
+    <button
+      type="button"
+      onclick={onToggleArrows}
+      class="flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer {
+        showAllArrows
+          ? 'bg-primary/15 text-primary'
+          : 'text-base-content/75 hover:bg-base-300/70'
+      }"
     >
-      <button
-        type="button"
-        onclick={onToggleArrows}
-        class="btn btn-sm btn-square rounded-lg transition-all {
-          showAllArrows
-            ? 'btn-primary text-primary-content shadow-xs'
-            : 'btn-ghost text-base-content/60 hover:text-base-content hover:bg-base-300'
-        }"
-        aria-label="Toggle Motion Vectors"
-        aria-pressed={showAllArrows}
-      >
-        <MoveUpRight class="w-4 h-4" />
-      </button>
-    </div>
+      <div class="flex items-center gap-2">
+        <MoveUpRight class="w-4 h-4 shrink-0" />
+        <span>Motion Vectors</span>
+      </div>
+      {#if showAllArrows}
+        <Check class="w-3.5 h-3.5 stroke-[2.5]" />
+      {/if}
+    </button>
 
     <!-- 3. Blocker Shadow Cone -->
-    <div
-      class="tooltip tooltip-top"
-      data-tip={showBlockShadow ? 'Hide Blocker Shadow Cone' : 'Show Blocker Shadow Cone'}
+    <button
+      type="button"
+      onclick={onToggleBlockShadow}
+      class="flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer {
+        showBlockShadow
+          ? 'bg-primary/15 text-primary'
+          : 'text-base-content/75 hover:bg-base-300/70'
+      }"
     >
-      <button
-        type="button"
-        onclick={onToggleBlockShadow}
-        class="btn btn-sm btn-square rounded-lg transition-all {
-          showBlockShadow
-            ? 'btn-primary text-primary-content shadow-xs'
-            : 'btn-ghost text-base-content/60 hover:text-base-content hover:bg-base-300'
-        }"
-        aria-label="Toggle Blocker Shadow Cone"
-        aria-pressed={showBlockShadow}
-      >
-        <Shield class="w-4 h-4" />
-      </button>
-    </div>
+      <div class="flex items-center gap-2">
+        <Shield class="w-4 h-4 shrink-0" />
+        <span>Blocker Shadow Cone</span>
+      </div>
+      {#if showBlockShadow}
+        <Check class="w-3.5 h-3.5 stroke-[2.5]" />
+      {/if}
+    </button>
 
     <!-- 4. Defense Coverage Range -->
-    <div
-      class="tooltip tooltip-top"
-      data-tip={showCoverageRange ? 'Hide Defense Coverage Range' : 'Show Defense Coverage Range'}
+    <button
+      type="button"
+      onclick={onToggleCoverageRange}
+      class="flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer {
+        showCoverageRange
+          ? 'bg-primary/15 text-primary'
+          : 'text-base-content/75 hover:bg-base-300/70'
+      }"
     >
-      <button
-        type="button"
-        onclick={onToggleCoverageRange}
-        class="btn btn-sm btn-square rounded-lg transition-all {
-          showCoverageRange
-            ? 'btn-primary text-primary-content shadow-xs'
-            : 'btn-ghost text-base-content/60 hover:text-base-content hover:bg-base-300'
-        }"
-        aria-label="Toggle Defense Coverage Range"
-        aria-pressed={showCoverageRange}
-      >
-        <Radar class="w-4 h-4" />
-      </button>
-    </div>
+      <div class="flex items-center gap-2">
+        <Radar class="w-4 h-4 shrink-0" />
+        <span>Defense Coverage</span>
+      </div>
+      {#if showCoverageRange}
+        <Check class="w-3.5 h-3.5 stroke-[2.5]" />
+      {/if}
+    </button>
 
-    <div class="w-px h-4 bg-base-300 mx-0.5"></div>
+    <div class="h-px bg-base-300 my-0.5"></div>
 
     <!-- 5. 3D Dynamic Tilt -->
-    <div
-      class="tooltip tooltip-top"
-      data-tip={is3DView ? 'Switch to Top-Down 2D View' : 'Switch to 3D Dynamic Tilt'}
+    <button
+      type="button"
+      onclick={onToggle3D}
+      class="flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer {
+        is3DView
+          ? 'bg-primary/15 text-primary'
+          : 'text-base-content/75 hover:bg-base-300/70'
+      }"
     >
-      <button
-        type="button"
-        onclick={onToggle3D}
-        class="btn btn-sm btn-square rounded-lg transition-all {
-          is3DView
-            ? 'btn-primary text-primary-content shadow-xs'
-            : 'btn-ghost text-base-content/60 hover:text-base-content hover:bg-base-300'
-        }"
-        aria-label="Toggle 3D Dynamic Tilt"
-        aria-pressed={is3DView}
-      >
-        <Box class="w-4 h-4" />
-      </button>
-    </div>
+      <div class="flex items-center gap-2">
+        <Box class="w-4 h-4 shrink-0" />
+        <span>3D Dynamic Tilt</span>
+      </div>
+      {#if is3DView}
+        <Check class="w-3.5 h-3.5 stroke-[2.5]" />
+      {/if}
+    </button>
   </div>
 </div>

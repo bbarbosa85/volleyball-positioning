@@ -1,4 +1,4 @@
-# Public Shared Links & Guest Mode Specification
+# Public Shared Links & Isolated Shared Mode Specification
 
 > **Module Specification**  
 > *Requirements Index: [docs/Requirements.md](./Requirements.md)*  
@@ -9,110 +9,59 @@
 
 ## 1. Overview & Objectives
 
-Coaches need to share complete defensive game plans with their players without forcing players to register, log in, or risk accidentally altering the coach's work.
+Coaches need to share complete defensive game plans with their players without forcing players to register, log in, or risk altering the coach's work.
 
-The unit of sharing is the **Strategy** (rotation + 1 base formation + 1 defensive formation, with a name and description). See [Strategies.md](./Strategies.md). **Only strategies can be shared**; individual formations are never shared on their own.
-
-### The Strategy: V1 (Free) vs. V2 (Pro)
-
-| Feature | V1 (Free Tier) | V2 (Pro Cloud Tier) |
-|---|---|---|
-| **Storage Architecture** | **100% Client-Side** (No DB / No Server) | Cloud Database (SQLite / Postgres) |
-| **Share Mechanism** | **Compressed URL Hash** (`#share=...`) | Shortlink URL (`/t/:tacticSlug`) |
-| **Strategies per Share Link** | **Selected Strategies** | **Unlimited Cloud Strategies** (Entire season playbooks) |
-| **Account Required?** | **None** (Instant usage for coach & players) | Coach account required |
-| **Recipient Experience** | Read-Only Guest Mode + "Save to My Tactics" | Read-Only Guest Mode + Team Access + View Analytics |
-
-> *Note: For the full Pro Tier specifications, cloud database schemas, and shortlink architecture, see [docs/roadmap/ProTier.md](./roadmap/ProTier.md).*
+The unit of sharing is the **Strategy** (name, notes, rotation, setter, attacker, target, base formation, and defensive formation). See [Strategies.md](./Strategies.md). **Only strategies can be shared**; there is no arbitrary limit on how many strategies can be bundled into a share link.
 
 ---
 
-## 2. V1 Compressed URL Architecture ("URL as Database")
+## 2. Compressed URL Architecture ("URL as Database")
 
-In V1, sharing requires **zero backend infrastructure**. The data is compressed directly into the URL hash using a client-side compression library (`lz-string`).
-
-```
-Selected Strategies
-  │
-  ▼
-JSON Payload v2 (~1.5 – 5 KB)
-  │
-  ▼
-LZ-String URI-Safe Compression
-  │
-  ▼
-https://volleydefense.app/#share=eNp9Vstu... (~600 - 2000 characters)
-```
-
-### 2.1 Payload Schema (v2)
+Sharing requires **zero backend infrastructure**. Selected strategies are serialized into a `SharePayloadV2` JSON structure and encoded into the URL hash (`#share=...`).
 
 ```ts
 interface SharePayloadV2 {
   v: 2;
   title?: string;
-  strategies: Omit<Strategy, 'id'>[];  // array of strategies
+  strategies: Omit<Strategy, 'id'>[];
 }
 ```
 
-- Strategies are **self-contained** (name, description, rotation, setter, attacker, target, base and defensive positioning), so no cross-references or deduplication are needed. Ids are regenerated on import.
-- Player names are never included. Rotations are modeled by numbers and gender colors, keeping the payload compact.
-
-### 2.2 Bundling Strategies
-
-- Coaches can bundle any combination of their strategies into a single link.
-- LZ-String compression keeps the URL compact and compatible with messaging apps (WhatsApp, iMessage, SMS, and email clients).
-
-### 2.2.1 Legacy v1 Links
-
-Links created before strategies existed (payload without `v`, containing separate base/attack presets and a rotation) are **converted on open**: bases and defenses of the same rotation are paired by index into auto-named, self-contained strategies (*"Shared strategy 1"*, ...). If a link cannot be converted, the user sees a non-blocking notice and the app opens normally.
+- Strategies are **self-contained**, so no cross-references or deduplication are needed. Fresh IDs are generated when a recipient copies strategies into their own board.
+- Player names are never included; rotations are modeled by court zone numbers and gender colors.
 
 ---
 
 ## 3. Coach Workflow (Generating a Shared Link)
 
-1. **Initiate Share**: Coach clicks the **Share** button in the top header (disabled while a strategy is being edited).
-2. **Share Modal** (strategies only):
-   - **Share Title** (optional) used for the guest banner (e.g. *"Defense vs. Lincoln High"*).
-   - **Strategy Picker**:
-     - Card list of the coach's strategies. Each card shows the strategy **name**, **rotation badge** (*Man Serving* / *Woman Serving*), and the **Base** and **Defensive** SVG thumbnails side by side.
-     - Checkbox selection with an active counter (`[X Selected]`).
-     - The currently active strategy is pre-selected.
-   - There is **no separate rotation selector or formation picker**; both are defined by each strategy.
-3. **Generate & Copy**:
-   - Clicking **Generate & Copy Share Link** builds the v2 payload, compresses it into the URL hash (`#share=...`) and copies it to the clipboard.
-   - Toast feedback confirms: *"Link copied! Anyone with this link can view and play these strategies."*
+1. **Initiate Share**: Coach clicks the **Share** button in the top header (disabled when the board has 0 strategies or while a strategy is being edited).
+2. **Share Modal (`ShareModal.svelte`)**:
+   - **Playbook Title** (optional): Shown in the header badge when recipients open the link.
+   - **Strategy Picker**: Lists all strategies with checkboxes (`Select All`, `[X Selected]`) and side-by-side Base & Defensive SVG thumbnails.
+3. **Generate & Copy**: Encodes the selected strategies into `#share=...` and copies the URL to the clipboard.
 
 ---
 
-## 4. Guest Mode (Read-Only) Invariants & Permissions
+## 4. Isolated Shared View Mode (Recipient Experience)
 
-When an unauthenticated player or teammate opens a shared link (`/#share=...`):
+When a user opens a shared link (`/#share=...`):
 
-### 4.1 Strict Read-Only Restrictions
-To protect tactical integrity:
-- **View mode only**: Edit mode is unreachable.
-- **No Player / Ball Dragging**: Defender tokens, the opponent attacker, setter, and ball are rendered in fixed/view-only mode. Drag handlers are disabled.
-- **No Modification Alerts or Save Dialogs**: Dirty alerts, quick-save triggers, and all "Save" dialogs are inaccessible.
-- **No Edit / Delete / New**: Strategy *Edit*, *Delete* and *+ New* controls are **never rendered**.
-- **No Share**: Guests cannot re-share (the Share button is hidden).
+### 4.1 Strict Isolation & Read-Only Invariants
+- **Isolated In-Memory Board (`strategyStore.isSharedMode = true`)**:
+  - The app displays **only** the strategies contained in the shared URL.
+  - Opening a shared link **never overwrites or mixes with** the recipient's existing `localStorage` strategies.
+- **Read-Only Restrictions**:
+  - `+ New`, `Edit`, `Duplicate`, and `Delete` actions are hidden.
+  - Defender tokens, opponent setter, and opponent attacker cannot be dragged.
+- **Interactive Exploration Allowed**:
+  - Recipients can switch between the shared strategies in Column 1.
+  - Recipients can toggle between **Base** and **Defensive** formations, click **Play / Reset** (`2.2s` transition animation), and toggle all court overlays via the **Settings (`⚙`)** menu.
+  - Recipients can **freely drag the attack landing target** on the court to test how the shared defensive formation covers different attack spots (**green** = covered within a defender's radius of action, **red** = uncovered).
 
-### 4.2 Allowed Guest Interactions
-1. **Switch Between Shared Strategies**: Column 1 lists only the strategies in the link; selecting one loads its rotation and positioning.
-2. **Base / Defensive Toggler**: Column 3 toggler and the court header switcher animate between phases (`Base` 0% and `Defensive` 100%).
-3. **Direct Smooth Transitions**: Defenders glide along their tactical transition vectors.
-4. **View Options**: Toggle `Zones`, `All Arrows`, `Block Shadow`, and `3D View`.
-5. **"Save to My Tactics" (Local Import)**:
-   - A button in the guest banner copies the shared **strategies** into the recipient's own browser `localStorage`.
-   - Imported strategies receive **fresh ids**; name collisions get a numeric suffix.
-   - Imported strategies are marked custom and are fully editable.
-
----
-
-## 5. Visual Guest Mode Indicator
-
-In Guest Mode:
-- The top header displays a subtle, clean banner:
-  ```
-  [Eye icon] Shared Strategies: [Share Title] • Read-Only • [Save to My Tactics]
-  ```
-- If the visitor exits the shared view, the app restores their personal local strategies.
+### 4.2 Header Actions: Selective Copy or Exit to Own Board
+While viewing a shared link, the Top Header displays a `Shared Playbook` badge alongside two actions:
+1. **`Copy to My Strategies`** (primary button):
+   - Opens [`ImportSharedModal.svelte`](../src/components/modals/ImportSharedModal.svelte), allowing the user to select which shared strategies they want to copy (all pre-selected by default, with `Select All / Deselect All`).
+   - Clicking **Copy Selected (N)** imports the chosen strategies with fresh IDs into the user's `localStorage` board, clears `#share=...` from the URL, and exits Shared Mode so the strategies become fully editable.
+2. **`Create My Own Strategies`** (secondary button):
+   - Exits Shared Mode without importing, clears `#share=...` from the URL, and loads the user's own local board.

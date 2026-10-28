@@ -2,7 +2,6 @@
   import type { Player, PlayerMovement, AttackScenario } from '../../types/volleyball';
 
   // Court modular components
-  import CourtOverlayControls from '../court/CourtOverlayControls.svelte';
   import CourtFloor from '../court/CourtFloor.svelte';
   import CourtPlayerToken from '../court/CourtPlayerToken.svelte';
   import CourtOverlaySvg from '../court/CourtOverlaySvg.svelte';
@@ -19,17 +18,11 @@
     selectedPlayerId: string | null;
     onSelectPlayer: (id: string | null) => void;
     showBlockShadow?: boolean;
-    onToggleBlockShadow?: () => void;
     showZones?: boolean;
-    onToggleZones?: () => void;
     showAllArrows?: boolean;
-    onToggleArrows?: () => void;
     showCoverageRange?: boolean;
-    onToggleCoverageRange?: () => void;
     is3DView?: boolean;
-    onToggle3D?: () => void;
     currentPositionMode?: 'base' | 'spike';
-    onSelectPositionMode?: (mode: 'base' | 'spike') => void;
     isDirty?: boolean;
     isEditing?: boolean;
     onUpdatePosition?: (playerId: string, pos: { x: number; y: number }, isDefense: boolean) => void;
@@ -45,17 +38,11 @@
     selectedPlayerId,
     onSelectPlayer,
     showBlockShadow = true,
-    onToggleBlockShadow,
     showZones = true,
-    onToggleZones,
     showAllArrows = false,
-    onToggleArrows,
     showCoverageRange = true,
-    onToggleCoverageRange,
     is3DView = false,
-    onToggle3D,
     currentPositionMode = 'base',
-    onSelectPositionMode: _onSelectPositionMode,
     isDirty = false,
     isEditing = false,
     onUpdatePosition,
@@ -155,18 +142,31 @@
     defendingY: scenario.targetY ?? 70
   });
 
+  // Coverage radius in court width percentage (matches the 150px diameter / 75px radius circle)
+  const COVERAGE_RADIUS_PCT = 15;
+
+  const isTargetCovered = $derived.by(() => {
+    return interpolatedPlayers.some(p => {
+      if (blockerPlayerIds.has(p.playerId)) return false;
+      const dx = p.currentX - targetFull.x;
+      const dy = (p.currentY - targetFull.y) * 1.62;
+      return Math.hypot(dx, dy) <= COVERAGE_RADIUS_PCT;
+    });
+  });
+
   // Selected player movement definition (used for transition arrow)
   const selectedMovement = $derived(
     selectedPlayerId ? movements.find((m) => m.playerId === selectedPlayerId) : null
   );
 
-  // Multi-entity drag state: always enabled for player, attacker, setter, and target
+  // Multi-entity drag state: target is always draggable; player, attacker, and setter require edit mode
   type DragKind = { kind: 'player'; id: string } | { kind: 'attacker' } | { kind: 'setter' } | { kind: 'target' };
   let activeDrag = $state<DragKind | null>(null);
   let courtBoundaryBox = $state<HTMLDivElement | null>(null);
 
   function handleDragMove(clientX: number, clientY: number) {
-    if (!isEditing || !activeDrag || !courtBoundaryBox) return;
+    if (!activeDrag || !courtBoundaryBox) return;
+    if (activeDrag.kind !== 'target' && !isEditing) return;
     const rect = courtBoundaryBox.getBoundingClientRect();
 
     // Horizontal percentage across court width (5% to 95%)
@@ -215,21 +215,6 @@
 />
 
 <div class="relative w-full flex flex-col items-center select-none">
-  <!-- Court Overlay Controls: Top header of middle column -->
-  <CourtOverlayControls
-    {showZones}
-    {onToggleZones}
-    {showAllArrows}
-    {onToggleArrows}
-    {showBlockShadow}
-    {onToggleBlockShadow}
-    {showCoverageRange}
-    {onToggleCoverageRange}
-    {is3DView}
-    {onToggle3D}
-  />
-
-
   <!-- Outer 3D Perspective Wrapper -->
   <div
     class="relative w-full max-w-[620px] flex justify-center py-2 transition-transform duration-700 ease-out"
@@ -311,7 +296,8 @@
         {#if currentPositionMode === 'spike' || progress > 0}
           <CourtLandingTarget
             target={targetFull}
-            onStartDrag={() => { if (isEditing) activeDrag = { kind: 'target' }; }}
+            isCovered={isTargetCovered}
+            onStartDrag={() => { activeDrag = { kind: 'target' }; }}
           />
         {/if}
 

@@ -25,10 +25,10 @@ While **V1 is 100% free, local-first (`localStorage`), and account-free**, the *
 | Feature | V1 (Free Active Target) | V2 (Pro Tier Subscription) |
 |---|:---:|:---:|
 | **Account Required?** | **No (Zero friction)** | Yes (Email & Password) |
-| **Local Custom Strategies** | **Yes (`localStorage`)** | Yes |
+| **Local Strategies** | **Yes (`localStorage`)** | Yes |
 | **Cloud-Synced Playbooks** | No | **Yes (Cross-device)** |
-| **Share via Compressed URL** | **Yes (Up to 3 strategies)** | Yes |
-| **Unlimited Strategies per Share** | No | **Yes (Full playbooks)** |
+| **Share via Compressed URL** | **Yes (Selected strategies)** | Yes |
+| **Unlimited Cloud Playbook Shortlinks** | No | **Yes (Full season playbooks)** |
 | **Custom Shortlinks (`/t/slug`)** | No | **Yes** |
 | **Team Member Access** | No | **Yes** |
 | **View Tracking & Analytics** | No | **Yes (See who reviewed plays)** |
@@ -51,33 +51,23 @@ CREATE TABLE IF NOT EXISTS users (
 );
 ```
 
-### 3.2 Cloud Preset Tables
+### 3.2 Cloud Strategy & Shortlink Tables
 ```sql
--- Cloud Base Defense Schemes
-CREATE TABLE IF NOT EXISTS user_defense_schemes (
+-- Cloud Strategies (Self-Contained: Rotation + Opponent Scenario + Base + Defense)
+CREATE TABLE IF NOT EXISTS user_strategies (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
-  scheme_data JSON NOT NULL,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- Cloud Attack Scenarios
-CREATE TABLE IF NOT EXISTS user_attack_scenarios (
-  id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  label TEXT NOT NULL,
-  type TEXT NOT NULL,
-  attacker_x REAL,
-  attacker_y REAL,
-  setter_x REAL,
-  setter_y REAL,
-  target_x REAL,
-  target_y REAL,
-  movements_data JSON NOT NULL,
+  rotation INTEGER NOT NULL DEFAULT 1,      -- 1 = Man Serving, 2 = Woman Serving
+  setter_x REAL NOT NULL,
+  setter_y REAL NOT NULL,
+  attacker_x REAL NOT NULL,
+  attacker_y REAL NOT NULL,
+  target_x REAL NOT NULL,
+  target_y REAL NOT NULL,
+  base_data JSON NOT NULL,                  -- BaseLayout JSON
+  defense_data JSON NOT NULL,               -- DefenseLayout JSON
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
