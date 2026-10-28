@@ -11,7 +11,7 @@
   import ShareModal from './components/modals/ShareModal.svelte';
   import ImportSharedModal from './components/modals/ImportSharedModal.svelte';
   import type { AttackScenario, Zone } from './types/volleyball';
-  import { Menu, Eye, Plus, X, ChevronRight, Layers, Pencil, Play, RotateCcw, Check, Copy } from '@lucide/svelte';
+  import { Menu, Plus, X, ChevronRight, Layers, Pencil, Play, RotateCcw, Check, Copy } from '@lucide/svelte';
 
   // Local UI / view states
   let isDarkMode = $state<boolean>(true);
@@ -189,7 +189,19 @@
               </span>
               {#if strategyStore.hasActiveOrDraft}
                 <div class="flex items-center gap-1.5 min-w-0">
-                  <Eye class="w-3.5 h-3.5 text-primary shrink-0" />
+                  {#if strategyStore.currentStrategy.rotation === 2}
+                    <svg class="w-3.5 h-3.5 text-warning shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-label="Woman Serving">
+                      <circle cx="12" cy="9" r="6" />
+                      <path d="M12 15v7" />
+                      <path d="M9 19h6" />
+                    </svg>
+                  {:else}
+                    <svg class="w-3.5 h-3.5 text-info shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-label="Man Serving">
+                      <circle cx="10" cy="14" r="6" />
+                      <path d="M14.5 9.5 20 4" />
+                      <path d="M15 4h5v5" />
+                    </svg>
+                  {/if}
                   <span class="font-bold text-sm text-base-content truncate">
                     {strategyStore.currentStrategy.name || 'New Draft Strategy'}
                   </span>
@@ -203,15 +215,6 @@
           </div>
 
           <div class="flex items-center gap-2 shrink-0">
-            {#if strategyStore.hasActiveOrDraft}
-              <span
-                class="badge badge-sm font-bold text-[10px] px-2 py-0.5 {
-                  strategyStore.currentStrategy.rotation === 2 ? 'badge-secondary' : 'badge-info'
-                }"
-              >
-                {strategyStore.currentStrategy.rotation === 2 ? 'Woman Serving' : 'Man Serving'}
-              </span>
-            {/if}
             <ChevronRight class="w-4 h-4 text-base-content/60" />
           </div>
         </button>

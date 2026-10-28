@@ -67,10 +67,8 @@ Spans 100% of the width above Columns 2 and 3 with a bottom border line (`border
 ## 4. Column 1: Strategies & Edit Form (`Strategies.svelte`)
 
 ### 4.1 Strategy Row Anatomy (`StrategyRow.svelte`)
-- **Active Indicator**: The active strategy row has a primary border (`border-primary`) and an **`Eye` icon (`👁`)** next to its name (no `"Active"` text badge).
-- **High-Contrast Rotation Badge**:
-  - `Man Serving`: `badge-info`
-  - `Woman Serving`: `badge-secondary`
+- **Inline Rotation Symbol**: Displays the rotation symbol SVG (`♂` in `text-info` for Man Serving, or `♀` in `text-warning` for Woman Serving) inline right before the strategy name.
+- **Active Indicator**: The active strategy row uses a contained primary background (`bg-primary border-primary text-primary-content shadow-sm`) with no `Eye` icon or `"Active"` text badge.
 - **Row Actions**: `Edit` (`Pencil`), `Duplicate` (`Copy`), and `Delete` (`Trash2`), hidden when viewing a shared link.
 
 ### 4.2 Serving Rotation Toggle (`StrategyEditForm.svelte`)
