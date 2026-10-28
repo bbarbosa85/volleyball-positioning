@@ -10,6 +10,7 @@
     rotation: number;
     allSchemes?: DefenseSchemeConfig[];
     currentScheme?: DefenseSchemeConfig;
+    currentPositionMode?: 'base' | 'spike';
     isBaseModified?: boolean;
     roster?: Player[];
     onChangeScheme?: (scheme: DefenseSchemeConfig) => void;
@@ -25,6 +26,7 @@
     rotation,
     allSchemes = [],
     currentScheme,
+    currentPositionMode = 'base',
     isBaseModified = false,
     roster = [],
     onChangeScheme,
@@ -36,6 +38,7 @@
     onOpenEditModal
   }: Props = $props();
 
+  const isFormationVisible = $derived(currentPositionMode === 'base');
   const currentBaseList = $derived((allSchemes || []).filter(s => s.rotation === rotation));
 </script>
 
@@ -79,13 +82,15 @@
     <table class="table table-sm w-full">
       <tbody class="divide-y divide-base-300/50">
         {#each currentBaseList as scheme (scheme.id)}
-          {@const isCurrent = currentScheme?.id === scheme.id}
-          {@const isDisabled = isBaseModified && !isCurrent}
+          {@const isSelected = currentScheme?.id === scheme.id}
+          {@const isVisibleOnCourt = isSelected && isFormationVisible}
+          {@const isDisabled = isBaseModified && !isSelected}
           {@const canDelete = currentBaseList.length > 1}
           <PresetTableRow
             title={scheme.name}
             subtitle={scheme.description}
-            isSelected={isCurrent}
+            {isSelected}
+            {isVisibleOnCourt}
             isModified={isBaseModified}
             {isDisabled}
             {canDelete}
@@ -101,7 +106,7 @@
               movements={getBaseMovements(scheme, rotation)}
               mode="base"
               {roster}
-              active={isCurrent}
+              active={isVisibleOnCourt}
             />
           </PresetTableRow>
         {/each}

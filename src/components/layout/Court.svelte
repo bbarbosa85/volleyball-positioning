@@ -2,7 +2,6 @@
   import type { Player, PlayerMovement, AttackScenario } from '../../types/volleyball';
 
   // Court modular components
-  import CourtPhaseToggle from '../court/CourtPhaseToggle.svelte';
   import CourtOverlayControls from '../court/CourtOverlayControls.svelte';
   import CourtFloor from '../court/CourtFloor.svelte';
   import CourtPlayerToken from '../court/CourtPlayerToken.svelte';
@@ -32,6 +31,7 @@
     currentPositionMode?: 'base' | 'spike';
     onSelectPositionMode?: (mode: 'base' | 'spike') => void;
     isDirty?: boolean;
+    isEditing?: boolean;
     onUpdatePosition?: (playerId: string, pos: { x: number; y: number }, isDefense: boolean) => void;
     onUpdateScenario?: (updates: Partial<AttackScenario>) => void;
   }
@@ -55,8 +55,9 @@
     is3DView = false,
     onToggle3D,
     currentPositionMode = 'base',
-    onSelectPositionMode,
+    onSelectPositionMode: _onSelectPositionMode,
     isDirty = false,
+    isEditing = false,
     onUpdatePosition,
     onUpdateScenario,
   }: Props = $props();
@@ -165,7 +166,7 @@
   let courtBoundaryBox = $state<HTMLDivElement | null>(null);
 
   function handleDragMove(clientX: number, clientY: number) {
-    if (!activeDrag || !courtBoundaryBox) return;
+    if (!isEditing || !activeDrag || !courtBoundaryBox) return;
     const rect = courtBoundaryBox.getBoundingClientRect();
 
     // Horizontal percentage across court width (5% to 95%)
@@ -214,10 +215,18 @@
 />
 
 <div class="relative w-full flex flex-col items-center select-none">
-  <!-- Court Card Header Bar: Integrated Phase Switcher -->
-  <CourtPhaseToggle
-    {currentPositionMode}
-    {onSelectPositionMode}
+  <!-- Court Overlay Controls: Top header of middle column -->
+  <CourtOverlayControls
+    {showZones}
+    {onToggleZones}
+    {showAllArrows}
+    {onToggleArrows}
+    {showBlockShadow}
+    {onToggleBlockShadow}
+    {showCoverageRange}
+    {onToggleCoverageRange}
+    {is3DView}
+    {onToggle3D}
   />
 
 
@@ -253,12 +262,12 @@
         <!-- Court Floor Markings, Net, and Zones -->
         <CourtFloor {is3DView} {showZones} />
 
-        <!-- Opponent Attacker & Setter Tokens (Draggable) -->
+        <!-- Opponent Attacker & Setter Tokens (Draggable in edit mode) -->
         <CourtOpponents
           {attacker}
           {setter}
-          onStartDragAttacker={() => { activeDrag = { kind: 'attacker' }; }}
-          onStartDragSetter={() => { activeDrag = { kind: 'setter' }; }}
+          onStartDragAttacker={() => { if (isEditing) activeDrag = { kind: 'attacker' }; }}
+          onStartDragSetter={() => { if (isEditing) activeDrag = { kind: 'setter' }; }}
         />
 
         <!-- 4. SVG LAYER FOR ATTACK VECTORS AND BLOCK SHADOW -->
@@ -293,7 +302,7 @@
             onSelect={() => onSelectPlayer(isSelected ? null : playerItem.playerId)}
             onStartDrag={() => {
               onSelectPlayer(playerItem.playerId);
-              activeDrag = { kind: 'player', id: playerItem.playerId };
+              if (isEditing) activeDrag = { kind: 'player', id: playerItem.playerId };
             }}
           />
         {/each}
@@ -302,7 +311,7 @@
         {#if currentPositionMode === 'spike' || progress > 0}
           <CourtLandingTarget
             target={targetFull}
-            onStartDrag={() => { activeDrag = { kind: 'target' }; }}
+            onStartDrag={() => { if (isEditing) activeDrag = { kind: 'target' }; }}
           />
         {/if}
 
@@ -314,18 +323,4 @@
       </div>
     </div>
   </div>
-
-  <!-- Court Overlay Controls: Bottom center of the court -->
-  <CourtOverlayControls
-    {showZones}
-    {onToggleZones}
-    {showAllArrows}
-    {onToggleArrows}
-    {showBlockShadow}
-    {onToggleBlockShadow}
-    {showCoverageRange}
-    {onToggleCoverageRange}
-    {is3DView}
-    {onToggle3D}
-  />
 </div>

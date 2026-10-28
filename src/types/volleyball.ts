@@ -22,6 +22,29 @@ export interface CourtPosition {
   y: number; // 0 to 100 (percentage of court length from net, 0=net, 33.3=3m line, 100=baseline)
 }
 
+export type Zone = 1 | 2 | 3 | 4 | 5 | 6;
+
+export interface BaseLayout {
+  defenders: Record<Zone, CourtPosition>;
+}
+
+export interface DefenseLayout {
+  defenders: Record<Zone, CourtPosition>;
+  actions?: Partial<Record<Zone, DefenseActionType>>;
+}
+
+export interface Strategy {
+  id: string;
+  name: string;
+  description?: string;
+  rotation: 1 | 2;
+  setter: CourtPosition;
+  attacker: CourtPosition;
+  target: CourtPosition;
+  base: BaseLayout;
+  defense: DefenseLayout;
+}
+
 export type CoedBlockMode = 'single_man' | 'double_if_possible';
 
 export type DefenseActionType = 

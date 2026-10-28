@@ -10,6 +10,7 @@
     rotation: number;
     scenarios: AttackScenario[];
     currentScenario: AttackScenario;
+    currentPositionMode?: 'base' | 'spike';
     isAttackModified?: boolean;
     roster?: Player[];
     attackSchemes?: Record<string, Record<number, PlayerMovement[]>>;
@@ -26,6 +27,7 @@
     rotation,
     scenarios,
     currentScenario,
+    currentPositionMode = 'base',
     isAttackModified = false,
     roster = [],
     attackSchemes,
@@ -38,6 +40,7 @@
     onOpenEditModal
   }: Props = $props();
 
+  const isFormationVisible = $derived(currentPositionMode === 'spike');
   const currentAttackList = $derived(scenarios.filter(s => s.rotation === rotation));
 </script>
 
@@ -81,13 +84,15 @@
     <table class="table table-sm w-full">
       <tbody class="divide-y divide-base-300/50">
         {#each currentAttackList as sc (sc.id)}
-          {@const isCurrent = currentScenario.id === sc.id}
-          {@const isDisabled = isAttackModified && !isCurrent}
+          {@const isSelected = currentScenario.id === sc.id}
+          {@const isVisibleOnCourt = isSelected && isFormationVisible}
+          {@const isDisabled = isAttackModified && !isSelected}
           {@const canDelete = currentAttackList.length > 1}
           <PresetTableRow
             title={sc.label || sc.name}
             subtitle={sc.defensiveKey || sc.description}
-            isSelected={isCurrent}
+            {isSelected}
+            {isVisibleOnCourt}
             isModified={isAttackModified}
             {isDisabled}
             {canDelete}
@@ -104,7 +109,7 @@
               mode="spike"
               scenario={sc}
               {roster}
-              active={isCurrent}
+              active={isVisibleOnCourt}
             />
           </PresetTableRow>
         {/each}

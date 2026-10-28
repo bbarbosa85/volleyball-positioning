@@ -2,117 +2,55 @@
   import Dialog from '../common/Dialog.svelte';
   import Button from '../common/Button.svelte';
   import CourtThumbnail from '../court/CourtThumbnail.svelte';
-  import type { AttackScenario, DefenseSchemeConfig, Player, PlayerMovement } from '../../types/volleyball';
-  import { getBaseMovements, getAttackScenarioMovements } from '../../data/schemeRegistry';
-  import {
-    Share2,
-    Shield,
-    Crosshair,
-    ArrowLeftRight,
-    Check,
-    Copy,
-    User
-  } from '@lucide/svelte';
+  import { strategyStore } from '../../data/strategyStore.svelte';
+  import { buildShareUrl } from '../../data/shareCodec';
+  import { strategyToMovements, strategyToScenario, getRosterForRotation } from '../../data/strategyAdapter';
+  import { Share2, Check, Copy, Layers } from '@lucide/svelte';
 
   interface Props {
     open: boolean;
     onClose: () => void;
-    activeRotation: number;
-    currentSchemeId?: string;
-    currentScenarioId?: string;
-    allSchemes: DefenseSchemeConfig[];
-    scenarios: AttackScenario[];
-    roster?: Player[];
-    attackSchemes?: Record<string, Record<number, PlayerMovement[]>>;
   }
 
-  let {
-    open,
-    onClose,
-    activeRotation = 1,
-    currentSchemeId,
-    currentScenarioId,
-    allSchemes = [],
-    scenarios = [],
-    roster = [],
-    attackSchemes
-  }: Props = $props();
+  let { open, onClose }: Props = $props();
 
-  let modalRotation = $state<number>(1);
-  let selectedBaseIds = $state<string[]>([]);
-  let selectedAttackIds = $state<string[]>([]);
+  let shareTitle = $state<string>('');
+  let selectedIds = $state<string[]>([]);
   let isCopied = $state<boolean>(false);
 
-  const availableBaseSchemes = $derived(allSchemes.filter(s => s.rotation === modalRotation));
-  const availableScenarios = $derived(scenarios.filter(s => s.rotation === modalRotation));
-
-  function handleSelectModalRotation(rot: number) {
-    modalRotation = rot;
-    const baseList = allSchemes.filter(s => s.rotation === rot);
-    selectedBaseIds = baseList.slice(0, 3).map(s => s.id);
-    const attackList = scenarios.filter(s => s.rotation === rot);
-    selectedAttackIds = attackList.slice(0, 3).map(s => s.id);
-  }
-
-  // Initialize selections when modal opens or activeRotation changes
+  // Initialize selections with active strategy when opening
   $effect(() => {
     if (open) {
-      modalRotation = activeRotation;
-      const baseList = allSchemes.filter(s => s.rotation === activeRotation);
-      const initialBase = currentSchemeId && baseList.some(s => s.id === currentSchemeId) ? [currentSchemeId] : [];
-      const remainingBase = baseList.map(s => s.id).filter(id => id !== currentSchemeId).slice(0, 2);
-      selectedBaseIds = [...initialBase, ...remainingBase].slice(0, 3);
-
-      const attackList = scenarios.filter(s => s.rotation === activeRotation);
-      const initialAttack = currentScenarioId && attackList.some(s => s.id === currentScenarioId) ? [currentScenarioId] : [];
-      const remainingAttack = attackList.map(s => s.id).filter(id => id !== currentScenarioId).slice(0, 2);
-      selectedAttackIds = [...initialAttack, ...remainingAttack].slice(0, 3);
+      selectedIds = [strategyStore.activeStrategyId];
+      shareTitle = '';
       isCopied = false;
     }
   });
 
-  function toggleBaseSelection(id: string) {
-    if (selectedBaseIds.includes(id)) {
-      if (selectedBaseIds.length > 1) {
-        selectedBaseIds = selectedBaseIds.filter(x => x !== id);
+  function toggleSelection(id: string) {
+    if (selectedIds.includes(id)) {
+      if (selectedIds.length > 1) {
+        selectedIds = selectedIds.filter(x => x !== id);
       }
     } else {
-      if (selectedBaseIds.length < 3) {
-        selectedBaseIds = [...selectedBaseIds, id];
-      }
+      selectedIds = [...selectedIds, id];
     }
   }
 
-  function toggleAttackSelection(id: string) {
-    if (selectedAttackIds.includes(id)) {
-      if (selectedAttackIds.length > 1) {
-        selectedAttackIds = selectedAttackIds.filter(x => x !== id);
-      }
-    } else {
-      if (selectedAttackIds.length < 3) {
-        selectedAttackIds = [...selectedAttackIds, id];
-      }
-    }
+  function handleSelectAll() {
+    selectedIds = strategyStore.strategies.map(s => s.id);
   }
 
   function handleCopyShareLink() {
-    const url = new URL(window.location.origin + window.location.pathname);
-    url.searchParams.set('rot', modalRotation.toString());
-    if (selectedBaseIds[0]) url.searchParams.set('base', selectedBaseIds[0]);
-    if (selectedAttackIds[0]) url.searchParams.set('attack', selectedAttackIds[0]);
-    if (selectedBaseIds.length > 1) url.searchParams.set('base_bundle', selectedBaseIds.join(','));
-    if (selectedAttackIds.length > 1) url.searchParams.set('attack_bundle', selectedAttackIds.join(','));
-    url.searchParams.set('play', '1');
+    const selected = strategyStore.strategies.filter(s => selectedIds.includes(s.id));
+    if (selected.length === 0) return;
 
-    const shareUrl = url.toString();
-    navigator.clipboard.writeText(shareUrl).then(() => {
+    const url = buildShareUrl(selected, shareTitle);
+    navigator.clipboard.writeText(url).then(() => {
       isCopied = true;
       setTimeout(() => {
         isCopied = false;
-        onClose();
-      }, 1500);
-    }).catch(() => {
-      prompt('Copy share link:', shareUrl);
+      }, 2500);
     });
   }
 </script>
@@ -120,79 +58,75 @@
 <Dialog
   {open}
   {onClose}
-  title="Share Tactical Playbook"
-  description="Select up to 3 Base Formations and 3 Defensive Formations to bundle with the active rotation multiplier"
+  title="Share Tactics Bundle"
+  description="Select strategies to bundle into a compressed link with zero server or account setup."
   maxWidth="max-w-2xl"
 >
-  <div class="flex flex-col gap-5 mt-2 max-h-[75vh] overflow-y-auto pr-1">
-    <!-- SECTION 0: ROTATION CONTEXT (TACTICAL MULTIPLIER) -->
-    <div class="card bg-base-300/30 border border-base-300 p-3.5 flex flex-col gap-2">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-1.5 text-xs font-bold text-base-content/80 uppercase tracking-wider">
-          <ArrowLeftRight class="w-3.5 h-3.5 text-primary" />
-          <span>Rotation Context Multiplier</span>
-        </div>
-        <span class="badge badge-primary badge-soft font-bold text-[10px] py-1">
-          {modalRotation === 1 ? 'Man Serving (1 Net)' : 'Woman Serving (2 Net)'}
-        </span>
-      </div>
-
-      <div class="grid grid-cols-2 gap-2 mt-1">
-        <button
-          type="button"
-          onclick={() => handleSelectModalRotation(1)}
-          class="btn btn-sm {
-            modalRotation === 1
-              ? 'btn-primary shadow-xs'
-              : 'btn-ghost bg-base-200 text-base-content/70'
-          } gap-2 text-xs font-bold"
-        >
-          <span class="w-2 h-2 rounded-full {modalRotation === 1 ? 'bg-primary-content' : 'bg-info'}"></span>
-          <span>Man Serving</span>
-        </button>
-
-        <button
-          type="button"
-          onclick={() => handleSelectModalRotation(2)}
-          class="btn btn-sm {
-            modalRotation === 2
-              ? 'btn-primary shadow-xs'
-              : 'btn-ghost bg-base-200 text-base-content/70'
-          } gap-2 text-xs font-bold"
-        >
-          <span class="w-2 h-2 rounded-full {modalRotation === 2 ? 'bg-primary-content' : 'bg-secondary'}"></span>
-          <span>Woman Serving</span>
-        </button>
-      </div>
+  <div class="flex flex-col gap-4 select-none">
+    <!-- 1. Share Title Input (Optional) -->
+    <div class="flex flex-col gap-1">
+      <label for="share-title-input" class="text-xs font-bold text-base-content/90 flex items-center justify-between">
+        <span>Playbook Title</span>
+        <span class="text-[10px] text-base-content/60 font-normal">Optional</span>
+      </label>
+      <input
+        id="share-title-input"
+        type="text"
+        bind:value={shareTitle}
+        placeholder="e.g. Defense vs. Lincoln High - Match Plan"
+        maxlength="60"
+        class="input input-sm input-bordered w-full text-xs font-medium focus:input-primary"
+      />
     </div>
 
-    <!-- SECTION 1: BASE FORMATIONS -->
-    <div class="flex flex-col gap-2.5">
+    <!-- 2. Strategy Selection List -->
+    <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-1.5 text-xs font-bold text-base-content/90">
-          <Shield class="w-3.5 h-3.5 text-primary" />
-          <span>Base Formation Presets</span>
-          <span class="text-[10px] opacity-70 font-normal hidden sm:inline">(Reading Phase)</span>
+          <Layers class="w-3.5 h-3.5 text-primary" />
+          <span>Strategies</span>
         </div>
-        <span class="badge badge-primary badge-soft font-bold text-[11px] py-1">
-          {selectedBaseIds.length} / 3 Selected
-        </span>
-      </div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        {#each availableBaseSchemes as scheme (scheme.id)}
-          {@const isChecked = selectedBaseIds.includes(scheme.id)}
+        <div class="flex items-center gap-2">
+          <span class="badge badge-primary badge-soft font-bold text-[11px] py-1">
+            {selectedIds.length} Selected
+          </span>
           <button
             type="button"
-            onclick={() => toggleBaseSelection(scheme.id)}
-            class="p-2 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-1.5 {
+            onclick={handleSelectAll}
+            class="text-[11px] text-primary hover:underline font-semibold cursor-pointer"
+          >
+            Select All
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[360px] overflow-y-auto pr-1">
+        {#each strategyStore.strategies as strategy (strategy.id)}
+          {@const isChecked = selectedIds.includes(strategy.id)}
+          {@const moves = strategyToMovements(strategy)}
+          {@const scenario = strategyToScenario(strategy)}
+          {@const roster = getRosterForRotation(strategy.rotation)}
+
+          <button
+            type="button"
+            onclick={() => toggleSelection(strategy.id)}
+            class="p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-2 {
               isChecked
-                ? 'bg-primary/15 border-primary shadow-md ring-1 ring-primary/60'
-                : 'bg-base-200/60 border-base-300 opacity-60 hover:opacity-100 hover:border-base-content/30'
+                ? 'bg-primary/10 border-primary shadow-sm ring-1 ring-primary/40'
+                : 'bg-base-200/50 border-base-300 opacity-70 hover:opacity-100 hover:border-base-content/30'
             }"
           >
-            <div class="flex items-center justify-between gap-1 w-full">
-              <span class="font-bold text-xs truncate text-base-content">{scheme.name}</span>
+            <div class="flex items-start justify-between gap-2 w-full">
+              <div class="flex flex-col min-w-0">
+                <span class="font-bold text-xs truncate text-base-content" title={strategy.name}>
+                  {strategy.name}
+                </span>
+                <span class="text-[10px] text-base-content/70">
+                  {strategy.rotation === 2 ? 'Woman Serving' : 'Man Serving'}
+                </span>
+              </div>
+
               <div class="w-4 h-4 rounded flex items-center justify-center shrink-0 border {
                 isChecked ? 'bg-primary border-primary text-primary-content' : 'border-base-300 bg-base-300'
               }">
@@ -202,63 +136,27 @@
               </div>
             </div>
 
-            <div class="w-full aspect-[4/3] rounded bg-base-300/40 border border-base-300 overflow-hidden p-0.5">
-              <CourtThumbnail
-                movements={getBaseMovements(scheme, modalRotation)}
-                mode="base"
-                {roster}
-                active={isChecked}
-              />
-            </div>
-          </button>
-        {/each}
-      </div>
-    </div>
-
-    <!-- SECTION 2: DEFENSIVE FORMATIONS -->
-    <div class="flex flex-col gap-2.5">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-1.5 text-xs font-bold text-base-content/90">
-          <Crosshair class="w-3.5 h-3.5 text-secondary" />
-          <span>Defensive Formation Presets</span>
-          <span class="text-[10px] opacity-70 font-normal hidden sm:inline">(Reaction Phase)</span>
-        </div>
-        <span class="badge badge-secondary badge-soft font-bold text-[11px] py-1">
-          {selectedAttackIds.length} / 3 Selected
-        </span>
-      </div>
-
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        {#each availableScenarios as sc (sc.id)}
-          {@const isChecked = selectedAttackIds.includes(sc.id)}
-          <button
-            type="button"
-            onclick={() => toggleAttackSelection(sc.id)}
-            class="p-2 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-1.5 {
-              isChecked
-                ? 'bg-secondary/15 border-secondary shadow-md ring-1 ring-secondary/60'
-                : 'bg-base-200/60 border-base-300 opacity-60 hover:opacity-100 hover:border-base-content/30'
-            }"
-          >
-            <div class="flex items-center justify-between gap-1 w-full">
-              <span class="font-bold text-xs truncate text-base-content">{sc.label || sc.name}</span>
-              <div class="w-4 h-4 rounded flex items-center justify-center shrink-0 border {
-                isChecked ? 'bg-secondary border-secondary text-secondary-content' : 'border-base-300 bg-base-300'
-              }">
-                {#if isChecked}
-                  <Check class="w-3 h-3 stroke-[3]" />
-                {/if}
+            <!-- Mini Thumbnails side by side: Base & Defensive -->
+            <div class="grid grid-cols-2 gap-1.5 w-full">
+              <div class="aspect-[1/1] rounded-lg bg-base-300/40 border border-base-300 p-0.5 overflow-hidden pointer-events-none">
+                <CourtThumbnail
+                  movements={moves}
+                  mode="base"
+                  {roster}
+                  {scenario}
+                  active={isChecked}
+                />
               </div>
-            </div>
 
-            <div class="w-full aspect-[4/3] rounded bg-base-300/40 border border-base-300 overflow-hidden p-0.5">
-              <CourtThumbnail
-                movements={getAttackScenarioMovements(sc.id, modalRotation, attackSchemes)}
-                mode="spike"
-                scenario={sc}
-                {roster}
-                active={isChecked}
-              />
+              <div class="aspect-[1/1] rounded-lg bg-base-300/40 border border-base-300 p-0.5 overflow-hidden pointer-events-none">
+                <CourtThumbnail
+                  movements={moves}
+                  mode="spike"
+                  {roster}
+                  {scenario}
+                  active={isChecked}
+                />
+              </div>
             </div>
           </button>
         {/each}
@@ -266,7 +164,7 @@
     </div>
   </div>
 
-  <div class="flex items-center justify-between gap-3 pt-4 mt-3 border-t border-base-300">
+  <div class="flex items-center justify-between gap-3 pt-4 mt-3 border-t border-base-300 select-none">
     <Button variant="secondary" onclick={onClose} class="text-xs">
       Cancel
     </Button>
@@ -274,14 +172,15 @@
     <Button
       variant={isCopied ? 'emerald' : 'default'}
       onclick={handleCopyShareLink}
-      class="text-xs font-bold flex items-center gap-1.5 px-4 shadow-lg"
+      disabled={selectedIds.length === 0}
+      class="text-xs font-bold flex items-center gap-1.5 px-4 shadow-md"
     >
       {#if isCopied}
         <Check class="w-4 h-4" />
         <span>Link Copied!</span>
       {:else}
-        <Copy class="w-4 h-4" />
-        <span>Copy Tactical Link</span>
+        <Share2 class="w-4 h-4" />
+        <span>Generate & Copy Link</span>
       {/if}
     </Button>
   </div>

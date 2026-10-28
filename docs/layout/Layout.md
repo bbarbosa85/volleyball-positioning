@@ -2,38 +2,44 @@
 
 > **Module Specification**  
 > *Requirements Index: [docs/Requirements.md](../Requirements.md)*  
-> *Interactive Prototype: [docs/layout/prototype.html](./prototype.html)*  
+> *Domain Model: [docs/Strategies.md](../Strategies.md)*  
+> *Interactive Prototype (legacy 2-column, pending update): [docs/layout/prototype.html](./prototype.html)*  
 > *Last updated: October 2026*
 
 ---
 
 ## 1. Overview & Structural Layout
 
-The application interface is divided into three primary regions: the **Top Header**, the **Left Court Simulator Area**, and the **Right Tactical Panel**. An interactive, responsive prototype is available at [prototype.html](./prototype.html).
+The interface is a **strategy-centric, 3-column workspace** under a **Top Header**:
+
+1. **Column 1 — Strategies** (list, create, edit, delete)
+2. **Column 2 — Court Simulator** (court canvas + court controls)
+3. **Column 3 — Phases** (vertical Base / Defensive toggler; edit form and phase tools in edit mode)
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ TOP HEADER (Clean 1-liner - No background color, no border lines)           │
-│ [Brand & Title]                      [Share CTA] [Sun/Moon SVG] [Cog SVG]   │
-├──────────────────────────────────────┬──────────────────────────────────────┤
-│ LEFT: Court Simulator Area           │ RIGHT: Tactical Playbook Panel       │
-│                                      │                                      │
-│ ┌──────────────────────────────────┐ │ 1. ROTATION CONTEXT (Multiplier)     │
-│ │ [ 1. Base Formation ]➔[ 2. Def ] │ │    [Man Serving] [Woman Serving]     │
-│ ├──────────────────────────────────┤ ├──────────────────────────────────────┤
-│ │                                  │ │ 2. BASE FORMATION                    │
-│ │        COURT CANVAS              │ │    [Deep Read]  [Short Tip]          │
-│ │  (Full 18m x 9m Court Viewport)  │ ├──────────────────────────────────────┤
-│ │                                  │ │ 3. DEFENSIVE FORMATION               │
-│ │  • Full Opponent Attack Side(9x9)│ │    [Outside Cross] [Fast Line D]     │
-│ │  • Center Net, Antennas & Poles  │ │                                      │
-│ │  • Defending Team Side (9x9m)    │ │ (Containers have transparent borders;│
-│ │  • 6 Defender Tokens             │ │  amber border appears when dirty)    │
-│ │  • Vector Arrows to Spike Target │ │                                      │
-│ │  • Attacker, Setter & Ball       │ │                                      │
-│ └──────────────────────────────────┘ │                                      │
-└──────────────────────────────────────┴──────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ TOP HEADER (Clean 1-liner - No background color, no border lines)               │
+│ [Brand & Title]                           [Share CTA] [Sun/Moon SVG] [Cog SVG]  │
+├───────────────┬──────────────────────────────────────┬──────────────────────────┤
+│ COL 1         │ COL 2                                │ COL 3                    │
+│ STRATEGIES    │ COURT SIMULATOR                      │ PHASES                   │
+│ [+ New]       │ ┌──────────────────────────────────┐ │ ┌──────────────────────┐ │
+│               │ │ [ Base Formation ]➔[ Defensive ] │ │ │ BASE FORMATION       │ │
+│ ● Strategy A  │ ├──────────────────────────────────┤ │ │  (SVG thumbnail)     │ │
+│   Man Serving │ │                                  │ │ ├──────────────────────┤ │
+│   (Edit)(Del) │ │          COURT CANVAS            │ │ │ DEFENSIVE FORMATION  │ │
+│ ○ Strategy B  │ │  (Full 18m x 9m Court Viewport)  │ │ │  (SVG thumbnail)     │ │
+│ ○ Strategy C  │ │                                  │ │ └──────────────────────┘ │
+│               │ │  • Opponent Attack Side (9x9m)   │ │                          │
+│               │ │  • Net, Antennas & Poles         │ │ Strategy name &          │
+│               │ │  • Defending Team Side (9x9m)    │ │ description (markdown)   │
+│               │ │  • 6 Defender Tokens             │ │                          │
+│               │ │  • Attacker, Setter & Ball       │ │ (Edit mode: + form and   │
+│               │ └──────────────────────────────────┘ │  phase tools)            │
+└───────────────┴──────────────────────────────────────┴──────────────────────────┘
 ```
+
+Two modes drive the right-hand columns: **View mode** (default, read-only) and **Edit mode** (draft). See [Strategies.md Section 4](../Strategies.md#4-modes).
 
 ---
 
@@ -41,38 +47,32 @@ The application interface is divided into three primary regions: the **Top Heade
 
 Global actions are hosted **exclusively in the top header** as a clean, minimalist one-liner with vertical breathing room:
 - **Zero Visual Clutter**: No background colors, no glassmorphism overlays, and no bottom border lines (`background: transparent; border-bottom: none;`).
-- **Clean 1-Liner Logo Block with Vertical Padding**: Features comfortable vertical padding (`padding: 0.75rem 1.5rem;` max-width 1720px aligned with the main court layout), a compact 26px vector volleyball icon alongside the bold title `VolleyDefense Tactics`, and no forced height or subtitle/description paragraphs.
-- **Contained Share Button**: The Share CTA is styled as a prominent contained button with a solid primary fill (`var(--primary)`), white text, vector SVG icon, and no border.
+- **Clean 1-Liner Logo Block with Vertical Padding**: Features comfortable vertical padding (`padding: 0.75rem 1.5rem;` max-width 1720px aligned with the main layout), a compact 26px vector volleyball icon alongside the bold title `VolleyDefense Tactics`, and no forced height or subtitle/description paragraphs.
+- **Contained Share Button**: The Share CTA is styled as a prominent contained button with a solid primary fill, vector SVG icon, and no border. It opens the **strategy picker** ([Section 7](#7-share-modal-strategy-picker)) and is **disabled while a strategy is in edit mode**.
 - **Border-less Icon Controls**: Quick theme toggle (`Sun`/`Moon`) and view settings cog (`Settings`) are border-less, transparent icon buttons that highlight subtly on hover.
 - **Settings Cog Dropdown**: Houses Court View Overlays (*Court Zones 1–6*, *Motion Vector Arrows*, *Blocker Shadow Cone*, *3D Perspective Court*), keeping the court canvas completely clean.
 
-> **Hierarchy Rule**: Never duplicate Share, Theme, or Settings buttons inside the sidebar, court area, or tactical containers.
+> **Hierarchy Rule**: Never duplicate Share, Theme, or Settings buttons inside the columns, court area, or cards.
 
 ---
 
-## 3. Left Area: Court Canvas
+## 3. Column 2: Court Canvas & Court Controls
 
-### 3.1 Court Card Header Bar (Integrated Phase Switcher)
-The Stage Switcher is housed directly in the **Court Card Header Bar** centered immediately above the court canvas:
-- **`1. Base Formation` Button**:
-  - Puts the court in pre-contact reading stance (`0%` transition).
-  - Defenders stand at their Base coordinates.
-  - **Ball with Setter**: The ball is fixed and grouped with the opponent Setter (`S`).
-  - **No Attacker Arrow**: No attack trajectory arrow is shown during Base Formation.
-  - **Block Shadow Hidden**: Blocker shadow cone is strictly hidden on the base reading position.
-  - **Defender Transition Vectors Active**: Arrows are dynamically drawn pointing from each defender's Base spot to their reaction target defined by the active Defensive Formation preset.
-  - Active visual cue: Highlighted in primary blue accent with subtle glow.
-- **`2. Defensive Formation` Button**:
-  - Glides defenders smoothly into their defensive coverage positions (`100%` transition).
-  - **Ball Moves to Attacker**: During transition, the ball glides smoothly from the Setter to the Attacker (`A`) and remains with the Attacker in this end state.
-  - **Attack Trajectory Arrow Displayed**: An arrow originating at the Attacker/Ball points to the attack landing target across the net.
-  - **Block & Shadow Active**: Displays the formed net block and the defensive blocker shadow cone.
-  - Active visual cue: Highlighted in rose accent with subtle glow.
+### 3.1 Court Controls (Top Header of Column 2)
+In read mode and edit mode, the **Court Controls** (`CourtOverlayControls`) sit centered at the **top of the middle column**, directly above the court canvas. This provides immediate 1-click access to all visual overlays without burying them in nested menus:
+- **Court Zones (1–6)** (`Grid3x3` icon): Toggles zone number overlays across both half-courts.
+- **Motion Vector Arrows** (`MoveUpRight` icon): Toggles defender transition vector arrows between base reading spots and defensive reaction targets.
+- **Blocker Shadow Cone** (`Shield` icon): Toggles the triangular defensive block coverage shadow cast by front-row blockers against the spiker's attack trajectory.
+- **Coverage Range** (`Radar` icon): Toggles individual defender defensive dig radius circles.
+- **3D Perspective View** (`Box` icon): Toggles the dynamic 26° isometric tilt for realistic court depth.
 
-> **Clean UI Rule**: No redundant text labels (such as "Viewing Base Reading") are displayed. The active button's color and glow provide unambiguous, instant visual feedback.
+> **Clean Column Division**: The middle column hosts the court controls at the top and the court canvas at the bottom. Phase selection is hosted exclusively in **Column 3 (Phases)**, which indicates the active phase on the court.
 
 ### 3.2 Court Canvas Elements
-- **Container Styling & Dirty Outline**: The court container (`.court-card`) has a transparent background and default transparent border. When any preset is dirty, an amber border outline (`border: 1px solid rgba(245, 158, 11, 0.75);`) lights up automatically around the container.
+- **Container Styling & Dirty Outline**: The court container (`.court-card`) has a transparent background and default transparent border. While a strategy draft has unsaved changes, an amber border outline (`border: 1px solid rgba(245, 158, 11, 0.75);`) lights up automatically around the container.
+- **Interaction by Mode**:
+  - **View mode**: all tokens and the attack target are **read-only**.
+  - **Edit mode**: all tokens and the attack target are draggable; drags modify the **draft**.
 - **Full 18m × 9m Regulation Court Simulation (Both Sides Displayed)**:
   - The simulator renders **both sides of the court fully** (a regulation 18m × 9m volleyball court comprising two 9m × 9m half-courts divided by the center net).
   - **Tactical Utility for Attack Coverage**: Displaying the full opponent attack side allows coaches and players to model and simulate attack scenarios from realistic depths, angles, and rotational configurations:
@@ -90,133 +90,91 @@ The Stage Switcher is housed directly in the **Court Card Header Bar** centered 
   - **Zero Name Overhead**: Player names are excluded from the court display and data schema, maximizing readability, eliminating clutter, and keeping shared URLs ultra-compact.
 - **Opponent Team & Attack Configuration**:
   - Located on the full opponent attacking half-court (`y <= 0%`).
-  - **Base Formation Position**: Ball is stationed with Setter `S` (positioned at the setting point or transition pass); no attack trajectory arrow, target reticle, or block shadow cone is displayed.
-  - **Defensive Formation Position**: Ball animates smoothly from Setter to Attacker `A` and remains with Attacker at the point of attack contact; spiker trajectory arrow, draggable landing target reticle, and blocker shadow cone appear.
-  - **Non-Draggable Ball**: The ball is fixed and non-draggable; its position is driven strictly by phase (with setter in Base Formation, with attacker in Defensive Formation).
-  - **Draggable Attack Landing Target**: The destination/target of where the attacker might send the ball into the defending court is interactive and draggable (`x: 4–96%`, `y: 4–96%`).
-  - **Dynamic Arrow Anchoring**: The attack trajectory arrow follows the target dynamically, with its origin anchored to the Attacker/Ball and its tip anchored to the draggable destination target across the net. Moving the target automatically stretches, rotates, and updates the arrow.
-  - **Interactive Opponent Tokens Scoped to Presets**:
-    - Both the attacker and setter tokens are draggable anywhere across the full opponent half-court (`y <= 0%`).
-    - **Preset Phase Scoping**: Attacker and Setter positions are **integral parts of each preset**:
-      - **Base Formations**: Persist defenders plus the pre-set reading positions of the opponent attacker and setter (with the ball fixed at the setter's hands).
-      - **Defensive Formations**: Persist defenders plus the attack contact point of the opponent attacker, setter transition, and the landing target (with the ball at the attacker and the attack vector line drawn to the target).
-  - **Preset Drift Detection (Approach A: Focused Edit Lock)**:
-    - Dragging in `1. Base Formation` (defenders or opponent attacker/setter) marks the **Base Formation** as modified, enters the Base focused edit lock, disables sibling Base presets, highlights the container with an amber border, and displays the Base quick-alert bar (`#baseModAlert`).
-    - Dragging in `2. Defensive Formation` (defenders, opponent attacker/setter, or attack target) marks the **Defensive Formation** as modified, enters the Defensive focused edit lock, disables sibling Defensive presets, highlights the container with an amber border, and displays the Defensive quick-alert bar (`#attackModAlert`).
+  - **Base Formation Position**: Ball is stationed with Setter `S`; no attack trajectory arrow, target reticle, or block shadow cone is displayed.
+  - **Defensive Formation Position**: Ball animates smoothly from Setter to Attacker `A` and remains with Attacker; spiker trajectory arrow, draggable landing target reticle (edit mode), and blocker shadow cone appear.
+  - **Non-Draggable Ball**: The ball is fixed; its position is driven strictly by phase.
+  - **Draggable Attack Landing Target (edit mode)**: Interactive (`x: 4–96%`, `y: 4–96%`). The attack arrow is anchored to the Attacker/Ball and the target and updates dynamically.
+  - **Opponent Scenario Scoped Directly to the Strategy**: Setter, Attacker, and Target coordinates belong directly to the Strategy:
+    - **Base Formation**: Ball is stationed with Setter; defenders hold reading positions.
+    - **Defensive Formation**: Ball animates smoothly from Setter to Attacker; spiker trajectory arrow points to Target reticle, and blocker shadow cone appears.
+- **Draft Drift Detection**:
+  - Dragging in the **Base** phase (edit mode) marks the draft's **base positioning** as modified.
+  - Dragging in the **Defensive** phase (edit mode) marks the draft's **defensive positioning** as modified.
+  - The two sections are tracked independently ([REQ-02](../Requirements.md#req-02)). Toggling phases never clears either modification.
 
 ---
 
-## 4. Right Controls: Tactical Playbook Panel
+## 4. Column 1: Strategies
 
-The right controls are organized as **three distinct, independent panel-card blocks** with their own card headers:
+A vertical list of strategies with creation and management actions.
 
-### 4.1 Block 1: Rotation Context (Tactical Multiplier)
-Positioned at the top of the right panel:
-- **Serving Rotation Lineup**:
-  - **Man Serving**: 1 Man on the Net (P3), 2 Women Front (P4, P2). Since women cannot block at the net in COED, only 1 legal net blocker exists (models traditional Rotation 1 / R1 lineup).
-  - **Woman Serving**: 2 Men on the Net (P4, P2), 1 Woman Front (P3). The defense features 2 legal net blockers capable of running a double wall (models traditional Rotation 4 / R4 lineup).
-- **Architectural Scope & Multiplier**: Presets are **strictly rotation-scoped**. Because blocking rules and legal net participation shift fundamentally between rotations, *Man Serving* and *Woman Serving* each maintain their own dedicated, calibrated sets of presets:
-  - **Man Serving**: 3 predefined Defensive Formations (*Outside Cross (Solo Block)*, *Outside Line (Solo Block)*, *Middle Quick (Solo Block)*) and 2 Base Formations (*Deep Base Read*, *Short Tip Ready*).
-  - **Woman Serving**: 3 predefined Defensive Formations (*Outside Cross (Double Wall)*, *Fast Line (Pinch Block)*, *Pipe Defense (Double Block)*) and 2 Base Formations (*Double Wall Read*, *Rotational Shift*).
-  - **Custom Presets**: Any custom preset created (for either Base Formation or Defensive Formation) is strictly locked to that rotation context and only appears when that serving rotation is active. Base presets saved in Man Serving never bleed into Woman Serving.
-- **Strict Freeze When Dirty**: If either Base Formation (Block 2) or Defensive Formation (Block 3) has unsaved modifications (`.modified`), Block 1 enters `.rotation-locked` and all containers gain `.is-dirty` outlines. Rotation switching buttons are disabled (`opacity: 0.45; cursor: not-allowed;`) and an amber banner appears: *"Rotation locked with unsaved changes. Save or Reset to switch."* Any click during freeze is captured, rejected, and shakes the warning banner. Switching is permitted only when both sections are clean.
-- **Container Styling**: Containers (`.panel-card`) maintain transparent backgrounds and transparent default borders; the container border lights up amber only when dirty.
+### 4.1 Header
+- Title `Strategies` with a `Layers` (or similar Lucide) icon.
+- **`+ New` button** (primary, `Plus` icon): creates a draft and enters edit mode ([Strategies.md Section 6.1](../Strategies.md#61-creation--new)).
 
-### 4.2 Block 2: Base Formation Card (`.base-card`)
-A standalone `.panel-card` dedicated to pre-contact reading defense:
-- Features card header `2. Base Formation` with defensive shield icon.
-- **Rotation-Dependent Playbook**: Base formations are strictly rotation-dependent. Presets saved under *Man Serving* (Rotation 1) are different from presets saved under *Woman Serving* (Rotation 2) and are kept strictly separated in both UI and storage.
-- **Contextual Description Callout**: When a Base preset is selected and has a description, a dedicated info callout with `Info` SVG appears directly above the grid, clearly explaining the reading stance and coverage intentions.
-- Renders the active rotation's base reading presets (e.g. *Deep Base Read*, *Short Tip Ready* in Man Serving; *Double Wall Read*, *Rotational Shift* in Woman Serving, plus any custom base presets created in the active rotation).
-- Transparent by default; lights up with an amber container border (`.is-dirty`) as soon as base coordinates are modified.
-- **Direct Transition**: Clicking any Base preset automatically glides the court to Base reading formation.
-- Hosts `#baseModAlert` contextual edit lock bar.
+### 4.2 Strategy Row Anatomy
 
-### 4.3 Block 3: Defensive Formation Card (`.attack-card`)
-A standalone `.panel-card` dedicated to post-contact reaction coverage:
-- Features card header `3. Defensive Formation` with target reticle icon.
-- **Contextual Description & Key Callout**: When a Defensive preset is selected and has a description or defensive key, a dedicated info callout with `Info` SVG appears directly above the grid, clearly articulating the spiker trajectory, block positioning, and back-row digging keys.
-- Renders the active rotation's 3 defensive reactions:
-  - *Man Serving*: *Outside Cross (Solo Block)*, *Outside Line (Solo Block)*, *Middle Quick (Solo Block)*.
-  - *Woman Serving*: *Outside Cross (Double Wall)*, *Fast Line (Pinch Block)*, *Pipe Defense (Double Block)*.
-- Transparent by default; lights up with an amber container border (`.is-dirty`) as soon as reaction coordinates or attack targets are modified.
-- **Direct Transition**: Clicking any Defensive preset automatically glides defenders into their reaction spots and reveals the attack trajectory.
-- Hosts `#attackModAlert` contextual edit lock bar.
+```
+┌────────────────────────────────────────────┐
+│ ● Strategy Name                (Pen)(Trash) │
+│   [Man Serving]  [Active]                    │
+└────────────────────────────────────────────┘
+```
 
-### 4.4 Approach A: Section-Scoped Focused Edit Lock & Modification Lifecycle
+- **Name** (truncate with ellipsis) and a **rotation badge** (*Man Serving* / *Woman Serving*).
+- Selected row: blue outline, `Active` tag; clicking any row selects it and loads it into the court.
+- **Actions** (sibling elements with `e.stopPropagation()`, no nested buttons):
+  - **`Pencil` (Edit)**: enters edit mode for that strategy.
+  - **`Copy` (Duplicate)**: immediately clones the strategy as `"{Name} (Copy)"` and selects it.
+  - **`Trash2` (Delete)**: opens confirmation dialog to delete the strategy.
+- **Edit lock**: while a draft exists, all other rows are `.disabled` (`opacity: 0.36`, `pointer-events: none`, `aria-disabled="true"`).
 
-In strict adherence to **[REQ-02 (Decoupled Tactic Editing)](../Requirements.md#req-02)**, Base Formation and Defensive Formation maintain **completely independent, section-scoped edit locks, alert bars, and modification lifecycles**. Modifying one never locks or alters the other.
-
-1. **Independent Scoped Edit Locks**:
-   - **Base Formation (Block 2)**:
-     - When any defender or opponent token (Attacker or Setter) is dragged while in `1. Base Formation`:
-       - The active Base preset card enters `.modified` (amber outline, subtle glow).
-       - The `#cardBasePresets` and `.court-card` containers gain `.is-dirty` (amber border outline).
-       - **Only sibling Base preset cards** become `.disabled` (`opacity: 0.36`, `filter: grayscale(0.5)`, `pointer-events: none`, `cursor: not-allowed`, `aria-disabled="true"`).
-       - The **Base Quick-Alert Bar** (`#baseModAlert`) appears directly beneath the "2. Base Formation" header.
-       - **Crucial Decoupling**: The **Defensive Formation card remains 100% interactive**. The coach is completely free to switch Defensive presets to test how their modified base interacts with different opponent spikes (e.g. *Outside Cross* vs *Fast Line D*).
-   - **Defensive Formation (Block 3)**:
-     - When any defender, opponent attacker/setter, or attack target is dragged while in `2. Defensive Formation`:
-       - The active Defensive preset card enters `.modified`.
-       - The `#cardAttackPresets` and `.court-card` containers gain `.is-dirty` (amber border outline).
-       - **Only sibling Defensive preset cards** become `.disabled`.
-       - The **Defensive Quick-Alert Bar** (`#attackModAlert`) appears directly beneath the "3. Defensive Formation" header.
-       - The **Base Formation card remains 100% interactive**.
-
-2. **Simultaneous Dual Dirty States & Court Stage Independence**:
-   - Both cards can be modified and dirty simultaneously without interference.
-   - **Toggling Court Stages** (`1. Base Formation` vs `2. Defensive Formation` on the court header bar) smoothly glides canvas tokens to preview either state, and **never clears, resets, or dismisses either card's edit lock**.
-   - Locks persist until the coach deliberately resolves each card.
-
-3. **Strict Freeze on Rotation Switching**:
-   - While either Base Formation OR Defensive Formation is in a modified/dirty state, the **Rotation Switcher (Block 1) is strictly frozen**:
-     - Buttons `#rotMen` and `#rotWomen` are disabled (`opacity: 0.45; cursor: not-allowed;`).
-     - `#cardRotationContext` gains `.is-dirty` amber outline.
-     - The `#rotLockedBanner` displays an amber lock notice: *"Rotation locked with unsaved changes. Save or Reset to switch."*
-     - A capture-phase listener captures any click on the rotation control, preventing rotation change and re-animating the banner shake feedback.
-   - *Rationale*: Because tactical formations are intrinsically tied to rotation legalities (1-man front vs 2-men front), switching rotations mid-edit would either corrupt the destination rotation's formation or discard the coach's work.
-   - The rotation switcher unlocks automatically once both sections are saved or reset.
-
-4. **Context-Aware 3-Action Resolution per Section**:
-   - Each card features its own dedicated action buttons:
-     - **Custom Preset Active (`.user-custom-tag`)**:
-       - **`[ Save ]` (Primary Blue)**: 1-click overwrite of that specific custom preset. Re-enables only that card's sibling presets and clears container `.is-dirty`.
-       - **`[ Save as New ]` (Secondary Amber)**: Prompts for a new preset name and forks the modified layout into a new custom preset card in that section.
-       - **`[ Reset ]` (Subtle Red / Ghost)**: Discards coordinate drift for that section, reverts its positions back to the saved preset, and unlocks only that card's grid.
-     - **Built-in Default Preset Active**:
-       - Built-in tactics (*Solo-Block Deep Read*, *Outside Cross*, etc.) are strictly immutable.
-       - **`[ Save ]` is omitted/hidden** to prevent default preset corruption.
-       - **`[ Save as New ]` (Secondary Amber)**: Prompts for a name and forks the modified layout into a new custom preset with a `Custom` tag.
-       - **`[ Reset ]` (Subtle Red / Ghost)**: Reverts coordinates back to immutable system defaults and unlocks only that card's grid.
-   - Resolving Base (saving or resetting) only affects Base and re-enables Base presets. The Defensive section remains locked until separately resolved, and vice versa.
+### 4.3 Empty / Minimum State
+At least one strategy always exists. If the user deletes all strategies, a new default strategy is recreated. The list never renders empty.
 
 ---
 
-## 5. Preset Button Anatomy
+## 5. Column 3: Phases
 
-Every preset button in both grids adheres to this exact layout:
+### 5.1 View Mode — Phase Toggler
+
+Two large cards stacked **vertically**, acting as a single-choice toggler for the **visible phase**:
 
 ```
-┌──────────────────────────────────────────────┐
-│ [User] Preset Name           (Pencil)(Trash) │  <-- Top Header Line
-│                                              │
-│         ┌──────────────────────────┐         │
-│         │                          │         │
-│         │     COURT THUMBNAIL      │         │  <-- Miniature Court Preview
-│         │                          │         │
-│         └──────────────────────────┘         │
-└──────────────────────────────────────────────┘
+┌──────────────────────────────┐
+│ [Shield] BASE FORMATION       │
+│   ┌────────────────────────┐ │
+│   │   SVG court thumbnail  │ │
+│   └────────────────────────┘ │
+├──────────────────────────────┤
+│ [Crosshair] DEFENSIVE FORM.   │
+│   ┌────────────────────────┐ │
+│   │   SVG court thumbnail  │ │
+│   └────────────────────────┘ │
+└──────────────────────────────┘
 ```
 
-- **Top Header Line**:
-  - **Left**: Preset name with text truncation, prefixed with a small `User` icon badge if it is a custom preset.
-  - **Right**:
-    - **Predefined Presets**: Predefined system presets are strictly immutable — **the edit/pencil icon is omitted** so users cannot attempt to rename system defaults.
-    - **Custom Presets**: In-line action buttons rendered when selected:
-      - **`Pencil` (Rename)**: Opens Dialog to rename the custom preset.
-      - **`Trash2` (Delete)**: Removes the custom preset.
-- **Center**: Miniature court thumbnail rendering current defender positions.
-- **Accessibility Invariant**: Action buttons are rendered as sibling elements inside the card container with `e.stopPropagation()` to avoid illegal nested `<button>` DOM tags.
+- Thumbnails are the existing `CourtThumbnail` SVGs for the active strategy's base and defensive formations.
+- The card matching the court's **active phase** gets the prominent status treatment: **green outline** and a green `Visible` tag with an `Eye` icon (or blue `Active` tag).
+- Clicking a card switches the active phase on the court with smooth transition animation.
+- Beneath the phase cards: the strategy's **name** and rendered **markdown description** (callout with `Info` icon), when present.
+
+### 5.2 Edit Mode — Edit Form & Phase Tools
+
+The toggler remains, and Column 3 adds the tools needed to author the strategy:
+
+- **Edit form** (top of column 3):
+  - `Strategy name` input (required).
+  - `Description` markdown editor.
+  - **Rotation control** (*Man Serving* / *Woman Serving*). Changing rotation keeps the coordinates (zone-keyed) and relabels the tokens for the new lineup.
+- **Per-phase tools** on each phase card (Base and Defensive):
+  - **`Reset to default`**: restores the built-in default positioning for that phase.
+- **Modified indicator**: a phase card shows an amber outline and `Modified` tag when its coordinates differ from the saved strategy.
+- **Edit footer** (sticky): **`Save`** (primary, disabled until a name is present), **`Save as new`** (secondary), **`Cancel`** (ghost).
+- There are **no formation pickers or preset tables**: positions belong to the strategy.
+
+### 5.3 Container Styling
+Cards use `card bg-base-200/60 border`. Default border is `border-base-300`; the border is **amber** when the section is dirty.
 
 ---
 
@@ -225,42 +183,33 @@ Every preset button in both grids adheres to this exact layout:
 Volleyball coaches and players frequently use the application courtside on mobile phones and tablets. The UI must be fully touch-optimized:
 
 ### 6.1 Viewport Breakpoints & Stacking
-- **Desktop (>= 1024px)**: 2-column layout (7 cols Court simulator + 5 cols Tactical controls).
-- **Mobile & Tablet (< 1024px)**: Single-column vertically stacked layout:
+- **Desktop (>= 1280px)**: 3-column layout (Strategies ~ 3 cols · Court ~ 6 cols · Phases ~ 3 cols of a 12-col grid).
+- **Tablet (1024px – 1279px)**: 2-column layout: Court beside a stacked right area (Strategies on top as a horizontal/compact list, Phases below).
+- **Mobile (< 1024px)**: Single-column vertically stacked layout:
   1. **Top Header**: Compact sticky bar with brand, Share button, Theme toggle, and Settings cog.
-  2. **Court Simulator Area**: Centered and fluidly responsive up to full viewport width, maximizing court visibility without floating toolbars.
-  3. **Tactical Controls**: Follows underneath the court (Rotation switcher, Stage switcher, Presets grids).
+  2. **Strategies**: Collapsible list (shows the active strategy; expands to the full list).
+  3. **Court Simulator Area**: Centered and fluidly responsive up to full viewport width.
+  4. **Phases**: Base / Defensive toggler (and edit form in edit mode) beneath the court.
 
 ### 6.2 Touch Drag & Gesture Protection
-- **`touch-action: none` on Court Canvas**:
-  - The court SVG container must apply `touch-action: none` so that dragging a defender, attacker, or ball on a smartphone screen does **not** inadvertently scroll the web page.
-- **Minimum Tap Targets**:
-  - All interactive buttons (presets, action icons, rotation buttons, view option toggles) must maintain minimum 44px x 44px touch tap areas (or appropriate padding) to prevent accidental mis-taps.
-- **Preset Grid Responsiveness**:
-  - Desktop: 3 columns (`grid-cols-3`).
-  - Mobile: 2 columns (`grid-cols-2`) with thumbnail scaling to fit compact screens.
+- **`touch-action: none` on Court Canvas**: The court SVG container must apply `touch-action: none` so that dragging a defender, attacker, or target on a smartphone does **not** inadvertently scroll the page.
+- **Minimum Tap Targets**: All interactive buttons (strategy rows, action icons, toggler cards, rotation buttons, view toggles) must maintain minimum 44px x 44px touch areas (or appropriate padding).
 
 ---
 
-## 7. Share Modal: Visual Thumbnails & Phase Separation
+## 7. Share Modal: Strategy Picker
 
-When clicking **Share** in the header, the modal provides visual selection of the tactic bundle:
+When clicking **Share** in the header, the modal offers visual selection of **strategies only**:
 
-1. **Clear Phase & Context Separation**:
-   - **Section 0: Rotation Context (Tactical Multiplier)** (`ArrowLeftRight` / `Users` SVG):
-     - Serving rotation segmented control (*Man Serving* vs. *Woman Serving*). Synchronizes dynamically with the on-court active rotation and updates the share grid cards accordingly.
-     - Calibrates the tactical package so that recipients view the correct rotation lineup, net blocking eligibility, and court geometry.
-   - **Section 1: Base Formation Presets (Start Coordinates / Reading Phase)** (`Shield` SVG):
-     - Clear description: *"Initial positioning of all 6 defenders before the opponent set."*
-     - Selection limit badge: `[X / 3 Selected]`.
-   - **Section 2: Defensive Formation Presets (End Coordinates / Reaction Phase)** (`Crosshair` SVG):
-     - Clear description: *"Defensive blocks and court coverage adjustments when the ball is spiked."*
-     - Selection limit badge: `[X / 3 Selected]`.
-2. **Visual Thumbnail Cards**:
-   - Each preset option displays its title, custom indicator (`User` SVG), and a mini SVG court preview of the positions.
+1. **Optional Share Title** (shown in the guest banner).
+2. **Strategy Cards**:
+   - Each card shows the strategy **name**, **rotation badge**, and the **Base** and **Defensive** SVG thumbnails side by side.
    - Clean checkbox indicator toggles inclusion.
-3. **1-Click Generation**:
-   - Encodes up to 3+3 presets into the compressed URL hash (`#share=...`) and copies it directly to the clipboard with `Copy`/`Check` SVG feedback.
+   - Selection counter: `[X Selected]`.
+   - The active strategy is pre-selected.
+3. **No Rotation or Formation Sections**: rotation and positioning are defined by each strategy.
+4. **1-Click Generation**:
+   - Encodes the selected strategies into the compressed URL hash (`#share=...`) and copies it to the clipboard with `Copy`/`Check` SVG feedback.
 
 ---
 
@@ -272,12 +221,25 @@ To ensure professional aesthetics, consistent visual weight, and cross-platform 
    - **Strictly Prohibited**: Raw system emojis (such as ⚙️, ☀️, 🌙, 🔗, ✏️, 🗑️, 🛡️, ⚔️, 🏐, 👁️) must **never** be used for UI controls, buttons, toggles, badges, overlay switches, or modal tabs.
    - *Rationale*: Emojis render with radically disparate color schemes, glyph sizes, and baseline alignments across operating systems (macOS, Windows, Android, iOS, Linux) and do not support dynamic theme tinting.
 2. **Single Consistent Library**:
-   - All icons are sourced exclusively from **Lucide Icons** (`lucide-svelte` / Lucide core).
-   - In the Svelte application: imported directly from `lucide-svelte` (e.g., `<Share2 size={16} />`, `<Settings size={18} />`).
+   - All icons are sourced exclusively from **Lucide Icons** (`@lucide/svelte` / Lucide core).
+   - In the Svelte application: imported directly from `@lucide/svelte` (e.g., `<Share2 size={16} />`, `<Settings size={18} />`).
    - In static prototypes / HTML mockups: rendered as clean, inline SVG elements with `viewBox="0 0 24 24"`, `fill="none"`, `stroke="currentColor"`, and `stroke-width="2"`.
 3. **Harmonious Sizing Scale**:
-   - **Micro Actions & Badges (12px – 14px)**: Preset edit (`Pencil`), delete (`Trash2`), custom author badge (`User`).
-   - **Header Controls & Primary Buttons (16px – 18px)**: Share (`Share2`), theme switch (`Sun` / `Moon`), settings dropdown (`Settings`).
-   - **Section Titles & Phase Headers (16px – 20px)**: Base defense (`Shield`), attack reaction (`Crosshair`), rotation context (`ArrowLeftRight` / `Users`).
+   - **Micro Actions & Badges (12px – 14px)**: Edit (`Pencil`), delete (`Trash2`), custom author badge (`User`), visible tag (`Eye`).
+   - **Header Controls & Primary Buttons (16px – 18px)**: Share (`Share2`), theme switch (`Sun` / `Moon`), settings dropdown (`Settings`), new strategy (`Plus`).
+   - **Section Titles & Phase Headers (16px – 20px)**: Base formation (`Shield`), defensive formation (`Crosshair`), rotation context (`ArrowLeftRight` / `Users`), strategies (`Layers`).
 4. **Theme Adaptation**:
    - All SVG icons use `stroke="currentColor"`, automatically adapting to Light Mode and Dark Mode contrast without hardcoded fills.
+
+---
+
+## 9. Status Visual Language (Tags & Outlines)
+
+| State | Outline | Tag |
+|---|---|---|
+| **Active** (selected strategy / formation in use) | Blue (`primary`) | Blue `Active` tag |
+| **Visible** (the phase currently shown on the court) | Green (`success`) | Green `Visible` tag with `Eye` icon |
+| **Modified** (unsaved draft changes) | Amber (`warning`) | Amber `Modified` tag |
+
+- Tags appear **on rows/cards only**, never on column or block headers.
+- *Active* is always shown when applicable; *Visible* appears in addition when the active item is also the phase on the court.

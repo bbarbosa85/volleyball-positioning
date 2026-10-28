@@ -2,13 +2,16 @@
 
 > **Module Specification**  
 > *Requirements Index: [docs/Requirements.md](./Requirements.md)*  
+> *Domain Model: [docs/Strategies.md](./Strategies.md)*  
 > *Last updated: October 2026*
 
 ---
 
 ## 1. Overview & Objectives
 
-Coaches need to share tactical formations, base defenses, and attack reactions with their players without forcing players to register, log in, or risk accidentally altering the coach's presets.
+Coaches need to share complete defensive game plans with their players without forcing players to register, log in, or risk accidentally altering the coach's work.
+
+The unit of sharing is the **Strategy** (rotation + 1 base formation + 1 defensive formation, with a name and description). See [Strategies.md](./Strategies.md). **Only strategies can be shared**; individual formations are never shared on their own.
 
 ### The Strategy: V1 (Free) vs. V2 (Pro)
 
@@ -16,7 +19,7 @@ Coaches need to share tactical formations, base defenses, and attack reactions w
 |---|---|---|
 | **Storage Architecture** | **100% Client-Side** (No DB / No Server) | Cloud Database (SQLite / Postgres) |
 | **Share Mechanism** | **Compressed URL Hash** (`#share=...`) | Shortlink URL (`/t/:tacticSlug`) |
-| **Presets per Share Link** | **Up to 3 Base + 3 Attack Presets** | **Unlimited Presets** (Entire season playbooks) |
+| **Strategies per Share Link** | **Selected Strategies** | **Unlimited Cloud Strategies** (Entire season playbooks) |
 | **Account Required?** | **None** (Instant usage for coach & players) | Coach account required |
 | **Recipient Experience** | Read-Only Guest Mode + "Save to My Tactics" | Read-Only Guest Mode + Team Access + View Analytics |
 
@@ -26,50 +29,58 @@ Coaches need to share tactical formations, base defenses, and attack reactions w
 
 ## 2. V1 Compressed URL Architecture ("URL as Database")
 
-In V1, sharing requires **zero backend infrastructure**. The tactical data is compressed directly into the URL hash using a client-side compression library (`lz-string`).
+In V1, sharing requires **zero backend infrastructure**. The data is compressed directly into the URL hash using a client-side compression library (`lz-string`).
 
 ```
-Selected Presets (Up to 3 Base + 3 Attack)
+Selected Strategies
   │
   ▼
-JSON Payload (~1.5 KB)
+JSON Payload v2 (~1.5 – 5 KB)
   │
   ▼
 LZ-String URI-Safe Compression
   │
   ▼
-https://volleydefense.app/#share=eNp9Vstu... (~500 - 800 characters)
+https://volleydefense.app/#share=eNp9Vstu... (~600 - 2000 characters)
 ```
 
-### 2.1 The 3+3 Preset Bundle (Virality & Compactness)
-- Coaches can bundle up to **3 Base Defense presets** and up to **3 Attack presets** in a single link.
-- **Why this limit works**:
-  - Provides a complete, actionable match plan (e.g., Deep & Tip Cover against Outside Cross, Fast Line, and Pipe).
-  - Keeps the compressed URL safely under 900 characters (compatible with WhatsApp, iMessage, SMS, and email clients which support up to 2,000+ characters).
-  - **Ultra-Compact Schema**: By modeling the two serving rotations with numbers and gender colors instead of custom player names, player name strings and custom roster payloads are completely omitted, reducing URL payload size by over 40%.
-  - Serves as the natural upsell threshold for the future **Pro Tier** (unlimited presets per share).
+### 2.1 Payload Schema (v2)
+
+```ts
+interface SharePayloadV2 {
+  v: 2;
+  title?: string;
+  strategies: Omit<Strategy, 'id'>[];  // array of strategies
+}
+```
+
+- Strategies are **self-contained** (name, description, rotation, setter, attacker, target, base and defensive positioning), so no cross-references or deduplication are needed. Ids are regenerated on import.
+- Player names are never included. Rotations are modeled by numbers and gender colors, keeping the payload compact.
+
+### 2.2 Bundling Strategies
+
+- Coaches can bundle any combination of their strategies into a single link.
+- LZ-String compression keeps the URL compact and compatible with messaging apps (WhatsApp, iMessage, SMS, and email clients).
+
+### 2.2.1 Legacy v1 Links
+
+Links created before strategies existed (payload without `v`, containing separate base/attack presets and a rotation) are **converted on open**: bases and defenses of the same rotation are paired by index into auto-named, self-contained strategies (*"Shared strategy 1"*, ...). If a link cannot be converted, the user sees a non-blocking notice and the app opens normally.
 
 ---
 
 ## 3. Coach Workflow (Generating a Shared Link)
 
-1. **Initiate Share**: Coach clicks the **Share** button in the top header.
-2. **Share Modal**:
-   - **Tactic Title** (e.g. *"Defense vs. Lincoln High"*).
-   - **0. Rotation Context (Tactical Multiplier)**:
-     - Segmented control selecting the serving rotation context (*Man Serving* vs. *Woman Serving*).
-     - Because serving rotations dictate front-row net blocker eligibility and court baseline geometry, presets are calibrated to this rotation multiplier.
-   - **1. Base Formation Presets (Start Coordinates / Reading Phase)**:
-     - Visual grid of preset cards featuring miniature court thumbnails.
-     - Checkbox selection with a 3-preset cap (counter: `[X / 3 Selected]`).
-     - Clarifies that these represent initial defender reading coordinates.
-   - **2. Defensive Formation Presets (End Coordinates / Reaction Phase)**:
-     - Visual grid of attack preset cards featuring miniature court thumbnails and vector indicators.
-     - Checkbox selection with a 3-preset cap (counter: `[X / 3 Selected]`).
-     - Clarifies that these represent defensive reaction adjustments and blocking assignments.
+1. **Initiate Share**: Coach clicks the **Share** button in the top header (disabled while a strategy is being edited).
+2. **Share Modal** (strategies only):
+   - **Share Title** (optional) used for the guest banner (e.g. *"Defense vs. Lincoln High"*).
+   - **Strategy Picker**:
+     - Card list of the coach's strategies. Each card shows the strategy **name**, **rotation badge** (*Man Serving* / *Woman Serving*), and the **Base** and **Defensive** SVG thumbnails side by side.
+     - Checkbox selection with an active counter (`[X Selected]`).
+     - The currently active strategy is pre-selected.
+   - There is **no separate rotation selector or formation picker**; both are defined by each strategy.
 3. **Generate & Copy**:
-   - Clicking **Generate & Copy Share Link** compresses the payload (including the rotation context) into the URL hash (`#share=...`) and copies it to the clipboard.
-   - Toast feedback confirms: *"Link copied! Anyone with this link can view and play this tactic."*
+   - Clicking **Generate & Copy Share Link** builds the v2 payload, compresses it into the URL hash (`#share=...`) and copies it to the clipboard.
+   - Toast feedback confirms: *"Link copied! Anyone with this link can view and play these strategies."*
 
 ---
 
@@ -79,31 +90,21 @@ When an unauthenticated player or teammate opens a shared link (`/#share=...`):
 
 ### 4.1 Strict Read-Only Restrictions
 To protect tactical integrity:
-- **No Player / Ball Dragging**:
-  - Defender tokens, the opponent attacker, setter, and ball are rendered in fixed/view-only mode.
-  - Drag handlers are disabled.
-- **No Modification Alerts**:
-  - Alerts such as *"Base positions modified"* or *"Defensive formation modified"* are completely suppressed.
-- **No Edit / Delete Action Buttons**:
-  - The `Pencil` (rename) and `Trash2` (delete) buttons are **never rendered** on preset cards.
-- **No Save / Custom Modal**:
-  - All "Save as Custom" dialogs and quick-save triggers are inaccessible.
+- **View mode only**: Edit mode is unreachable.
+- **No Player / Ball Dragging**: Defender tokens, the opponent attacker, setter, and ball are rendered in fixed/view-only mode. Drag handlers are disabled.
+- **No Modification Alerts or Save Dialogs**: Dirty alerts, quick-save triggers, and all "Save" dialogs are inaccessible.
+- **No Edit / Delete / New**: Strategy *Edit*, *Delete* and *+ New* controls are **never rendered**.
+- **No Share**: Guests cannot re-share (the Share button is hidden).
 
 ### 4.2 Allowed Guest Interactions
-Guests enjoy full interactive simulation capabilities within the shared bundle:
-1. **Switch Between Shared Presets**:
-   - Guests can toggle among the Base Formation presets included in the link.
-   - Guests can toggle among the Defensive Formation presets included in the link.
-2. **Switch Rotations**:
-   - Guests can toggle between **Man Serving** and **Woman Serving** to see how the team rotates.
-3. **Direct Smooth Transitions**:
-   - Selecting any shared Base or Attack preset automatically glides defenders into place along their tactical transition vectors.
-4. **Stage Position Toggle**:
-   - Guests can toggle between `Base Formation` (0%) and `Defensive Formation` (100%) to inspect both phases.
-5. **View Options**:
-   - Guests can toggle `Zones`, `All Arrows`, `Block Shadow`, and `3D View`.
-6. **"Save to My Tactics" (Local Import)**:
-   - A button in the guest banner allows recipients to copy the shared presets directly into their own browser's `localStorage` for offline practice.
+1. **Switch Between Shared Strategies**: Column 1 lists only the strategies in the link; selecting one loads its rotation and positioning.
+2. **Base / Defensive Toggler**: Column 3 toggler and the court header switcher animate between phases (`Base` 0% and `Defensive` 100%).
+3. **Direct Smooth Transitions**: Defenders glide along their tactical transition vectors.
+4. **View Options**: Toggle `Zones`, `All Arrows`, `Block Shadow`, and `3D View`.
+5. **"Save to My Tactics" (Local Import)**:
+   - A button in the guest banner copies the shared **strategies** into the recipient's own browser `localStorage`.
+   - Imported strategies receive **fresh ids**; name collisions get a numeric suffix.
+   - Imported strategies are marked custom and are fully editable.
 
 ---
 
@@ -112,6 +113,6 @@ Guests enjoy full interactive simulation capabilities within the shared bundle:
 In Guest Mode:
 - The top header displays a subtle, clean banner:
   ```
-  👁️ Shared Tactic: [Tactic Title] • Read-Only • [Save to My Tactics]
+  [Eye icon] Shared Strategies: [Share Title] • Read-Only • [Save to My Tactics]
   ```
-- If the visitor exits the shared view, the app restores their personal local presets.
+- If the visitor exits the shared view, the app restores their personal local strategies.

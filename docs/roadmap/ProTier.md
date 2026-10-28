@@ -15,7 +15,7 @@ While **V1 is 100% free, local-first (`localStorage`), and account-free**, the *
 - **Multi-Device Cloud Sync**: Seamlessly create and edit tactics on a laptop at home, then pull them up on an iPad courtside or on a smartphone on the bench.
 - **Permanent Cloud Backup**: Playbooks and custom formations are permanently stored in the cloud—never lost if browser cache is cleared or devices are changed.
 - **Team Playbook Collaboration**: Invite assistant coaches and players with team accounts to view tactics.
-- **Unlimited Preset Sharing**: Share entire season playbooks (10+ schemes) in a single link.
+- **Unlimited Strategy Sharing**: Share entire season playbooks (10+ strategies) in a single link.
 - **Custom Branded Shortlinks**: Clean, professional links (e.g., `volleydefense.app/t/falcons-defense`) with view analytics.
 
 ---
@@ -25,10 +25,10 @@ While **V1 is 100% free, local-first (`localStorage`), and account-free**, the *
 | Feature | V1 (Free Active Target) | V2 (Pro Tier Subscription) |
 |---|:---:|:---:|
 | **Account Required?** | **No (Zero friction)** | Yes (Email & Password) |
-| **Local Custom Presets** | **Yes (`localStorage`)** | Yes |
+| **Local Custom Strategies** | **Yes (`localStorage`)** | Yes |
 | **Cloud-Synced Playbooks** | No | **Yes (Cross-device)** |
-| **Share via Compressed URL** | **Yes (Up to 3+3 presets)** | Yes |
-| **Unlimited Presets per Share** | No | **Yes (Full playbooks)** |
+| **Share via Compressed URL** | **Yes (Up to 3 strategies)** | Yes |
+| **Unlimited Strategies per Share** | No | **Yes (Full playbooks)** |
 | **Custom Shortlinks (`/t/slug`)** | No | **Yes** |
 | **Team Member Access** | No | **Yes** |
 | **View Tracking & Analytics** | No | **Yes (See who reviewed plays)** |
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS pro_shortlinks (
   slug TEXT PRIMARY KEY,                    -- Custom short slug e.g. "falcons-line-d"
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
-  tactics_bundle JSON NOT NULL,             -- Unlimited preset array
+  tactics_bundle JSON NOT NULL,             -- Unlimited strategy array
   views_count INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -98,7 +98,9 @@ CREATE TABLE IF NOT EXISTS pro_shortlinks (
 ## 4. V1 to V2 Migration & Upsell Flow
 
 When a free V1 user signs up for a V2 Pro account:
-1. The client detects existing custom presets in `localStorage`.
+1. The client detects existing custom strategies in `localStorage`.
 2. A one-click onboarding prompt appears:
    > *"Import your existing local playbooks to your new cloud account?"*
-3. Local presets are uploaded to the cloud database and synced across the user's devices without data loss.
+3. Local strategies are uploaded to the cloud database and synced across the user's devices without data loss.
+
+> *Note: The cloud schema above will gain a `user_strategies` table (name, description, rotation, embedded base/defense positioning as JSON) when strategies move to the cloud. See [docs/Strategies.md](../Strategies.md).*

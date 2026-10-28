@@ -134,6 +134,7 @@
     {rotation}
     {allSchemes}
     {currentScheme}
+    {currentPositionMode}
     {isBaseModified}
     {roster}
     {onChangeScheme}
@@ -150,6 +151,7 @@
     {rotation}
     {scenarios}
     {currentScenario}
+    {currentPositionMode}
     {isAttackModified}
     {roster}
     {attackSchemes}
